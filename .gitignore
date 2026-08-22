@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# Build artefacts — never commit these.
+#
+# Everything below is REGENERATED from the sources in branding/ and steps/.
+# Keeping it out of git is what keeps this repository small and what stops it
+# growing by tens of megabytes at every release.
+# ---------------------------------------------------------------------------
+
+# live-build work directory (several GB during a build)
+/.work/
+
+# version-stamped copies of steps/*.sh, produced by build.sh
+/.gen/
+
+# branding packages, produced by make-debs.sh
+/local/extra_debs/
+
+# images and checksums
+*.iso
+
+SHA256SUMS
+
+# generated website (built by site/build.py, uploaded by release.sh)
+/site/public/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*~
+*.swp
+/RELEASE-NOTES-*.md

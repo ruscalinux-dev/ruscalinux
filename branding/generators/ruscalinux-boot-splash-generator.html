@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ruscalinux — Boot Splash Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --wine:        #7f2457;
+  --wine-dark:   #4a1030;
+  --wine-deep:   #1a0d14;
+  --wine-surf:   #2a1020;
+  --wine-border: #5a2040;
+  --wine-light:  #a83070;
+  --wine-accent: #c47fa0;
+  --text:        #f0d6e8;
+  --text-sub:    #f5c2da;
+  --text-dim:    #7a4060;
+}
+
+body {
+  background: var(--wine-deep);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 56px;
+  gap: 32px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.preview-wrap {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--wine-border);
+  box-shadow: 0 16px 56px rgba(0,0,0,0.75), 0 0 0 1px rgba(200,80,130,0.06);
+}
+
+canvas#preview {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+  background: var(--wine-surf);
+  border: 1px solid var(--wine-border);
+  border-radius: 10px;
+  padding: 16px 22px;
+}
+
+.ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+  max-width: 260px;
+}
+
+label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wine-accent);
+}
+
+input[type="text"],
+select {
+  background: var(--wine-deep);
+  border: 1px solid var(--wine-border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="text"]:focus,
+select:focus { border-color: var(--wine-light); }
+
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4060' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.sep { width: 1px; height: 30px; background: var(--wine-border); align-self: center; }
+
+.btn-dl {
+  background: var(--wine);
+  color: #fff;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.btn-dl:hover  { opacity: .82; }
+.btn-dl:active { transform: scale(.97); }
+
+canvas#exportCanvas { display: none; }
+</style>
+</head>
+<body>
+
+<p class="eyebrow">RuscaLinux — Boot Splash Generator</p>
+
+<div class="preview-wrap">
+  <canvas id="preview" width="1920" height="1080"></canvas>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <label>Bottom text</label>
+    <input type="text" id="subtitle" value="" placeholder="e.g. Loading...">
+  </div>
+  <div class="ctrl-group">
+    <label>Version</label>
+    <input type="text" id="version" value="v1.10" placeholder="v1.10">
+  </div>
+  <div class="ctrl-group">
+    <label>Background style</label>
+    <select id="bgstyle">
+      <option value="dots">Dot grid</option>
+      <option value="lines">Thin lines</option>
+      <option value="clean">Clean</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label>Resolution</label>
+    <select id="resolution">
+      <option value="3840x2160">4K — 3840×2160</option>
+      <option value="1920x1080" selected>Full HD — 1920×1080</option>
+      <option value="1280x720">HD — 1280×720</option>
+      <option value="800x600">800×600</option>
+      <option value="640x480">640×480</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+  <button class="btn-dl" onclick="downloadPNG()">↓ Download PNG</button>
+</div>
+
+<canvas id="exportCanvas"></canvas>
+
+<script>
+const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.35"/>
+      <feComposite in2="offsetblur" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(-80, -75) scale(1.4)" filter="url(#shadow)">
+    <path d="M213.2,385.4c-81.2-13.6-137.1-89.8-125-171.8c10.7-72.2,71.2-127.3,144-131.2c84.2-4.5,156.4,60.8,161.1,145c3.2,57.1-23.7,110.1-66.7,141.4c-15.3,11.1-34.8,19.3-51.2,12.5c-15.6-6.5-19.1-26.6-11.4-39.8c15.1-25.9,50.7-27.1,73.5-47.8c34.3-31.1,48.2-82.7,33-126.7c-18.7-54-78.5-87.1-133.1-73.8c-55.7,13.6-94,68-85.1,124.9c7,44.7,42.2,81.1,87,88.2c16.1,2.5,23.3,23.1,13.4,36.2C241.6,411.3,222.8,387,213.2,385.4z" fill="#ffffff"/>
+    <g transform="translate(325, 230) rotate(-15)">
+      <path d="M0,0 L35,15 L0,30 L5,15 Z" fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="0" y1="15" x2="20" y2="15" stroke="#ffffff" stroke-width="1.5"/>
+      <circle cx="12" cy="15" r="2" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>`;
+
+const logoImg = new Image();
+logoImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LOGO_SVG);
+
+function redraw() { drawSplash(document.getElementById('preview')); }
+
+logoImg.onload = redraw;
+document.fonts.ready.then(redraw);
+['subtitle','version','bgstyle','resolution'].forEach(id =>
+  document.getElementById(id).addEventListener('input', redraw)
+);
+
+/* ── Pattern helpers ────────────────────────────────────── */
+
+function drawDots(ctx, W, H) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.042)';
+  const s = 52;
+  for (let x = s; x < W; x += s)
+    for (let y = s; y < H; y += s) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  ctx.restore();
+}
+
+function drawLines(ctx, W, H) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.038)';
+  ctx.lineWidth = 1;
+  const s = 64;
+  for (let x = 0; x < W; x += s) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += s) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ── Main draw ──────────────────────────────────────────── */
+
+function getResolution() {
+  const val = document.getElementById('resolution').value;
+  const [W, H] = val.split('x').map(Number);
+  return { W, H };
+}
+
+function drawSplash(canvas) {
+  const ctx = canvas.getContext('2d');
+  const { W, H } = getResolution();
+
+  // Aggiorna dimensioni canvas
+  canvas.width  = W;
+  canvas.height = H;
+
+  // Fattore di scala rispetto al canvas base 1920x1080
+  const sc = Math.min(W / 1920, H / 1080);
+
+  const cx = W / 2, cy = H / 2;
+
+  const subtitle = document.getElementById('subtitle').value.trim();
+  const version  = document.getElementById('version').value.trim();
+  const bgstyle  = document.getElementById('bgstyle').value;
+
+  /* — Sfondo base — */
+  ctx.fillStyle = '#7f2457';
+  ctx.fillRect(0, 0, W, H);
+
+  /* — Bagliore radiale centrale — */
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 820 * sc);
+  glow.addColorStop(0,   'rgba(200,60,120,0.26)');
+  glow.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  /* — Pattern — */
+  if (bgstyle === 'dots')  drawDots(ctx, W, H);
+  if (bgstyle === 'lines') drawLines(ctx, W, H);
+
+  /* — Vignette — */
+  const vig = ctx.createRadialGradient(cx, cy, H * 0.28, cx, cy, H * 0.84);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.52)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+
+  /* — Striscia inferiore — */
+  ctx.fillStyle = 'rgba(160,48,96,0.55)';
+  ctx.fillRect(0, H - Math.max(3, Math.round(5 * sc)), W, Math.max(3, Math.round(5 * sc)));
+
+  /* — Logo — */
+  const logoSize = Math.round(230 * sc);
+  const logoY    = cy - Math.round(300 * sc);          // top-left Y del logo
+  if (logoImg.complete && logoImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.shadowColor   = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur    = 32 * sc;
+    ctx.shadowOffsetY = 12 * sc;
+    ctx.drawImage(logoImg, cx - logoSize / 2, logoY, logoSize, logoSize);
+    ctx.restore();
+  }
+
+  /* ── Blocco testo: ancorato a partire da titleY ─────── */
+  const titleY    = H - Math.round(182 * sc);
+  const dividerY  = H - Math.round(136 * sc);
+  const taglineY  = H - Math.round(86  * sc);
+  const subtitleY = H - Math.round(44  * sc);
+  const versionY  = H - Math.round(44  * sc);
+
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'alphabetic';
+
+  /* — Titolo "ruscalinux" — */
+  ctx.save();
+  ctx.shadowColor   = 'rgba(0,0,0,0.38)';
+  ctx.shadowBlur    = 24 * sc;
+  ctx.shadowOffsetY = 8 * sc;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `800 ${Math.round(112 * sc)}px "Syne", "Arial Black", sans-serif`;
+  ctx.fillText('ruscalinux', cx, titleY);
+  ctx.restore();
+
+  /* — Linea divisoria — */
+  const lineW = Math.round(420 * sc);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+  ctx.lineWidth = Math.max(1, sc);
+  ctx.beginPath();
+  ctx.moveTo(cx - lineW, dividerY);
+  ctx.lineTo(cx + lineW, dividerY);
+  ctx.stroke();
+  ctx.restore();
+
+  /* — Tagline "Free, complete, and ready to go." — */
+  ctx.save();
+  ctx.fillStyle    = 'rgba(245,194,218,0.92)';
+  ctx.font         = `600 ${Math.round(36 * sc)}px "Syne", Arial, sans-serif`;
+  ctx.letterSpacing = `${Math.round(2 * sc)}px`;
+  ctx.fillText('Free, complete, and ready to go.', cx, taglineY);
+  ctx.letterSpacing = '0px';
+  ctx.restore();
+
+  /* — Testo libero (opzionale) — */
+  if (subtitle) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.40)';
+    ctx.font = `400 ${Math.round(26 * sc)}px "DM Sans", Arial, sans-serif`;
+    ctx.fillText(subtitle, cx, subtitleY);
+    ctx.restore();
+  }
+
+  /* — Versione (in basso a destra) — */
+  if (version) {
+    ctx.save();
+    ctx.fillStyle    = 'rgba(255,255,255,0.32)';
+    // Pavimento di leggibilità: non scende sotto 16px
+    const versionPx  = Math.max(16, Math.round(22 * sc));
+    ctx.font         = `600 ${versionPx}px "Syne", Arial, sans-serif`;
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(version, W - Math.max(20, Math.round(56 * sc)), versionY);
+    ctx.restore();
+  }
+}
+
+function downloadPNG() {
+  const exp = document.getElementById('exportCanvas');
+  drawSplash(exp);
+  const res = document.getElementById('resolution').value;
+  const a = Object.assign(document.createElement('a'), {
+    download: `ruscalinux-boot-splash-${res}.png`,
+    href: exp.toDataURL('image/png')
+  });
+  a.click();
+}
+</script>
+</body>
+</html>

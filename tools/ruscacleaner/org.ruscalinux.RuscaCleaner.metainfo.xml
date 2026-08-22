@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.ruscalinux.RuscaCleaner</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <project_group>RuscaLinux</project_group>
+
+  <name>RuscaCleaner</name>
+  <summary>Free up space and clear traces of recent activity</summary>
+  <summary xml:lang="it">Libera spazio e cancella le tracce dell'attività recente</summary>
+
+  <description>
+    <p>
+      RuscaCleaner removes the data that accumulates during everyday use: image
+      and video thumbnails, the list of recently opened documents, shell
+      history and the contents of the trash. Every action is limited to the
+      home directory of the current user and is confirmed before it runs.
+    </p>
+    <p xml:lang="it">
+      RuscaCleaner rimuove i dati che si accumulano con l'uso quotidiano:
+      anteprime di immagini e video, elenco dei documenti aperti di recente,
+      cronologia della shell e contenuto del cestino. Ogni operazione è
+      limitata alla cartella home dell'utente e viene confermata prima
+      dell'esecuzione.
+    </p>
+    <p>Part of the RuscaLinux project, a Debian-based GNU/Linux distribution.</p>
+    <p xml:lang="it">Parte del progetto RuscaLinux, distribuzione GNU/Linux basata su Debian.</p>
+  </description>
+
+  <launchable type="desktop-id">ruscacleaner.desktop</launchable>
+
+  <categories>
+    <category>System</category>
+    <category>Utility</category>
+  </categories>
+
+  <content_rating type="oars-1.1"/>
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+
+  <url type="homepage">https://www.ruscalinux.org/ruscacleaner/</url>
+  <url type="bugtracker">https://bugs.ruscalinux.org/</url>
+
+  <developer id="org.ruscalinux">
+    <name>RuscaLinux Project</name>
+  </developer>
+
+  <releases>
+    <release version="1.0" date="2026-08-08">
+      <description>
+        <p>First release shipped with RuscaLinux.</p>
+        <p xml:lang="it">Prima versione distribuita con RuscaLinux.</p>
+      </description>
+    </release>
+  </releases>
+</component>

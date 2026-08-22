@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RuscaLinux — Wallpaper Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --plum-deep:    #3D0A2E;
+      --plum-mid:     #7F2457;
+      --plum-accent:  #B5437A;
+      --plum-light:   #E8CBE8;
+      --plum-pale:    #F5EBF5;
+      --ui-bg:        #1A1A1F;
+      --ui-surface:   #242429;
+      --ui-border:    rgba(255,255,255,0.08);
+      --ui-text:      #F0EAF0;
+      --ui-muted:     rgba(240,234,240,0.45);
+      --accent:       #B5437A;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Syne', sans-serif;
+      background: var(--ui-bg);
+      color: var(--ui-text);
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--ui-border);
+      background: var(--ui-surface);
+    }
+
+    .logo-mark { display: flex; align-items: center; gap: 10px; }
+    .logo-mark svg { width: 32px; height: 32px; }
+
+    .logo-mark span {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ui-text);
+      opacity: 0.9;
+    }
+
+    .logo-mark span em { font-style: normal; color: var(--accent); }
+
+    /* ── MAIN AREA ── */
+    main {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--ui-surface);
+      border-right: 1px solid var(--ui-border);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      overflow-y: auto;
+    }
+
+    .sidebar-section { display: flex; flex-direction: column; gap: 12px; }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ui-muted);
+    }
+
+    /* Theme toggle — three variants */
+    .theme-toggle {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .theme-btn {
+      padding: 10px 0;
+      border: 1.5px solid var(--ui-border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ui-muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      letter-spacing: 0.03em;
+    }
+
+    .theme-btn.active {
+      border-color: var(--accent);
+      color: var(--ui-text);
+      background: rgba(181,67,122,0.12);
+    }
+
+    .theme-btn:hover:not(.active) {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--ui-text);
+    }
+
+    /* Text input */
+    .text-input-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .text-input-group input {
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--ui-border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ui-text);
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .text-input-group input:focus { border-color: var(--accent); }
+    .text-input-group input::placeholder { color: var(--ui-muted); }
+    .text-input-group .sub-input { font-size: 0.78rem; opacity: 0.8; }
+
+    /* Sliders */
+    .slider-group { display: flex; flex-direction: column; gap: 14px; }
+    .slider-row { display: flex; flex-direction: column; gap: 5px; }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--ui-muted);
+    }
+
+    .slider-header span:last-child { color: var(--ui-text); font-weight: 700; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* Buttons */
+    .btn-primary {
+      padding: 12px 0;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-primary:hover { background: #C44E88; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      padding: 10px 0;
+      background: transparent;
+      border: 1.5px solid var(--ui-border);
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ui-muted);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--ui-text); }
+
+    .download-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    /* ── PREVIEW ── */
+    .preview-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 32px;
+      background: #111114;
+      position: relative;
+    }
+
+    .preview-wrapper {
+      width: 100%;
+      max-width: 900px;
+      aspect-ratio: 16 / 9;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 20px 60px rgba(0,0,0,0.6),
+        0 4px 12px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    #wallpaper-svg { width: 100%; height: 100%; display: block; }
+
+    /* Three-variant strip */
+    .thumb-strip {
+      width: 100%;
+      max-width: 900px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      border-radius: 5px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, transform 0.2s;
+      background: #000;
+    }
+
+    .thumb:hover { transform: translateY(-2px); }
+    .thumb.active { border-color: var(--accent); }
+    .thumb svg { width: 100%; height: 100%; display: block; }
+
+    .thumb-label {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 4px 8px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #fff;
+      background: linear-gradient(transparent, rgba(0,0,0,0.65));
+      pointer-events: none;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 14px 32px;
+      background: var(--ui-surface);
+      border-top: 1px solid var(--ui-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-info {
+      font-size: 0.72rem;
+      color: var(--ui-muted);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── DIVIDER ── */
+    hr.panel-divider { border: none; border-top: 1px solid var(--ui-border); }
+
+    /* Scroll bar */
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    /* Offscreen render stage (needed so getBBox() works on export) */
+    #stage {
+      position: absolute;
+      left: -10000px; top: 0;
+      width: 1920px; height: 1080px;
+      pointer-events: none;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-mark">
+      <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(-80, -75) scale(1.4)">
+          <path d="M213.2,385.4c-81.2-13.6-137.1-89.8-125-171.8c10.7-72.2,71.2-127.3,144-131.2c84.2-4.5,156.4,60.8,161.1,145c3.2,57.1-23.7,110.1-66.7,141.4c-15.3,11.1-34.8,19.3-51.2,12.5c-15.6-6.5-19.1-26.6-11.4-39.8c15.1-25.9,50.7-27.1,73.5-47.8c34.3-31.1,48.2-82.7,33-126.7c-18.7-54-78.5-87.1-133.1-73.8c-55.7,13.6-94,68-85.1,124.9c7,44.7,42.2,81.1,87,88.2c16.1,2.5,23.3,23.1,13.4,36.2C241.6,411.3,222.8,387,213.2,385.4z" fill="#B5437A"/>
+          <g transform="translate(325, 230) rotate(-15)">
+            <path d="M0,0 L35,15 L0,30 L5,15 Z" fill="#E0E0E0"/>
+          </g>
+        </g>
+      </svg>
+      <span>rusca<em>linux</em> · wallpaper generator</span>
+    </div>
+    <div style="font-size:0.72rem;color:var(--ui-muted);letter-spacing:0.05em;">3 variants · SVG · PNG 1080p · PNG 4K</div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- THEME -->
+      <div class="sidebar-section">
+        <div class="section-label">Background variant</div>
+        <div class="theme-toggle">
+          <button class="theme-btn" id="btn-light" onclick="setTheme('light')">○ Light</button>
+          <button class="theme-btn" id="btn-mid" onclick="setTheme('mid')">◑ Mid</button>
+          <button class="theme-btn active" id="btn-dark" onclick="setTheme('dark')">◐ Dark</button>
+        </div>
+      </div>
+
+      <hr class="panel-divider">
+
+      <!-- TEXT -->
+      <div class="sidebar-section">
+        <div class="section-label">Text — Syne font</div>
+        <div class="text-input-group">
+          <input type="text" id="main-text" placeholder="ruscalinux" maxlength="40"
+                 oninput="renderAll()" value="ruscalinux">
+          <input type="text" id="sub-text" class="sub-input" placeholder="Free, complete, and ready to go."
+                 maxlength="60" oninput="renderAll()" value="Free, complete, and ready to go.">
+        </div>
+      </div>
+
+      <hr class="panel-divider">
+
+      <!-- CONTROLS -->
+      <div class="sidebar-section">
+        <div class="section-label">Composition</div>
+        <div class="slider-group">
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Planes</span>
+              <span id="val-planes">6</span>
+            </div>
+            <input type="range" id="sl-planes" min="0" max="14" value="6"
+                   oninput="document.getElementById('val-planes').textContent=this.value; generateArt()">
+          </div>
+
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Seed</span>
+              <span id="val-seed">—</span>
+            </div>
+            <input type="text" id="in-seed" inputmode="numeric"
+                   style="width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(255,255,255,.14);
+                          background:rgba(255,255,255,.05);color:inherit;font:inherit;font-size:12px;"
+                   placeholder="es. 4242" onchange="applySeed(this.value)">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Element opacity</span>
+              <span id="val-opacity">75%</span>
+            </div>
+            <input type="range" id="sl-opacity" min="20" max="100" value="75"
+                   oninput="document.getElementById('val-opacity').textContent=this.value+'%'; renderAll()">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Text size</span>
+              <span id="val-textsize">46</span>
+            </div>
+            <input type="range" id="sl-textsize" min="28" max="120" value="46"
+                   oninput="document.getElementById('val-textsize').textContent=this.value; renderAll()">
+          </div>
+
+        </div>
+      </div>
+
+      <hr class="panel-divider">
+
+      <!-- GENERATE -->
+      <div class="sidebar-section">
+        <button class="btn-primary" onclick="generateArt()">↻ &nbsp;Generate new layout</button>
+      </div>
+
+      <hr class="panel-divider">
+
+      <!-- DOWNLOAD -->
+      <div class="sidebar-section">
+        <div class="section-label">Export — current variant</div>
+        <button class="btn-secondary" onclick="downloadSVG()" style="width:100%;margin-bottom:6px;">Download SVG</button>
+        <div class="download-grid">
+          <button class="btn-secondary" onclick="downloadPNG(1920,1080)">PNG 1080p</button>
+          <button class="btn-secondary" onclick="downloadPNG(3840,2160)">PNG 4K</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">Export — all three</div>
+        <button class="btn-secondary" onclick="downloadAllSVG()" style="width:100%;margin-bottom:6px;">All SVG</button>
+        <div class="download-grid">
+          <button class="btn-secondary" onclick="downloadAllPNG(1920,1080)">All 1080p</button>
+          <button class="btn-secondary" onclick="downloadAllPNG(3840,2160)">All 4K</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- PREVIEW -->
+    <section class="preview-area">
+      <div class="preview-wrapper">
+        <svg id="wallpaper-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="thumb-strip">
+        <div class="thumb" id="thumb-light" onclick="setTheme('light')">
+          <svg id="svg-light" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="thumb-label">Light</div>
+        </div>
+        <div class="thumb" id="thumb-mid" onclick="setTheme('mid')">
+          <svg id="svg-mid" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="thumb-label">Mid</div>
+        </div>
+        <div class="thumb active" id="thumb-dark" onclick="setTheme('dark')">
+          <svg id="svg-dark" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="thumb-label">Dark</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-info">One layout, three variants — light, mid, dark · plum &amp; rose base</div>
+    <div class="footer-info">Resolution: 1920 × 1080 · 3840 × 2160 (4K)</div>
+  </footer>
+
+</div>
+
+<!-- offscreen stage used for exports -->
+<div id="stage"><svg id="svg-stage" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"></svg></div>
+
+<script>
+const SVG_NS = "http://www.w3.org/2000/svg";
+const W = 1920, H = 1080;
+const THEME_ORDER = ['light','mid','dark'];
+let currentTheme = 'dark';
+let layout = null;
+
+const THEMES = {
+  light: {
+    bg1:'#FDF7FB', bg2:'#D3AAC6', bg3:'#6B3F5E',
+    wave1:'#8E3B6C', wave2:'#C97FA8',
+    elementFill:'#2E1A34', elementAlpha:0.92,
+    textMain:'#241429', textSub:'rgba(36,20,41,0.6)', divider:'rgba(36,20,41,0.18)',
+    glowColor:'rgba(255,246,251,0.30)', vignette:'rgba(58,28,50,0.50)',
+    noiseOpacity:0.028, waveAlpha:0.40, starAlpha:0.16,
+  },
+  mid: {
+    bg1:'#B8446F', bg2:'#6E2149', bg3:'#2B0A1E',
+    wave1:'#FF9EC4', wave2:'#7E2B54',
+    elementFill:'#FFF0F6', elementAlpha:0.9,
+    textMain:'#FFF3F8', textSub:'rgba(255,243,248,0.68)', divider:'rgba(255,243,248,0.26)',
+    glowColor:'rgba(255,150,190,0.40)', vignette:'rgba(24,4,16,0.55)',
+    noiseOpacity:0.045, waveAlpha:0.55, starAlpha:0.7,
+  },
+  dark: {
+    bg1:'#43102F', bg2:'#1C0414', bg3:'#080004',
+    wave1:'#C4568C', wave2:'#4A1234',
+    elementFill:'#FFFFFF', elementAlpha:0.9,
+    textMain:'#F6EDF2', textSub:'rgba(246,237,242,0.55)', divider:'rgba(246,237,242,0.22)',
+    glowColor:'rgba(190,70,130,0.30)', vignette:'rgba(0,0,0,0.62)',
+    noiseOpacity:0.06, waveAlpha:0.62, starAlpha:0.95,
+  },
+};
+
+// ---- RNG deterministico, così una composizione si può riprodurre -----------
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return () => { s ^= s<<13; s>>>=0; s ^= s>>17; s ^= s<<5; s>>>=0; return s/4294967296; };
+}
+
+// ---- Bezier cubica: punto e tangente ---------------------------------------
+function bez(p, t) {
+  const u = 1-t, a = u*u*u, b = 3*u*u*t, c = 3*u*t*t, d = t*t*t;
+  return { x: a*p[0].x + b*p[1].x + c*p[2].x + d*p[3].x,
+           y: a*p[0].y + b*p[1].y + c*p[2].y + d*p[3].y };
+}
+function bezAngle(p, t) {
+  const e = 0.001;
+  const a = bez(p, Math.max(0,t-e)), b = bez(p, Math.min(1,t+e));
+  return Math.atan2(b.y-a.y, b.x-a.x) * 180/Math.PI;
+}
+
+// =============================================================================
+// COMPOSIZIONE
+// =============================================================================
+// I piani non sono sparsi a caso: ognuno vola lungo un arco, e ne esiste uno
+// protagonista posto su un incrocio della regola dei terzi. Gli altri sono
+// distribuiti su tre piani di profondità, e la profondità governa dimensione,
+// opacità e sfocatura — è la prospettiva atmosferica che dà l'illusione di
+// spazio.
+function buildLayout(seed, numPlanes) {
+  const rnd = makeRng(seed);
+  const R = (a,b) => a + rnd()*(b-a);
+  const planes = [];
+
+  const textBand = H - 300;          // zona riservata al testo
+  const MARGIN   = 120;              // nessun aeroplanino tocca il bordo
+  const hero = rnd() < 0.5 ? {x: W*0.34, y: H*0.34} : {x: W*0.62, y: H*0.32};
+
+  // Distanza minima fra due aeroplanini, proporzionale alla loro dimensione:
+  // senza questo controllo capita che due si sovrappongano, e una collisione
+  // legge come un errore di disegno, non come una scelta.
+  function tooClose(x, y, scale) {
+    return planes.some(q => {
+      const need = 150 * (scale + q.scale) * 0.75;
+      return Math.hypot(q.x - x, q.y - y) < need;
+    });
+  }
+
+  for (let i = 0; i < numPlanes; i++) {
+    const depth = i === 0 ? 2 : (rnd() < 0.45 ? 0 : (rnd() < 0.6 ? 1 : 2));
+    const scale = [0.34, 0.62, 1.15][depth] * R(0.82, 1.2);
+
+    // Campionamento con rifiuto: si tenta finche' la posizione non e' libera.
+    let x, y, ok = false;
+    for (let att = 0; att < 40 && !ok; att++) {
+      if (i === 0) { x = hero.x + R(-60,60); y = hero.y + R(-45,45); }
+      else         { x = R(MARGIN, W-MARGIN); y = R(MARGIN*0.6, textBand - 40); }
+      ok = !tooClose(x, y, scale);
+    }
+    if (!ok) continue;               // meglio un aereo in meno che due addosso
+
+    // Tutti volano nella stessa direzione delle correnti: uno stormo ha un
+    // verso. Aerei controcorrente sembrano sbagliati, non variati.
+    const len  = R(260, 600) * (0.55 + depth*0.35);
+    const rise = R(70, 230) * (0.5 + depth*0.3);
+    const bend = R(0.35, 1.0);
+
+    const p0 = { x: x - len*0.55, y: y + rise };
+    const p3 = { x: x + len*0.45, y: y - rise*0.35 };
+    const p1 = { x: p0.x + len*0.30, y: p0.y - rise*bend*1.5 };
+    const p2 = { x: p3.x - len*0.30, y: p3.y - rise*bend*0.4 };
+
+    planes.push({
+      path:[p0,p1,p2,p3], depth, scale, x, y,
+      t: R(0.55, 0.85),
+      op: [0.30, 0.58, 0.95][depth] * R(0.9, 1.05),
+      hero: i === 0,
+    });
+  }
+
+  const stars = [];
+  for (let i = 0; i < 260; i++) {
+    const d = rnd() < 0.55 ? 0 : (rnd() < 0.6 ? 1 : 2);
+    stars.push({ x: R(0,W), y: R(0,H), r: [0.7,1.3,2.2][d]*R(0.7,1.3),
+                 op: [0.18,0.38,0.7][d]*R(0.6,1.15), depth: d });
+  }
+
+  const waves = { phase: R(0, Math.PI*2), lift: R(-60,60), tilt: R(-7,7) };
+  return { planes, stars, waves, seed };
+}
+
+// =============================================================================
+// DISEGNO
+// =============================================================================
+function planePath(s) {
+  // Aeroplanino: due falde e una piega centrale, come il logo.
+  return { upper: '0,0 78,22 0,44 11,22',
+           lower: '78,22 0,44 11,22',
+           crease:'0,0 11,22',
+           tail:  '0,44 11,22 6,33' };
+}
+
+function drawPlane(pl, th, alpha) {
+  const p = THEMES[th];
+  const pt = bez(pl.path, pl.t);
+  const ang = bezAngle(pl.path, pl.t);
+  const g = planePath();
+  const blur = [1.6, 0.6, 0][pl.depth];
+  const o = (pl.op * alpha).toFixed(3);
+  const f = p.elementFill, a = p.elementAlpha;
+
+  return `<g transform="translate(${pt.x.toFixed(1)},${pt.y.toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${pl.scale.toFixed(3)}) translate(-39,-22)" opacity="${o}"${blur?` filter="url(#soft${pl.depth})"`:''}>
+  <polygon points="${g.upper}"  fill="${f}" fill-opacity="${a}"/>
+  <polygon points="${g.lower}"  fill="${f}" fill-opacity="${(a*0.45).toFixed(2)}"/>
+  <polygon points="${g.tail}"   fill="${f}" fill-opacity="${(a*0.7).toFixed(2)}"/>
+  <line x1="0" y1="0" x2="11" y2="22" stroke="${f}" stroke-opacity="${(a*0.35).toFixed(2)}" stroke-width="1.2"/>
+</g>`;
+}
+
+function drawTrail(pl, th, alpha, key, i) {
+  // La scia è l'arco realmente percorso, non una riga dritta: si assottiglia
+  // e svanisce all'indietro.
+  const p = THEMES[th];
+  const [a,b,c,d] = pl.path;
+  const end = bez(pl.path, pl.t);
+  // Sotto-cammino da 0 a t, approssimato campionando l'arco.
+  const N = 26, pts = [];
+  for (let k=0;k<=N;k++) pts.push(bez(pl.path, pl.t*k/N));
+  const dPath = pts.map((q,k)=> (k?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)).join(' ');
+  const w = (1.1 + pl.scale*1.6).toFixed(2);
+  const op = (pl.op * alpha * 0.55).toFixed(3);
+  return `<path d="${dPath}" fill="none" stroke="url(#trail-${key}-${i})" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+}
+
+function trailGradient(pl, th, key, i) {
+  const p = THEMES[th];
+  const [a,,,d] = pl.path;
+  return `<linearGradient id="trail-${key}-${i}" gradientUnits="userSpaceOnUse" x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${d.x.toFixed(1)}" y2="${d.y.toFixed(1)}">
+  <stop offset="0%"   stop-color="${p.elementFill}" stop-opacity="0"/>
+  <stop offset="70%"  stop-color="${p.elementFill}" stop-opacity="0.35"/>
+  <stop offset="100%" stop-color="${p.elementFill}" stop-opacity="0.9"/>
+</linearGradient>`;
+}
+
+// Le due onde del marchio. Nel logo sono due vortici che si abbracciano; qui
+// diventano due correnti larghe che attraversano la scena in diagonale e
+// convergono verso il punto luminoso. Sono tracciate come archi molto spessi e
+// fortemente sfocati: senza la sfocatura si leggerebbero come forme ritagliate
+// con un bordo netto, che e' esattamente cio' che le fa sembrare un adesivo
+// incollato sopra lo sfondo invece che luce dentro di esso.
+function drawWaves(lay, th, key) {
+  const p = THEMES[th];
+  const { phase, lift, tilt } = lay.waves;
+
+  // Le due correnti non attraversano la scena: sgorgano dal punto luminoso e
+  // si aprono verso destra, divergendo. E' la stessa idea del logo — due
+  // vortici che si abbracciano — resa come energia radiale invece che come
+  // due bande parallele, che leggerebbero come strati di nebbia.
+  const fx = W*0.30, fy = H*0.52 + lift*0.4;
+
+  // Esterna: il mondo Debian. Ampia, scende e poi risale in fondo a destra.
+  const a = `M ${fx-320},${fy+250} C ${W*0.40},${fy+170+Math.sin(phase)*45} `
+          + `${W*0.64},${fy-70} ${W+220},${fy-330+tilt*8}`;
+
+  // Interna: il mondo Red Hat. Piu' stretta, sale subito e taglia piu' in alto.
+  const b = `M ${fx-260},${fy+30} C ${W*0.44},${fy-90+Math.cos(phase)*40} `
+          + `${W*0.66},${fy-280} ${W+180},${fy-470-tilt*6}`;
+
+  return `<g filter="url(#waveblur-${key})" opacity="${p.waveAlpha}">
+  <path d="${a}" fill="none" stroke="url(#wave-a-${key})" stroke-width="230" stroke-linecap="round"/>
+  <path d="${b}" fill="none" stroke="url(#wave-b-${key})" stroke-width="130" stroke-linecap="round"/>
+</g>`;
+}
+
+function render(lay, th, key, opts={}) {
+  const p = THEMES[th];
+  const alpha = opts.alpha ?? 1;
+  const mainText = opts.mainText ?? 'ruscalinux';
+  const subText  = opts.subText  ?? '';
+  const textSize = opts.textSize ?? 96;
+
+  const trailGrads = lay.planes.map((pl,i)=>trailGradient(pl,th,key,i)).join('\n');
+
+  const defs = `<defs>
+<radialGradient id="bg-${key}" cx="33%" cy="40%" r="95%">
+  <stop offset="0%" stop-color="${p.bg1}"/>
+  <stop offset="52%" stop-color="${p.bg2}"/>
+  <stop offset="100%" stop-color="${p.bg3}"/>
+</radialGradient>
+<radialGradient id="glow-${key}" cx="31%" cy="46%" r="52%">
+  <stop offset="0%" stop-color="${p.glowColor}" stop-opacity="1"/>
+  <stop offset="100%" stop-color="${p.glowColor}" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="vig-${key}" cx="50%" cy="46%" r="75%">
+  <stop offset="55%" stop-color="${p.vignette}" stop-opacity="0"/>
+  <stop offset="100%" stop-color="${p.vignette}" stop-opacity="1"/>
+</radialGradient>
+<linearGradient id="wave-a-${key}" gradientUnits="userSpaceOnUse" x1="${W*0.20}" y1="${H*0.55}" x2="${W}" y2="${H*0.18}">
+  <stop offset="0%"   stop-color="${p.wave1}" stop-opacity="0"/>
+  <stop offset="30%"  stop-color="${p.wave1}" stop-opacity="1"/>
+  <stop offset="72%"  stop-color="${p.wave2}" stop-opacity="0.55"/>
+  <stop offset="100%" stop-color="${p.wave2}" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="wave-b-${key}" gradientUnits="userSpaceOnUse" x1="${W*0.20}" y1="${H*0.50}" x2="${W}" y2="${H*0.05}">
+  <stop offset="0%"   stop-color="${p.wave1}" stop-opacity="0"/>
+  <stop offset="35%"  stop-color="${p.wave1}" stop-opacity="0.95"/>
+  <stop offset="100%" stop-color="${p.wave1}" stop-opacity="0"/>
+</linearGradient>
+<filter id="waveblur-${key}" filterUnits="userSpaceOnUse" x="-500" y="-500" width="${W+1000}" height="${H+1000}"><feGaussianBlur stdDeviation="30"/></filter>
+<filter id="soft0" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.8"/></filter>
+<filter id="soft1" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.7"/></filter>
+<filter id="starblur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2"/></filter>
+<filter id="noise-${key}" x="0%" y="0%" width="100%" height="100%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch"/>
+  <feColorMatrix type="saturate" values="0"/>
+</filter>
+${trailGrads}
+</defs>`;
+
+  const stars = ['','',''].map((_,d)=>{
+    const set = lay.stars.filter(s=>s.depth===d);
+    const body = set.map(s=>`<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${s.r.toFixed(2)}" opacity="${(s.op*p.starAlpha*alpha).toFixed(3)}"/>`).join('');
+    return `<g fill="${p.elementFill}"${d===0?' filter="url(#starblur)"':''}>${body}</g>`;
+  }).join('\n');
+
+  const far  = lay.planes.filter(p=>p.depth<2);
+  const near = lay.planes.filter(p=>p.depth===2);
+  const draw = arr => arr.map((pl,i)=>drawTrail(pl,th,alpha,key,lay.planes.indexOf(pl))+'\n'+drawPlane(pl,th,alpha)).join('\n');
+
+  // testo
+  const bottomY = H - 96;
+  const sub = subText ? `<text x="${W/2}" y="${bottomY + Math.round(textSize*0.32) + 18}" text-anchor="middle" font-family="Syne, sans-serif" font-size="${Math.round(textSize*0.30)}" font-weight="600" letter-spacing="6" fill="${p.textSub}">${subText}</text>` : '';
+  const text = `<g>
+<text x="${W/2}" y="${bottomY}" text-anchor="middle" font-family="Syne, sans-serif" font-size="${textSize}" font-weight="800" letter-spacing="-1" fill="${p.textMain}">${mainText}</text>
+${sub}</g>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+${defs}
+<rect width="${W}" height="${H}" fill="url(#bg-${key})"/>
+${drawWaves(lay, th, key)}
+<rect width="${W}" height="${H}" fill="url(#glow-${key})"/>
+${stars}
+${draw(far)}
+${draw(near)}
+<rect width="${W}" height="${H}" fill="url(#vig-${key})"/>
+<rect width="${W}" height="${H}" filter="url(#noise-${key})" opacity="${p.noiseOpacity}"/>
+${text}
+</svg>`;
+}
+
+
+/* ── Il motore produce stringhe SVG; qui vengono inserite nei nodi ──
+   DOMParser invece di innerHTML: su alcuni browser innerHTML sugli elementi
+   SVG non e' affidabile, e un fallimento silenzioso qui darebbe una tela
+   vuota senza alcun errore in console. */
+function paint(svgEl, markup) {
+  const doc = new DOMParser().parseFromString(markup, 'image/svg+xml');
+  const src = doc.documentElement;
+  svgEl.textContent = '';
+  Array.from(src.childNodes).forEach(n => svgEl.appendChild(document.importNode(n, true)));
+}
+
+function currentOpts() {
+  return {
+    alpha:    parseInt(document.getElementById('sl-opacity').value)/100,
+    textSize: parseInt(document.getElementById('sl-textsize').value),
+    mainText: document.getElementById('main-text').value || 'ruscalinux',
+    subText:  document.getElementById('sub-text').value || '',
+  };
+}
+
+function renderInto(svgEl, theme, key) {
+  paint(svgEl, render(layout, theme, key, currentOpts()));
+}
+
+function renderAll() {
+  if (!layout) layout = buildLayout(Date.now() & 0xffffff, planeCount());
+  document.getElementById('val-seed').textContent = layout.seed;
+  document.getElementById('in-seed').value = layout.seed;
+  renderInto(document.getElementById('wallpaper-svg'), currentTheme, 'main');
+  THEME_ORDER.forEach(t => renderInto(document.getElementById('svg-'+t), t, 't'+t));
+}
+
+function planeCount() { return parseInt(document.getElementById('sl-planes').value); }
+
+function generateArt() {
+  layout = buildLayout((Math.random()*0xffffff)|0, planeCount());
+  renderAll();
+}
+
+function applySeed(v) {
+  const n = parseInt(v, 10);
+  if (!isFinite(n)) return;
+  layout = buildLayout(n >>> 0, planeCount());
+  renderAll();
+}
+
+function setTheme(theme) {
+  currentTheme = theme;
+  THEME_ORDER.forEach(t => {
+    document.getElementById('btn-'+t).classList.toggle('active', t===theme);
+    document.getElementById('thumb-'+t).classList.toggle('active', t===theme);
+  });
+  renderAll();
+}
+
+/* ── EXPORT ── */
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');";
+
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function serialize(theme, w, h) {
+  const markup = render(layout, theme, 'export', currentOpts());
+  const doc = new DOMParser().parseFromString(markup, 'image/svg+xml');
+  const svg = doc.documentElement;
+  if (w) { svg.setAttribute('width', w); svg.setAttribute('height', h); }
+  const style = doc.createElementNS(SVG_NS, 'style');
+  style.textContent = FONT_IMPORT;
+  svg.insertBefore(style, svg.firstChild);
+  return new XMLSerializer().serializeToString(svg);
+}
+
+function fileName(theme, w, h) {
+  const base = `ruscalinux-wallpaper-${theme}-${layout.seed}`;
+  return w ? `${base}-${w}x${h}.png` : `${base}.svg`;
+}
+
+function exportSVG(theme) {
+  const blob = new Blob([serialize(theme)], { type:'image/svg+xml;charset=utf-8' });
+  triggerDownload(URL.createObjectURL(blob), fileName(theme));
+}
+
+function exportPNG(theme, tw, th) {
+  const data = serialize(theme, tw, th);
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = tw; c.height = th;
+    c.getContext('2d').drawImage(img, 0, 0, tw, th);
+    triggerDownload(c.toDataURL('image/png'), fileName(theme, tw, th));
+  };
+  img.onerror = () => alert('Export failed. If the browser blocks the web font, try again offline.');
+  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+}
+
+function downloadSVG()       { exportSVG(currentTheme); }
+function downloadPNG(tw, th) { exportPNG(currentTheme, tw, th); }
+function downloadAllSVG()    { THEME_ORDER.forEach((t,i)=>setTimeout(()=>exportSVG(t), i*400)); }
+function downloadAllPNG(w,h) { THEME_ORDER.forEach((t,i)=>setTimeout(()=>exportPNG(t,w,h), i*900)); }
+
+document.fonts.ready.then(generateArt);
+</script>
+</body>
+</html>

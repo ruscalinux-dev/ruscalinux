@@ -1,0 +1,22 @@
+{
+  "app_description": "Pengelola AppImage dengan impor seret & lepas, penyimpanan di folder tersembunyi di Home, pemasangan dan pencopotan dari menu GNOME, tema merah muda⇒plum.",
+  "ai_note": "Dikembangkan dengan dukungan alat AI: desain, spesifikasi, peninjauan, dan tanggung jawab editorial ada pada penulis.",
+  "license": "© 2026 — Lisensi GPL-3.0",
+  "add_appimage": "Tambah AppImage",
+  "about_title": "Tentang %s",
+  "close": "Tutup",
+  "author": "Penulis: %s",
+  "empty_title": "Belum ada AppImage yang diarsipkan",
+  "empty_hint": "Seret berkas .AppImage ke sini atau tekan “Tambah AppImage”.",
+  "state_installed": "Terpasang",
+  "state_archived": "Diarsipkan",
+  "run_tooltip": "Jalankan AppImage",
+  "install": "Pasang",
+  "uninstall": "Copot",
+  "install_tooltip": "Buat atau hapus entri di menu GNOME",
+  "remove_tooltip": "Hapus: menghapus entri, ikon, dan berkas AppImage",
+  "chooser_title": "Pilih satu atau beberapa AppImage",
+  "open": "Buka",
+  "cancel": "Batal",
+  "desktop_comment_default": "AppImage yang dikelola oleh RuscaHub"
+}

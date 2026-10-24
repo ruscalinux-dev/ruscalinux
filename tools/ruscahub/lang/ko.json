@@ -1,0 +1,22 @@
+{
+  "app_description": "드래그 앤 드롭 가져오기, 홈의 숨김 폴더에 보관, GNOME 메뉴에서 설치 및 제거를 지원하는 AppImage 관리자, 분홍⇒자두색 테마.",
+  "ai_note": "AI 도구의 지원을 받아 개발되었습니다. 설계, 사양, 검토 및 편집 책임은 저자에게 있습니다.",
+  "license": "© 2026 — GPL-3.0 라이선스",
+  "add_appimage": "AppImage 추가",
+  "about_title": "%s 정보",
+  "close": "닫기",
+  "author": "저자: %s",
+  "empty_title": "보관된 AppImage가 없습니다",
+  "empty_hint": ".AppImage 파일을 여기로 끌어오거나 “AppImage 추가”를 누르세요.",
+  "state_installed": "설치됨",
+  "state_archived": "보관됨",
+  "run_tooltip": "AppImage 실행",
+  "install": "설치",
+  "uninstall": "제거",
+  "install_tooltip": "GNOME 메뉴에 항목을 만들거나 제거합니다",
+  "remove_tooltip": "삭제: 항목, 아이콘 및 AppImage 파일을 지웁니다",
+  "chooser_title": "AppImage를 하나 이상 선택하세요",
+  "open": "열기",
+  "cancel": "취소",
+  "desktop_comment_default": "RuscaHub에서 관리하는 AppImage"
+}

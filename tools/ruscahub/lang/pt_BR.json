@@ -1,0 +1,22 @@
+{
+  "app_description": "Gerenciador de AppImage com importação por arrastar e soltar, armazenamento em pasta oculta na Home, instalação e desinstalação pelo menu do GNOME, temas rosa⇒ameixa.",
+  "ai_note": "Desenvolvido com o apoio de ferramentas de IA: projeto, especificações, revisão e responsabilidade editorial são do autor.",
+  "license": "© 2026 — Licença GPL-3.0",
+  "add_appimage": "Adicionar AppImage",
+  "about_title": "Sobre o %s",
+  "close": "Fechar",
+  "author": "Autor: %s",
+  "empty_title": "Nenhuma AppImage arquivada",
+  "empty_hint": "Arraste um arquivo .AppImage para cá ou clique em “Adicionar AppImage”.",
+  "state_installed": "Instalada",
+  "state_archived": "Arquivada",
+  "run_tooltip": "Executar a AppImage",
+  "install": "Instalar",
+  "uninstall": "Desinstalar",
+  "install_tooltip": "Cria ou remove a entrada no menu do GNOME",
+  "remove_tooltip": "Remover: apaga a entrada, o ícone e o arquivo AppImage",
+  "chooser_title": "Selecione um ou mais arquivos AppImage",
+  "open": "Abrir",
+  "cancel": "Cancelar",
+  "desktop_comment_default": "AppImage gerenciada pelo RuscaHub"
+}

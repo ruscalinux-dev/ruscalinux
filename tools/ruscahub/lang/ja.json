@@ -1,0 +1,22 @@
+{
+  "app_description": "ドラッグ＆ドロップでの取り込み、ホームの隠しフォルダーへの保存、GNOME メニューからのインストール／アンインストールに対応した AppImage マネージャー。ピンク⇒プラムのテーマ。",
+  "ai_note": "AI ツールの支援を受けて開発されました。設計、仕様、レビュー、編集上の責任は作者にあります。",
+  "license": "© 2026 — GPL-3.0 ライセンス",
+  "add_appimage": "AppImage を追加",
+  "about_title": "%s について",
+  "close": "閉じる",
+  "author": "作者: %s",
+  "empty_title": "保管されている AppImage はありません",
+  "empty_hint": ".AppImage ファイルをここにドラッグするか、「AppImage を追加」を押してください。",
+  "state_installed": "インストール済み",
+  "state_archived": "保管中",
+  "run_tooltip": "AppImage を実行",
+  "install": "インストール",
+  "uninstall": "アンインストール",
+  "install_tooltip": "GNOME メニューの項目を作成または削除します",
+  "remove_tooltip": "削除: 項目、アイコン、AppImage ファイルを消去します",
+  "chooser_title": "AppImage を 1 つ以上選択",
+  "open": "開く",
+  "cancel": "キャンセル",
+  "desktop_comment_default": "RuscaHub で管理されている AppImage"
+}

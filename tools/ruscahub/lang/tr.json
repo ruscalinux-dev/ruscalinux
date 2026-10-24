@@ -1,0 +1,22 @@
+{
+  "app_description": "Sürükle-bırak ile içe aktarma, Ev dizinindeki gizli bir klasörde saklama, GNOME menüsünden kurma ve kaldırma özelliklerine sahip AppImage yöneticisi; pembe⇒erik rengi temalar.",
+  "ai_note": "Yapay zekâ araçlarının desteğiyle geliştirilmiştir: tasarım, belirtimler, inceleme ve editoryal sorumluluk yazara aittir.",
+  "license": "© 2026 — GPL-3.0 Lisansı",
+  "add_appimage": "AppImage Ekle",
+  "about_title": "%s Hakkında",
+  "close": "Kapat",
+  "author": "Yazar: %s",
+  "empty_title": "Arşivlenmiş AppImage yok",
+  "empty_hint": "Bir .AppImage dosyasını buraya sürükleyin veya “AppImage Ekle” düğmesine basın.",
+  "state_installed": "Kurulu",
+  "state_archived": "Arşivlendi",
+  "run_tooltip": "AppImage'ı çalıştır",
+  "install": "Kur",
+  "uninstall": "Kaldır",
+  "install_tooltip": "GNOME menüsündeki girdiyi oluşturur veya kaldırır",
+  "remove_tooltip": "Sil: girdiyi, simgeyi ve AppImage dosyasını siler",
+  "chooser_title": "Bir veya daha fazla AppImage seçin",
+  "open": "Aç",
+  "cancel": "İptal",
+  "desktop_comment_default": "RuscaHub tarafından yönetilen AppImage"
+}

@@ -9,7 +9,6 @@ gnome-initial-setup
 # Internet
 gufw
 firefox-esr
-webext-ublock-origin-firefox
 thunderbird
 qbittorrent
 yt-dlp
@@ -42,7 +41,7 @@ abcde
 mp3splt
 
 # Video
-vlc
+smplayer
 ffmpeg
 obs-studio
 shotcut
@@ -53,7 +52,6 @@ guvcview
 
 # Giochi
 aisleriot
-dolphin-emu
 
 # Strumenti
 sudo
@@ -83,6 +81,11 @@ git
 # ===========================================================================
 python3-pyphen
 python3-pil
+
+# ===========================================================================
+# LIBS SUPPORT
+# ===========================================================================
+python3-gi-cairo
 
 # ===========================================================================
 # MULTILINGUAL SUPPORT

@@ -162,6 +162,13 @@ canvas#exportCanvas { display: none; }
     </select>
   </div>
   <div class="ctrl-group">
+    <label>GRUB zones</label>
+    <select id="guides">
+      <option value="on" selected>Show in preview</option>
+      <option value="off">Hide</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
     <label>Resolution</label>
     <select id="resolution">
       <option value="3840x2160">4K — 3840×2160</option>
@@ -204,178 +211,269 @@ const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none
 const logoImg = new Image();
 logoImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LOGO_SVG);
 
-function redraw() { drawSplash(document.getElementById('preview')); }
+/* ───────────────────────────────────────────────────────────────────────────
+   ZONE DI GRUB
+
+   Su una schermata d'avvio, GRUB disegna il proprio testo in tre fasce fisse,
+   espresse in frazione dell'altezza dello schermo:
+
+       7,2 - 9,0 %    titolo del menu
+      52,5 - 71,0 %   voci del menu
+      91,9 - 94,4 %   riga di aiuto ("enter: boot, `e': edit options...")
+
+   Lo splash deve stare fuori da queste fasce, altrimenti le scritte si
+   sovrappongono. Restano libere la parte alta (per il marchio), il vuoto fra
+   logo e menu, e la fascia 71-92% per il logotipo.
+
+   Le posizioni qui sotto sono FRAZIONI, non pixel: GRUB dispone il menu in
+   proporzione allo schermo, quindi solo così restano corrette a ogni
+   risoluzione.
+   ────────────────────────────────────────────────────────────────────────── */
+const ZONE_GRUB = [
+  [0.072, 0.090, 'titolo del menu'],
+  [0.525, 0.710, 'voci del menu'],
+  [0.919, 0.944, 'riga di aiuto'],
+];
+
+const Y_LOGO     = 0.345;
+const Y_LIBERO   = 0.482;   // testo opzionale, nel vuoto fra logo e menu
+const Y_TITOLO   = 0.815;
+const Y_FILETTO  = 0.850;
+const Y_TAGLINE  = 0.893;
+
+function redraw() {
+  const c = document.getElementById('preview');
+  drawSplash(c);
+  if (document.getElementById('guides').value === 'on') drawGuides(c);
+}
 
 logoImg.onload = redraw;
 document.fonts.ready.then(redraw);
-['subtitle','version','bgstyle','resolution'].forEach(id =>
+['subtitle','version','bgstyle','resolution','guides'].forEach(id =>
   document.getElementById(id).addEventListener('input', redraw)
 );
 
-/* ── Pattern helpers ────────────────────────────────────── */
+function getResolution() {
+  const [W, H] = document.getElementById('resolution').value.split('x').map(Number);
+  return { W, H };
+}
 
-function drawDots(ctx, W, H) {
+/* Generatore pseudo-casuale con seme fisso: la granella deve essere identica
+   a ogni ridisegno, altrimenti l'anteprima "sfarfalla" a ogni tasto premuto. */
+function rng(seme) {
+  let s = seme >>> 0;
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+
+/* ── Sfondo ─────────────────────────────────────────────────────────────── */
+
+function drawSfondo(ctx, W, H) {
+  // Gradiente verticale. È più scuro nella fascia 52-71%, dove GRUB scrive le
+  // voci del menu: le voci non selezionate sono grigie, e su un fondo chiaro
+  // diventano illeggibili.
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0.00, '#180512');
+  g.addColorStop(0.18, '#300e22');
+  g.addColorStop(0.36, '#481532');
+  g.addColorStop(0.52, '#3a1028');
+  g.addColorStop(0.71, '#220a18');
+  g.addColorStop(0.86, '#1a0813');
+  g.addColorStop(1.00, '#10050c');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawCorrenti(ctx, W, H, sc) {
+  // Le due correnti del marchio: nel logo sono due vortici che si abbracciano,
+  // qui diventano due archi larghi che salgono verso destra. Molto sfocati,
+  // così leggono come luce e non come forme ritagliate.
   ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,0.042)';
-  const s = 52;
-  for (let x = s; x < W; x += s)
-    for (let y = s; y < H; y += s) {
+  ctx.filter = `blur(${Math.round(46 * sc)}px)`;
+  ctx.globalAlpha = 0.55;
+  ctx.lineCap = 'round';
+
+  const arco = (p, spess, colore) => {
+    ctx.beginPath();
+    ctx.moveTo(p[0][0] * W, p[0][1] * H);
+    ctx.bezierCurveTo(p[1][0]*W, p[1][1]*H, p[2][0]*W, p[2][1]*H, p[3][0]*W, p[3][1]*H);
+    ctx.strokeStyle = colore;
+    ctx.lineWidth = spess * sc;
+    ctx.stroke();
+  };
+
+  arco([[-0.11, 0.65], [0.27, 0.48], [0.65, 0.31], [1.11, 0.06]], 210, '#a83070');
+  arco([[-0.11, 0.46], [0.32, 0.35], [0.70, 0.23], [1.11, -0.03]], 118, '#c4568c');
+  ctx.restore();
+}
+
+function drawBagliore(ctx, W, H, sc) {
+  const cx = W / 2, cy = H * Y_LOGO;
+  const r  = Math.min(W, H) * 0.46;
+  const g  = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  g.addColorStop(0.00, 'rgba(208,84,146,0.42)');
+  g.addColorStop(0.45, 'rgba(190,70,132,0.16)');
+  g.addColorStop(1.00, 'rgba(190,70,132,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawGranella(ctx, W, H, stile) {
+  if (stile === 'clean') return;
+  const r = rng(20260825);
+  ctx.save();
+  if (stile === 'lines') {
+    // reticolo sottilissimo
+    ctx.strokeStyle = 'rgba(255,255,255,0.028)';
+    ctx.lineWidth = 1;
+    const s = Math.round(H / 17);
+    for (let x = 0; x < W; x += s) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += s) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  } else {
+    // pulviscolo: toglie la piattezza al gradiente senza farsi notare
+    for (let i = 0; i < 900; i++) {
+      const x = r() * W, y = r() * H;
+      ctx.fillStyle = `rgba(255,255,255,${(0.05 + r() * 0.09).toFixed(3)})`;
       ctx.beginPath();
-      ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+      ctx.arc(x, y, r() < 0.8 ? 0.7 : 1.3, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
   ctx.restore();
 }
 
-function drawLines(ctx, W, H) {
+function drawVignetta(ctx, W, H) {
+  const g = ctx.createRadialGradient(W/2, H*0.44, H*0.22, W/2, H*0.44, H*0.95);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.62)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+/* ── Marchio e testo ────────────────────────────────────────────────────── */
+
+function drawLogo(ctx, W, H, sc) {
+  if (!logoImg.complete || !logoImg.naturalWidth) return;
+  const lato = Math.round(268 * sc);
+  const cx = W / 2, cy = H * Y_LOGO;
+
+  // alone discreto: senza, il marchio bianco sembra incollato sopra
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, lato * 1.15);
+  g.addColorStop(0.00, 'rgba(255,214,238,0.16)');
+  g.addColorStop(1.00, 'rgba(255,214,238,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - lato*1.3, cy - lato*1.3, lato*2.6, lato*2.6);
+
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.038)';
-  ctx.lineWidth = 1;
-  const s = 64;
-  for (let x = 0; x < W; x += s) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = 0; y < H; y += s) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
+  ctx.shadowColor   = 'rgba(0,0,0,0.42)';
+  ctx.shadowBlur    = 30 * sc;
+  ctx.shadowOffsetY = 10 * sc;
+  ctx.drawImage(logoImg, cx - lato/2, cy - lato/2, lato, lato);
   ctx.restore();
 }
 
-/* ── Main draw ──────────────────────────────────────────── */
-
-function getResolution() {
-  const val = document.getElementById('resolution').value;
-  const [W, H] = val.split('x').map(Number);
-  return { W, H };
+function drawFiletto(ctx, W, H, sc) {
+  // Filetto che sfuma alle estremità invece di tagliarsi netto.
+  const y = Math.round(H * Y_FILETTO);
+  const meta = 380 * sc, buco = 36 * sc;
+  for (const verso of [-1, 1]) {
+    const x0 = W/2 + verso * buco, x1 = W/2 + verso * meta;
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0.30)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(Math.min(x0, x1), y, Math.abs(x1 - x0), Math.max(1, Math.round(sc)));
+  }
 }
 
 function drawSplash(canvas) {
   const ctx = canvas.getContext('2d');
   const { W, H } = getResolution();
-
-  // Aggiorna dimensioni canvas
-  canvas.width  = W;
-  canvas.height = H;
-
-  // Fattore di scala rispetto al canvas base 1920x1080
+  canvas.width = W; canvas.height = H;
   const sc = Math.min(W / 1920, H / 1080);
-
-  const cx = W / 2, cy = H / 2;
 
   const subtitle = document.getElementById('subtitle').value.trim();
   const version  = document.getElementById('version').value.trim();
-  const bgstyle  = document.getElementById('bgstyle').value;
+  const stile    = document.getElementById('bgstyle').value;
 
-  /* — Sfondo base — */
-  ctx.fillStyle = '#7f2457';
-  ctx.fillRect(0, 0, W, H);
+  drawSfondo(ctx, W, H);
+  drawCorrenti(ctx, W, H, sc);
+  drawBagliore(ctx, W, H, sc);
+  drawGranella(ctx, W, H, stile);
+  drawVignetta(ctx, W, H);
+  drawLogo(ctx, W, H, sc);
 
-  /* — Bagliore radiale centrale — */
-  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 820 * sc);
-  glow.addColorStop(0,   'rgba(200,60,120,0.26)');
-  glow.addColorStop(1,   'rgba(0,0,0,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-
-  /* — Pattern — */
-  if (bgstyle === 'dots')  drawDots(ctx, W, H);
-  if (bgstyle === 'lines') drawLines(ctx, W, H);
-
-  /* — Vignette — */
-  const vig = ctx.createRadialGradient(cx, cy, H * 0.28, cx, cy, H * 0.84);
-  vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(0,0,0,0.52)');
-  ctx.fillStyle = vig;
-  ctx.fillRect(0, 0, W, H);
-
-  /* — Striscia inferiore — */
-  ctx.fillStyle = 'rgba(160,48,96,0.55)';
-  ctx.fillRect(0, H - Math.max(3, Math.round(5 * sc)), W, Math.max(3, Math.round(5 * sc)));
-
-  /* — Logo — */
-  const logoSize = Math.round(230 * sc);
-  const logoY    = cy - Math.round(300 * sc);          // top-left Y del logo
-  if (logoImg.complete && logoImg.naturalWidth > 0) {
-    ctx.save();
-    ctx.shadowColor   = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur    = 32 * sc;
-    ctx.shadowOffsetY = 12 * sc;
-    ctx.drawImage(logoImg, cx - logoSize / 2, logoY, logoSize, logoSize);
-    ctx.restore();
-  }
-
-  /* ── Blocco testo: ancorato a partire da titleY ─────── */
-  const titleY    = H - Math.round(182 * sc);
-  const dividerY  = H - Math.round(136 * sc);
-  const taglineY  = H - Math.round(86  * sc);
-  const subtitleY = H - Math.round(44  * sc);
-  const versionY  = H - Math.round(44  * sc);
-
-  ctx.textAlign    = 'center';
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
 
-  /* — Titolo "ruscalinux" — */
+  // logotipo
   ctx.save();
-  ctx.shadowColor   = 'rgba(0,0,0,0.38)';
-  ctx.shadowBlur    = 24 * sc;
+  ctx.shadowColor   = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur    = 26 * sc;
   ctx.shadowOffsetY = 8 * sc;
   ctx.fillStyle = '#ffffff';
-  ctx.font = `800 ${Math.round(112 * sc)}px "Syne", "Arial Black", sans-serif`;
-  ctx.fillText('ruscalinux', cx, titleY);
+  ctx.font = `800 ${Math.round(92 * sc)}px "Syne", "Arial Black", sans-serif`;
+  ctx.fillText('ruscalinux', W / 2, Math.round(H * Y_TITOLO));
   ctx.restore();
 
-  /* — Linea divisoria — */
-  const lineW = Math.round(420 * sc);
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.20)';
-  ctx.lineWidth = Math.max(1, sc);
-  ctx.beginPath();
-  ctx.moveTo(cx - lineW, dividerY);
-  ctx.lineTo(cx + lineW, dividerY);
-  ctx.stroke();
-  ctx.restore();
+  drawFiletto(ctx, W, H, sc);
 
-  /* — Tagline "Free, complete, and ready to go." — */
   ctx.save();
-  ctx.fillStyle    = 'rgba(245,194,218,0.92)';
-  ctx.font         = `600 ${Math.round(36 * sc)}px "Syne", Arial, sans-serif`;
-  ctx.letterSpacing = `${Math.round(2 * sc)}px`;
-  ctx.fillText('Free, complete, and ready to go.', cx, taglineY);
+  ctx.fillStyle = 'rgba(245,194,218,0.92)';
+  ctx.font = `600 ${Math.round(32 * sc)}px "Syne", Arial, sans-serif`;
+  ctx.letterSpacing = `${Math.max(1, Math.round(2 * sc))}px`;
+  ctx.fillText('Free, complete, and ready to go.', W / 2, Math.round(H * Y_TAGLINE));
   ctx.letterSpacing = '0px';
   ctx.restore();
 
-  /* — Testo libero (opzionale) — */
+  // testo libero: sta fra logo e menu, l'unico vuoto rimasto
   if (subtitle) {
     ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.40)';
+    ctx.fillStyle = 'rgba(255,255,255,0.42)';
     ctx.font = `400 ${Math.round(26 * sc)}px "DM Sans", Arial, sans-serif`;
-    ctx.fillText(subtitle, cx, subtitleY);
+    ctx.fillText(subtitle, W / 2, Math.round(H * Y_LIBERO));
     ctx.restore();
   }
 
-  /* — Versione (in basso a destra) — */
+  // versione in basso a destra: la riga di aiuto di GRUB è centrata e non
+  // arriva fin qui, quindi questo è l'unico punto basso utilizzabile
   if (version) {
     ctx.save();
-    ctx.fillStyle    = 'rgba(255,255,255,0.32)';
-    // Pavimento di leggibilità: non scende sotto 16px
-    const versionPx  = Math.max(16, Math.round(22 * sc));
-    ctx.font         = `600 ${versionPx}px "Syne", Arial, sans-serif`;
-    ctx.textAlign    = 'right';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText(version, W - Math.max(20, Math.round(56 * sc)), versionY);
+    ctx.fillStyle = 'rgba(255,255,255,0.60)';
+    ctx.font = `600 ${Math.max(18, Math.round(32 * sc))}px "Syne", Arial, sans-serif`;
+    ctx.textAlign = 'right';
+    // In basso a destra: la riga di aiuto di GRUB e' centrata e finisce ben
+    // prima (a circa il 70% della larghezza), quindi qui non arriva mai.
+    ctx.fillText(version, W - Math.max(18, Math.round(56 * sc)), H - Math.max(16, Math.round(42 * sc)));
     ctx.restore();
   }
 }
 
+/* Le fasce di GRUB, disegnate SOLO nell'anteprima: fanno vedere dove non si
+   può scrivere. Non finiscono mai nel PNG esportato. */
+function drawGuides(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.font = `500 ${Math.round(H * 0.016)}px "DM Sans", Arial, sans-serif`;
+  for (const [a, b, nome] of ZONE_GRUB) {
+    ctx.fillStyle = 'rgba(255,70,70,0.20)';
+    ctx.fillRect(0, H * a, W, H * (b - a));
+    ctx.fillStyle = 'rgba(255,255,255,0.72)';
+    ctx.fillText('GRUB — ' + nome, W * 0.012, H * a + 3);
+  }
+  ctx.restore();
+}
+
 function downloadPNG() {
   const exp = document.getElementById('exportCanvas');
-  drawSplash(exp);
+  drawSplash(exp);                      // senza guide: sono solo per l'anteprima
   const res = document.getElementById('resolution').value;
-  const a = Object.assign(document.createElement('a'), {
+  Object.assign(document.createElement('a'), {
     download: `ruscalinux-boot-splash-${res}.png`,
     href: exp.toDataURL('image/png')
-  });
-  a.click();
+  }).click();
 }
 </script>
 </body>

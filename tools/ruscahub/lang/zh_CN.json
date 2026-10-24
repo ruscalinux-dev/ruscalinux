@@ -1,0 +1,22 @@
+{
+  "app_description": "AppImage 管理器：支持拖放导入，存储在主目录的隐藏文件夹中，可从 GNOME 菜单安装和卸载，粉色⇒梅紫色主题。",
+  "ai_note": "在 AI 工具的支持下开发：设计、规格、审校及编辑责任均归作者所有。",
+  "license": "© 2026 — GPL-3.0 许可证",
+  "add_appimage": "添加 AppImage",
+  "about_title": "关于 %s",
+  "close": "关闭",
+  "author": "作者：%s",
+  "empty_title": "尚未存档任何 AppImage",
+  "empty_hint": "将 .AppImage 文件拖到此处，或点击“添加 AppImage”。",
+  "state_installed": "已安装",
+  "state_archived": "已存档",
+  "run_tooltip": "运行此 AppImage",
+  "install": "安装",
+  "uninstall": "卸载",
+  "install_tooltip": "在 GNOME 菜单中创建或移除条目",
+  "remove_tooltip": "删除：移除条目、图标和 AppImage 文件",
+  "chooser_title": "选择一个或多个 AppImage",
+  "open": "打开",
+  "cancel": "取消",
+  "desktop_comment_default": "由 RuscaHub 管理的 AppImage"
+}

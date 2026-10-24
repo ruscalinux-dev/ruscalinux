@@ -1,0 +1,22 @@
+{
+  "app_description": "AppImage प्रबंधक: ड्रैग एंड ड्रॉप से आयात, होम के एक छिपे फ़ोल्डर में संग्रहण, GNOME मेनू से इंस्टॉल और अनइंस्टॉल, गुलाबी⇒बेर रंग की थीम।",
+  "ai_note": "AI उपकरणों की सहायता से विकसित: डिज़ाइन, विनिर्देश, समीक्षा और संपादकीय ज़िम्मेदारी लेखक की है।",
+  "license": "© 2026 — GPL-3.0 लाइसेंस",
+  "add_appimage": "AppImage जोड़ें",
+  "about_title": "%s के बारे में",
+  "close": "बंद करें",
+  "author": "लेखक: %s",
+  "empty_title": "कोई AppImage संग्रहीत नहीं है",
+  "empty_hint": "कोई .AppImage फ़ाइल यहाँ खींचें या “AppImage जोड़ें” दबाएँ।",
+  "state_installed": "इंस्टॉल है",
+  "state_archived": "संग्रहीत",
+  "run_tooltip": "AppImage चलाएँ",
+  "install": "इंस्टॉल करें",
+  "uninstall": "अनइंस्टॉल करें",
+  "install_tooltip": "GNOME मेनू में प्रविष्टि बनाएँ या हटाएँ",
+  "remove_tooltip": "हटाएँ: प्रविष्टि, आइकन और AppImage फ़ाइल मिटा देता है",
+  "chooser_title": "एक या अधिक AppImage चुनें",
+  "open": "खोलें",
+  "cancel": "रद्द करें",
+  "desktop_comment_default": "RuscaHub द्वारा प्रबंधित AppImage"
+}

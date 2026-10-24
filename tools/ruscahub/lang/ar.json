@@ -1,0 +1,22 @@
+{
+  "app_description": "مدير AppImage مع الاستيراد بالسحب والإفلات، والتخزين في مجلد مخفي داخل المجلد الشخصي، والتثبيت وإلغاء التثبيت من قائمة GNOME، وسمات من الوردي⇒البرقوقي.",
+  "ai_note": "طُوِّر بدعم من أدوات الذكاء الاصطناعي: التصميم والمواصفات والمراجعة والمسؤولية التحريرية تعود إلى المؤلف.",
+  "license": "© 2026 — رخصة GPL-3.0",
+  "add_appimage": "إضافة AppImage",
+  "about_title": "حول %s",
+  "close": "إغلاق",
+  "author": "المؤلف: %s",
+  "empty_title": "لا توجد ملفات AppImage مؤرشفة",
+  "empty_hint": "اسحب ملف AppImage إلى هنا أو اضغط «إضافة AppImage».",
+  "state_installed": "مثبَّت",
+  "state_archived": "مؤرشف",
+  "run_tooltip": "تشغيل AppImage",
+  "install": "تثبيت",
+  "uninstall": "إلغاء التثبيت",
+  "install_tooltip": "إنشاء الإدخال في قائمة GNOME أو إزالته",
+  "remove_tooltip": "حذف: يزيل الإدخال والأيقونة وملف AppImage",
+  "chooser_title": "اختر ملف AppImage واحدًا أو أكثر",
+  "open": "فتح",
+  "cancel": "إلغاء",
+  "desktop_comment_default": "AppImage يديره RuscaHub"
+}

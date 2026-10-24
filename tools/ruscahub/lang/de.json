@@ -1,0 +1,22 @@
+{
+  "app_description": "AppImage-Verwaltung mit Drag & Drop, Ablage im versteckten Ordner im Home-Verzeichnis, Installation und Deinstallation über das GNOME-Menü, Farbschema Rosa⇒Pflaume.",
+  "ai_note": "Entwickelt mit Unterstützung von KI-Werkzeugen: Design, Spezifikation, Prüfung und redaktionelle Verantwortung liegen beim Autor.",
+  "license": "© 2026 — Lizenz GPL-3.0",
+  "add_appimage": "AppImage hinzufügen",
+  "about_title": "Info zu %s",
+  "close": "Schließen",
+  "author": "Autor: %s",
+  "empty_title": "Keine AppImage archiviert",
+  "empty_hint": "Ziehen Sie eine .AppImage-Datei hierher oder klicken Sie auf „AppImage hinzufügen“.",
+  "state_installed": "Installiert",
+  "state_archived": "Archiviert",
+  "run_tooltip": "AppImage starten",
+  "install": "Installieren",
+  "uninstall": "Deinstallieren",
+  "install_tooltip": "Eintrag im GNOME-Menü anlegen oder entfernen",
+  "remove_tooltip": "Entfernen: entfernt Eintrag, Symbol und AppImage-Datei",
+  "chooser_title": "Eine oder mehrere AppImage-Dateien auswählen",
+  "open": "Öffnen",
+  "cancel": "Abbrechen",
+  "desktop_comment_default": "Von RuscaHub verwaltete AppImage"
+}

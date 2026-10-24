@@ -1716,7 +1716,8 @@ set -e
 mkdir -p /usr/local/share/applications
 
 for f in /usr/share/applications/display-im*.desktop \
-         /usr/share/applications/texdoctk.desktop; do
+         /usr/share/applications/texdoctk.desktop \
+         /usr/share/applications/org.gnome.Snapshot.desktop; do
     [ -e "$f" ] || continue
     base=$(basename "$f")
     # Rimuove eventuali NoDisplay preesistenti e ne inserisce uno subito

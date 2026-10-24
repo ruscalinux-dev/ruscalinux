@@ -52,6 +52,7 @@ guvcview
 
 # Giochi
 aisleriot
+dolphin-emu
 
 # Strumenti
 sudo

@@ -1660,6 +1660,13 @@ cat <<'EOF' > .work/config/includes.chroot_before_packages/etc/apt/preferences.d
 Package: fortune-mod
 Pin: release *
 Pin-Priority: -1
+
+Explanation: VLC non va installato: il lettore video e' SMPlayer.
+Explanation: Si bloccano il programma e la sua interfaccia grafica; le
+Explanation: librerie libvlc restano installabili per chi ne dipende.
+Package: vlc vlc-bin vlc-plugin-qt vlc-plugin-skins2 vlc-l10n
+Pin: release *
+Pin-Priority: -1
 EOF
 
 # ---------------------------------------------------------------------------
@@ -1717,7 +1724,8 @@ mkdir -p /usr/local/share/applications
 
 for f in /usr/share/applications/display-im*.desktop \
          /usr/share/applications/texdoctk.desktop \
-         /usr/share/applications/org.gnome.Snapshot.desktop; do
+         /usr/share/applications/org.gnome.Snapshot.desktop \
+         /usr/share/applications/mpv.desktop; do
     [ -e "$f" ] || continue
     base=$(basename "$f")
     # Rimuove eventuali NoDisplay preesistenti e ne inserisce uno subito

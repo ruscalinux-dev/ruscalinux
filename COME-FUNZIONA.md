@@ -31,17 +31,19 @@ punti dove prima andava scritto a mano.
 ## Cosa serve sulla macchina
 
 ```sh
-sudo apt install live-build wget qemu-system-x86 qemu-utils ovmf
+sudo apt install live-build python3 qemu-system-x86 qemu-utils ovmf
 ```
 
-`wget` serve a scaricare RuscaWriter dal suo repository. Debian lo installa di
-serie, ma su un sistema ridotto all'osso potrebbe mancare.
+`python3` serve agli script dei tool per controllare traduzioni e sorgenti.
+La rete non serve più per preparare i pacchetti: si costruisce tutto qui.
 
 ## Cosa fa build.sh, in ordine
 
-1. Controlla che ci siano `live-build` e `wget`, e che tu non sia root.
-2. Se manca `local/extra_debs/`, lancia `make-debs.sh`.
-3. Verifica che ci siano RuscaWriter e ogni utility di `tools/`.
+1. Controlla che ci siano `live-build`, `dpkg-deb` e `python3`, e che tu non
+   sia root.
+2. Lancia `make-debs.sh` se manca `local/extra_debs/` o se qualcosa in
+   `branding/` o `tools/` è più recente dei pacchetti.
+3. Verifica che ci sia un pacchetto per ogni utility di `tools/`.
 4. Copia `steps/*.sh` in `.gen/` sostituendo `@VERSION@` col numero vero.
 5. Esegue i tre step, che preparano `.work/`.
 6. Lancia `lb build` e calcola lo sha256 della ISO.
@@ -62,29 +64,27 @@ configurazione senza aspettare la build lunga.
 | `branding/` | Sorgenti: logo, icone, sfondi, caratteri, generatori HTML. |
 | `tools/` | Le applicazioni di RuscaLinux, una cartella ciascuna. |
 | `local/` | File che live-build usa direttamente (splash, logo). |
-| `vendor/` | Copia di scorta di RuscaWriter, per costruire senza rete. |
 | `.work/` | Dove lavora live-build. Si rigenera, non sta in git. |
 | `.gen/` | Gli script di `steps/` col numero di versione dentro. |
 
 ## Aggiungere un'applicazione
 
-Crea `tools/<nome>/` con dentro:
+Crea `tools/<nome>/` con dentro uno script `make-deb.sh` che:
 
-- un file `VERSION` che contiene solo il numero, per esempio `1.0`
-- uno script `make-<nome>-deb.sh` che riceve la versione come primo argomento
-  e scrive un `.deb` nella cartella corrente
+- si lancia dalla sua cartella, senza argomenti;
+- ha la versione scritta dentro di sé, uguale a `VERSION` di `release.conf`;
+- scrive un solo `.deb` in `build-deb/` (per esempio
+  `<nome>-ruscalinux_1.99.2_all.deb`);
+- produce un pacchetto Debian che si chiama `<nome>`, come la cartella.
 
 Nient'altro. `make-debs.sh` scorre `tools/*/` e costruisce quello che trova;
 `build.sh` pretende poi un pacchetto con quel nome e si ferma se manca.
 Nessuno script nomina le applicazioni, quindi aggiungerne una non richiede
 di modificare niente.
 
-## Da dove arriva RuscaWriter
-
-Non si costruisce qui: ha un repository suo. `make-debs.sh` scarica l'ultima
-release pubblicata e ne verifica il checksum. In questo repository non è
-scritto da nessuna parte quale versione sia: quella pubblicata è quella che
-finisce nella ISO. Una copia resta in `vendor/` per poter costruire senza rete.
+Se la versione di un tool non coincide con quella di RuscaLinux,
+`make-debs.sh` costruisce lo stesso ma lo segnala alla fine. Quando qualcosa
+fallisce mostra le ultime righe; il resto è in `local/make-debs.log`.
 
 ## Pubblicare
 

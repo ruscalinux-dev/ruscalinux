@@ -14,6 +14,11 @@
 
 # branding packages, produced by make-debs.sh
 /local/extra_debs/
+/local/extra_debs.tmp/
+/local/make-debs.log
+
+# packages built by each tool's make-deb.sh
+/tools/*/build-deb/
 
 # images and checksums
 *.iso

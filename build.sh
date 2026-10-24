@@ -41,11 +41,13 @@ if ! command -v lb > /dev/null; then
     exit 1
 fi
 
-# Serve per scaricare RuscaWriter dal suo repository.
-if ! command -v wget > /dev/null; then
-    echo "ERRORE: manca wget.  Installalo con:  sudo apt install wget"
-    exit 1
-fi
+# Servono a make-debs.sh per costruire i pacchetti di branding/ e tools/.
+for comando in dpkg-deb python3; do
+    if ! command -v "$comando" > /dev/null; then
+        echo "ERRORE: manca $comando.  Installalo con:  sudo apt install $comando"
+        exit 1
+    fi
+done
 
 if [ "$(id -u)" = "0" ]; then
     echo "ERRORE: non lanciare questo script come root. Usa il tuo utente:"
@@ -57,19 +59,36 @@ fi
 # --- 2. Pacchetti .deb -----------------------------------------------------
 #
 # I .deb non stanno in git: sono prodotti da make-debs.sh a partire da
-# branding/ e tools/. Se la cartella non c'e', li costruisce adesso.
+# branding/ e tools/. Li ricostruisce se la cartella non c'e', oppure se un
+# file in branding/ o tools/ e' piu' recente dei pacchetti (le cartelle
+# build-deb/ dei tool sono escluse: sono a loro volta risultati).
 
 echo
 echo "==> Pacchetti"
 
 if [ ! -d local/extra_debs ]; then
     ./make-debs.sh
+elif [ -n "$(find branding tools -name build-deb -prune -o \
+             -type f -newer local/extra_debs -print -quit)" ]; then
+    echo "    branding/ o tools/ sono cambiati: ricostruisco i pacchetti"
+    ./make-debs.sh
 fi
 
-# Controlla che ci siano davvero. Una ISO senza RuscaWriter o senza una
-# utility si costruisce lo stesso, e te ne accorgeresti solo dopo l'avvio.
-for atteso in ruscawriter $(ls tools/); do
-    trovato=$(ls local/extra_debs/${atteso}_*.deb 2> /dev/null | head -n 1)
+# Controlla che ci siano davvero. Una ISO senza una utility si costruisce
+# lo stesso, e te ne accorgeresti solo dopo l'avvio.
+#
+# Si guarda il nome del pacchetto scritto DENTRO il .deb, non il nome del
+# file: i tool producono <nome>-ruscalinux_<versione>_all.deb.
+for cartella in tools/*/; do
+    atteso=$(basename "$cartella")
+    trovato=""
+    for deb in local/extra_debs/*.deb; do
+        [ -f "$deb" ] || continue
+        if [ "$(dpkg-deb -f "$deb" Package)" = "$atteso" ]; then
+            trovato="$deb"
+            break
+        fi
+    done
     if [ -z "$trovato" ]; then
         echo "ERRORE: manca il pacchetto $atteso."
         echo "        Rilancia ./make-debs.sh e leggi cosa dice."

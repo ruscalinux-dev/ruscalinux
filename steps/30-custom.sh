@@ -2,8 +2,8 @@
 set -e
 
 # COPIA DEI PACCHETTI DA LOCAL PER ESSERE INSTALLATI DURANTE LA FASE DI BUILD
-# adwaita-prugna, ruscalinux-backgrounds-it, ruscalinux-fonts, ruscacleaner,
-# ruscawriter
+# adwaita-prugna, ruscalinux-backgrounds-it, ruscalinux-fonts e le utility di
+# tools/ (ruscacleaner, ruscahub, ruscamark)
 cp local/extra_debs/*.deb .work/config/packages.chroot/
 
 # IMPOSTAZIONE splash.png BINARY
@@ -145,19 +145,19 @@ audio/midi=audacious.desktop
 audio/x-mpegurl=audacious.desktop
 audio/x-scpls=audacious.desktop
 
-# Video — VLC
-video/x-ogm+ogg=vlc.desktop
-video/mp4=vlc.desktop
-video/mpeg=vlc.desktop
-video/x-matroska=vlc.desktop
-video/webm=vlc.desktop
-video/quicktime=vlc.desktop
-video/x-msvideo=vlc.desktop
-video/x-ms-wmv=vlc.desktop
-video/x-flv=vlc.desktop
-video/ogg=vlc.desktop
-video/3gpp=vlc.desktop
-video/3gpp2=vlc.desktop
+# Video — SMPlayer
+video/x-ogm+ogg=smplayer.desktop
+video/mp4=smplayer.desktop
+video/mpeg=smplayer.desktop
+video/x-matroska=smplayer.desktop
+video/webm=smplayer.desktop
+video/quicktime=smplayer.desktop
+video/x-msvideo=smplayer.desktop
+video/x-ms-wmv=smplayer.desktop
+video/x-flv=smplayer.desktop
+video/ogg=smplayer.desktop
+video/3gpp=smplayer.desktop
+video/3gpp2=smplayer.desktop
 
 # Fotografie — Eye of GNOME
 image/jpeg=org.gnome.eog.desktop

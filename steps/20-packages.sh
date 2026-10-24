@@ -73,16 +73,6 @@ linux-headers-amd64
 git
 
 # ===========================================================================
-# RUSCAWRITER SUPPORT
-# Dipendenze dichiarate opzionali da RuscaWriter: senza di esse l'applicazione
-# parte lo stesso, ma perde delle funzioni in silenzio.
-#   pyphen  sillabazione nell'esportazione PDF
-#   pil     generatore di copertine (Pillow)
-# ===========================================================================
-python3-pyphen
-python3-pil
-
-# ===========================================================================
 # LIBS SUPPORT
 # ===========================================================================
 python3-gi-cairo

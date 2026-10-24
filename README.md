@@ -10,7 +10,7 @@ Website: <https://www.ruscalinux.org/> · Downloads: [SourceForge](https://sourc
 ## Build it
 
 ```sh
-sudo apt install live-build wget qemu-system-x86 qemu-utils ovmf
+sudo apt install live-build python3 qemu-system-x86 qemu-utils ovmf
 ./build.sh          # produces .work/ruscalinux-<version>-amd64.hybrid.iso
 ./test.sh           # boots it in QEMU
 ```
@@ -35,11 +35,6 @@ line propagates it to the ISO name, the volume label, `/etc/os-release`,
 | `tools/` | First-party applications, one directory each. |
 | `local/` | Files `live-build` consumes directly: splash images, vendor logo. |
 | `dist/` | Templates for the README and INSTALL published next to the ISO. |
-| `vendor/` | Offline copy of RuscaWriter, so a build works without a network. |
-
-RuscaWriter is not built here: `make-debs.sh` downloads the latest published
-release from [its own repository](https://github.com/ruscalinux-dev/ruscawriter)
-and verifies it against the release checksum.
 
 ## Documentation
 

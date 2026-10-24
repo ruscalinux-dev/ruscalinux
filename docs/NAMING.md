@@ -7,10 +7,9 @@ look like a family rather than a pile of tools that appeared one at a time.
 
 **`Rusca` + an English agent noun**, in CamelCase, no space:
 
-    RuscaWriter    writes
     RuscaCleaner   cleans
 
-The agent noun is what makes them a set. *RuscaWriter* and *RuscaClean* would
+The agent noun is what makes them a set. *RuscaCleaner* and *RuscaClean* would
 read as two unrelated things: one is a thing, the other is an action. Keeping
 the `-er` costs a syllable and buys coherence.
 
@@ -31,8 +30,9 @@ For an application named `RuscaFoo`, all of these must agree:
 | Thing | Value |
 |---|---|
 | Directory | `tools/ruscafoo/` |
-| Version | `tools/ruscafoo/VERSION` |
-| Build script | `tools/ruscafoo/make-ruscafoo-deb.sh` |
+| Version | `VER` in `make-deb.sh` and `APP_VERSION` in the program, equal to `VERSION` in `release.conf` |
+| Build script | `tools/ruscafoo/make-deb.sh` |
+| Package file | `tools/ruscafoo/build-deb/ruscafoo-ruscalinux_<version>_all.deb` |
 | Debian package | `ruscafoo` |
 | Command | `/usr/bin/ruscafoo` |
 | Data | `/usr/share/ruscafoo/` |
@@ -49,14 +49,10 @@ window to its icon in the dash. The metainfo `<launchable>` must name the
 
 ## Adding a utility
 
-Create `tools/ruscafoo/` containing at least a `VERSION` file and a
-`make-ruscafoo-deb.sh` that takes the version as its first argument and writes
-a `.deb` into the current directory.
+Create `tools/ruscafoo/` containing a `make-deb.sh` that runs from its own
+directory with no arguments and writes exactly one `.deb` into `build-deb/`.
 
 Nothing else. `make-debs.sh` walks `tools/*/` and builds whatever it finds;
 `build.sh` then requires a package named after each directory and refuses to
 build the ISO if one is missing. No script names any application, so adding
 the fifth utility costs exactly as much as adding the second.
-
-RuscaWriter is the exception: it has its own repository and release cycle, so
-it is downloaded rather than built. See `make-debs.sh`.

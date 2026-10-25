@@ -72,6 +72,7 @@ libglvnd-dev
 linux-image-amd64
 linux-headers-amd64
 git
+python3-venv
 
 # ===========================================================================
 # LIBS SUPPORT

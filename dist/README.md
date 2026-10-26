@@ -19,7 +19,7 @@ moment it boots.
 - **Desktop** — GNOME 48.7 on Wayland with custom Adwaita-Prugna icons and Plymouth boot splash
 - **Office** — LibreOffice 25.2 (Writer, Calc, Impress, Draw, Math, Base), Evince
 - **Multimedia** — SMPlayer, Audacity, OBS Studio, GIMP 3.0, Audacious, Brasero, EasyTAG, FFmpeg 7.1
-- **Internet** — Firefox ESR 140, Thunderbird 140, qBittorrent
+- **Internet** — Firefox ESR 153, Thunderbird 140, qBittorrent
 - **Languages** — 40+ localizations bundled in the base image
 - **In-house tools** — RuscaMark (Markdown editor), RuscaHub (AppImage manager), RuscaCleaner (privacy cleanup)
 - **Security** — AppArmor mandatory access control enabled by default

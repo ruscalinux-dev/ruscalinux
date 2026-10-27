@@ -128,7 +128,7 @@
   "about_website": "网站",
   "about_support": "支持",
   "dev_note_title": "开发说明",
-  "ai_note": "在 AI 工具的支持下开发：设计、规范、审校和编辑责任均属于作者。",
+  "ai_note": "设计、规格说明和测试由作者完成；代码在人工智能工具的辅助下编写。",
   "mi_format": "格式",
   "pref_group_look": "外观",
   "pref_group_writing": "写作",

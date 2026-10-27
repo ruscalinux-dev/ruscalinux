@@ -1,6 +1,6 @@
 {
   "app_description": "Gerenciador de AppImage com importação por arrastar e soltar, armazenamento em pasta oculta na Home, instalação e desinstalação pelo menu do GNOME, temas rosa⇒ameixa.",
-  "ai_note": "Desenvolvido com o apoio de ferramentas de IA: projeto, especificações, revisão e responsabilidade editorial são do autor.",
+  "ai_note": "Projeto, especificações e testes do autor; código escrito com o auxílio de ferramentas de inteligência artificial.",
   "add_appimage": "Adicionar AppImage",
   "about_title": "Sobre o %s",
   "empty_title": "Nenhuma AppImage arquivada",

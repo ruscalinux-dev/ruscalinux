@@ -1,6 +1,6 @@
 {
   "app_description": "Pengelola AppImage dengan impor seret & lepas, penyimpanan di folder tersembunyi di Home, pemasangan dan pencopotan dari menu GNOME, tema merah muda⇒plum.",
-  "ai_note": "Dikembangkan dengan dukungan alat AI: desain, spesifikasi, tinjauan, dan tanggung jawab editorial ada pada penulis.",
+  "ai_note": "Rancangan, spesifikasi, dan pengujian oleh penulis; kode ditulis dengan bantuan alat kecerdasan buatan.",
   "add_appimage": "Tambah AppImage",
   "about_title": "Tentang %s",
   "empty_title": "Belum ada AppImage yang diarsipkan",

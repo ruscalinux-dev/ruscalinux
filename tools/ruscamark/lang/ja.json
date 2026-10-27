@@ -128,7 +128,7 @@
   "about_website": "ウェブサイト",
   "about_support": "サポート",
   "dev_note_title": "開発メモ",
-  "ai_note": "AI ツールの支援を受けて開発: 設計、仕様、校閲、編集上の責任は作者にあります。",
+  "ai_note": "設計・仕様・検証は作者によるもの。コードは AI ツールの支援を受けて書かれています。",
   "mi_format": "書式",
   "pref_group_look": "外観",
   "pref_group_writing": "執筆",

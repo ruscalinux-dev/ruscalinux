@@ -210,8 +210,8 @@ Source: https://www.ruscalinux.org/
 Files: *
 Copyright: 2026 Nunzio Curcuruto
 License: GPL-3+
-Comment: Developed with the support of AI tools: design, specifications,
- review, and editorial responsibility remain with the author.
+Comment: Design, specifications and testing by the author; code written
+ with the assistance of AI tools. See NOTA-IA.md in the RuscaLinux repository.
 
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify it

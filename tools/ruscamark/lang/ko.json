@@ -128,7 +128,7 @@
   "about_website": "웹사이트",
   "about_support": "지원",
   "dev_note_title": "개발 참고 사항",
-  "ai_note": "AI 도구의 도움으로 개발됨: 설계, 사양, 검토 및 편집 책임은 저자에게 있습니다.",
+  "ai_note": "설계, 명세, 검증은 저자가 맡았으며, 코드는 인공지능 도구의 도움을 받아 작성되었습니다.",
   "mi_format": "서식",
   "pref_group_look": "모양",
   "pref_group_writing": "쓰기",

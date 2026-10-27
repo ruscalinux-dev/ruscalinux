@@ -2,11 +2,16 @@
 
 ## Italiano
 
-**Nota di sviluppo:** Sviluppato con il supporto di strumenti AI: progettazione, specifiche, revisione e responsabilità editoriale sono dell’autore.
+**Nota di sviluppo:** Progettazione, specifiche e verifica dell’autore; codice scritto con l’assistenza di strumenti di intelligenza artificiale.
 
-Nello sviluppo di RuscaLinux e dei RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark) sono stati usati strumenti di intelligenza artificiale come supporto alla scrittura di codice e documentazione.
+RuscaLinux e i RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark) sono progettati e mantenuti da Nunzio Curcuruto.
 
-Le scelte di progetto, le specifiche, la revisione del codice e la responsabilità di ciò che viene pubblicato restano dell’autore, Nunzio Curcuruto. Ogni modifica è letta, provata e accettata da lui prima di entrare nel repository.
+Il lavoro è diviso così:
+
+- **Dell’autore:** l’idea e lo scopo di ogni programma, le specifiche tecniche e grafiche, le scelte di comportamento e di aspetto, la verifica dei programmi e delle ISO prima di ogni pubblicazione, e la decisione su cosa entra nel repository.
+- **Con l’assistenza di strumenti di intelligenza artificiale:** la scrittura di gran parte del codice e della documentazione, a partire dalle specifiche e dalle indicazioni dell’autore.
+
+Le regole che i programmi devono rispettare sono pubbliche, in [`docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`](docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md): aspetto, accessibilità, lingue, privacy, pacchetti.
 
 La nota compare in tre posti: nella finestra “Informazioni” di ogni programma, nel file `copyright` di ogni pacchetto deb e in questo file.
 
@@ -14,11 +19,16 @@ Per domande: info@ruscalinux.org
 
 ## English
 
-**Development note:** Developed with the support of AI tools: design, specifications, review, and editorial responsibility remain with the author.
+**Development note:** Design, specifications and testing by the author; code written with the assistance of AI tools.
 
-AI tools were used to support the writing of code and documentation for RuscaLinux and the RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark).
+RuscaLinux and the RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark) are designed and maintained by Nunzio Curcuruto.
 
-Design decisions, specifications, code review and responsibility for everything published remain with the author, Nunzio Curcuruto. Every change is read, tested and accepted by him before it enters the repository.
+The work is divided as follows:
+
+- **By the author:** the idea and purpose of each program, the technical and visual specifications, the decisions on behaviour and appearance, the testing of the programs and of the ISO images before every release, and the decision on what goes into the repository.
+- **With the assistance of AI tools:** writing most of the code and documentation, starting from the author’s specifications and directions.
+
+The rules the programs must follow are public, in [`docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`](docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md) (in Italian, with an English user guide): appearance, accessibility, languages, privacy, packaging.
 
 The note appears in three places: in the “About” window of each program, in the `copyright` file of each deb package, and in this file.
 

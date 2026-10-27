@@ -1,6 +1,6 @@
 # RuscaCleaner — Manuale d'uso
 
-**Versione** 1.99.2 · **Autore** Nunzio Curcuruto · **Distribuzione** RuscaLinux ([ruscalinux.org](https://ruscalinux.org/)) · **Licenza** GNU GPL v3 o successiva
+**Versione** 1.99.2 · **Autore** Nunzio Curcuruto · **Distribuzione** RuscaLinux ([ruscalinux.org](https://www.ruscalinux.org/)) · **Licenza** GNU GPL v3 o successiva
 
 ---
 
@@ -12,7 +12,7 @@ RuscaCleaner è un programma per il desktop GNOME che **rimuove dalla cartella h
 
 ## 2. Installazione
 
-Requisiti: RuscaLinux o Debian Stable, GNOME, Python 3.10+, GTK 4, libadwaita 1.5+.
+Requisiti: RuscaLinux o Debian Stable, GNOME, Python 3.10+, GTK 4.18+, libadwaita 1.7+.
 
 ```bash
 sha256sum -c SHA256SUMS                                   # prima verifica l'integrità
@@ -54,12 +54,28 @@ Le cronologie delle shell vengono **azzerate**, non eliminate: il file conserva 
 
 ## 4. Uso della finestra
 
-1. **Apri il programma.** Parte da sola un'analisi: ogni voce mostra la sua dimensione, oppure "Niente da rimuovere". Le voci che non esistono sul tuo sistema vengono spente e disattivate.
-2. **Scegli** cosa pulire con gli interruttori. Il totale sotto l'elenco si aggiorna a ogni modifica.
-3. **Premi "Pulisci ora".** La finestra di conferma elenca **i percorsi reali dei file**, gli avvisi pertinenti, e ha **"Annulla"** come pulsante predefinito.
-4. **Leggi il registro**, che si apre da solo: ogni elemento eliminato, ogni elemento saltato con il motivo e il totale liberato.
+1. **Apri il programma.** Parte da sola un'analisi. L'elenco mostra solo le voci che hanno davvero qualcosa da rimuovere, ciascuna con la sua dimensione; se non c'è nulla, la finestra dice «Niente da pulire».
+2. **Scegli** cosa pulire con gli interruttori. Le cronologie di shell, strumenti ed editor sono in un gruppo a parte. Il totale, nella barra in basso, si aggiorna a ogni modifica.
+3. **Premi «Pulisci ora»** nella barra in basso. La finestra di conferma elenca **i percorsi reali dei file** e gli avvisi pertinenti, e ha **«Annulla»** come pulsante predefinito.
+4. **Leggi l'esito** nella notifica in basso. Il pulsante **«Dettagli»** apre il registro: ogni elemento eliminato, ogni elemento saltato con il motivo e il totale liberato. Dopo la pulizia l'elenco si aggiorna da solo.
 
-Nella finestra trovi anche: **⟳** per ricalcolare le dimensioni, **"Solo simulazione"** per provare senza cancellare, **"Cosa non fa"** con i limiti dichiarati (§6.3) e **Informazioni** con versione, licenza e nota IA. La finestra non si chiude mentre è in corso una cancellazione.
+Il pulsante **⟳** in alto a sinistra ricalcola le dimensioni. Il menu in alto a destra contiene:
+
+- **Solo simulazione:** prova senza cancellare nulla. Finché è attiva, una striscia in alto lo ricorda (con il pulsante «Disattiva») e il pulsante in basso diventa «Simula».
+- **Cosa non fa:** i limiti dichiarati (§6.3).
+- **Scorciatoie da tastiera** e **Informazioni** (versione, collegamenti a sito, supporto e licenza, nota di sviluppo).
+
+La finestra non si chiude mentre è in corso una cancellazione.
+
+La finestra segue lo stile chiaro o scuro di GNOME, ricorda la propria dimensione e si usa anche da tastiera:
+
+| Tasti | Azione |
+|---|---|
+| F5 o Ctrl+R | Ricalcola le dimensioni |
+| Ctrl+? | Scorciatoie da tastiera |
+| F10 | Menu principale |
+| Ctrl+W | Chiudi la finestra |
+| Ctrl+Q | Esci |
 
 ---
 
@@ -151,4 +167,4 @@ La lingua segue le impostazioni di sistema (`LANGUAGE`, poi `LC_ALL`, `LC_MESSAG
 
 - **Licenza:** GNU GPL v3 o successiva, senza alcuna garanzia.
 - **Supporto:** info@ruscalinux.org
-- **Nota IA:** *Sviluppato con il supporto di strumenti AI: progettazione, specifiche, revisione e responsabilità editoriale sono dell'autore.*
+- **Nota IA:** si trova nella finestra Informazioni del programma e nel file `NOTA-IA.md` del repository.

@@ -1,19 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <!-- Identico al CSS .rusca-hero: linear-gradient(135deg, #4a1f42 0%, #7d3c68 55%, #a4508b 100%) -->
+    <!-- Palette RuscaLinux: prugna scuro #2d0a1d verso prugna 500 #8a2b5f (gradiente hero) -->
     <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0"    stop-color="#4a1f42"/>
-      <stop offset="0.55" stop-color="#7d3c68"/>
-      <stop offset="1"    stop-color="#a4508b"/>
+      <stop offset="0"    stop-color="#2d0a1d"/>
+      <stop offset="0.55" stop-color="#5c1a40"/>
+      <stop offset="1"    stop-color="#8a2b5f"/>
     </linearGradient>
     <radialGradient id="sheen" cx="0.3" cy="0.22" r="0.85">
-      <stop offset="0" stop-color="#f7ecf3" stop-opacity="0.10"/>
-      <stop offset="1" stop-color="#f7ecf3" stop-opacity="0"/>
+      <stop offset="0" stop-color="#fff7f0" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#fff7f0" stop-opacity="0"/>
     </radialGradient>
-    <!-- Il crema del testo: #f7ecf3 del titolo verso il rosa del sottotitolo -->
+    <!-- Crema #fff7f0 verso rosa chiaro #f8d7e6 -->
     <linearGradient id="cream" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0" stop-color="#f7ecf3"/>
-      <stop offset="1" stop-color="#e8afd4"/>
+      <stop offset="0" stop-color="#fff7f0"/>
+      <stop offset="1" stop-color="#f8d7e6"/>
     </linearGradient>
   </defs>
 
@@ -22,22 +22,22 @@
   <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#sheen)"/>
 
   <g transform="rotate(-42 32 32)">
-    <g fill="#280a20" opacity="0.28" transform="translate(1.6,2)">
+    <g fill="#1a0511" opacity="0.28" transform="translate(1.6,2)">
       <rect x="29" y="7" width="6" height="28" rx="3"/>
       <path d="M26.4 33.5 H37.6 L41.8 55.4 Q42.4 58.2 39.5 58.2 H24.5 Q21.6 58.2 22.2 55.4 Z"/>
     </g>
     <rect x="29" y="7" width="6" height="28" rx="3" fill="url(#cream)"/>
     <rect x="29.9" y="8.6" width="1.7" height="24" rx="0.85" fill="#ffffff" opacity="0.25"/>
-    <rect x="26.4" y="33.4" width="11.2" height="5.4" rx="1.6" fill="#f7ecf3" opacity="0.78"/>
-    <rect x="26.4" y="37.6" width="11.2" height="0.9" fill="#4a1f42" opacity="0.35"/>
+    <rect x="26.4" y="33.4" width="11.2" height="5.4" rx="1.6" fill="#fff7f0" opacity="0.78"/>
+    <rect x="26.4" y="37.6" width="11.2" height="0.9" fill="#2d0a1d" opacity="0.35"/>
     <path d="M26.6 38.6 H37.4 L41.4 55.4 Q42 58.2 39.2 58.2 H24.8 Q22 58.2 22.6 55.4 Z"
           fill="url(#cream)"/>
-    <g stroke="#4a1f42" stroke-width="0.85" opacity="0.30" stroke-linecap="round">
+    <g stroke="#2d0a1d" stroke-width="0.85" opacity="0.30" stroke-linecap="round">
       <path d="M28.6 40.5 25.8 56.4"/>
       <path d="M32 40.5 32 56.4"/>
       <path d="M35.4 40.5 38.2 56.4"/>
     </g>
     <path d="M23.4 54.4 H40.6 L41.4 55.4 Q42 58.2 39.2 58.2 H24.8 Q22 58.2 22.6 55.4 Z"
-          fill="#4a1f42" opacity="0.18"/>
+          fill="#2d0a1d" opacity="0.18"/>
   </g>
 </svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- RuscaCleaner, icona simbolica: scopa. Un solo colore, GNOME la ricolora. -->
+  <g fill="#2e3436" transform="rotate(45 8 8)">
+    <rect x="7" y="-1" width="2" height="8" rx="1"/>
+    <rect x="5.25" y="6.5" width="5.5" height="2" rx="0.6"/>
+    <path d="M5.25 9.25h5.5l1.5 5.25a.5.5 0 0 1-.48.64H4.23a.5.5 0 0 1-.48-.64z"/>
+  </g>
+</svg>

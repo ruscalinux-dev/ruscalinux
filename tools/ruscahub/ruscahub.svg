@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- RuscaHub — icona ufficiale RuscaTools (rosa → prugna) -->
+  <!-- RuscaHub — icona ufficiale, palette RuscaLinux: prugna scuro #2d0a1d → prugna 500 #8a2b5f -->
   <defs>
     <linearGradient id="ruscahub-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0.00" stop-color="#d46ba6"/>
-      <stop offset="0.55" stop-color="#9e3878"/>
-      <stop offset="1.00" stop-color="#541a4d"/>
+      <stop offset="0.00" stop-color="#2d0a1d"/>
+      <stop offset="0.55" stop-color="#5c1a40"/>
+      <stop offset="1.00" stop-color="#8a2b5f"/>
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="128" height="128" rx="28" ry="28" fill="url(#ruscahub-grad)"/>
-  <g stroke="#ffffff" stroke-width="9" stroke-linecap="round" opacity="0.95">
+  <g stroke="#fff7f0" stroke-width="9" stroke-linecap="round" opacity="0.95">
     <line x1="77.6" y1="77.6" x2="90.2" y2="90.2"/>
     <line x1="50.4" y1="77.6" x2="37.8" y2="90.2"/>
     <line x1="50.4" y1="50.4" x2="37.8" y2="37.8"/>
     <line x1="77.6" y1="50.4" x2="90.2" y2="37.8"/>
   </g>
-  <g fill="#ffffff" opacity="0.95">
+  <g fill="#fff7f0" opacity="0.95">
     <circle cx="95.2" cy="95.2" r="7"/>
     <circle cx="32.8" cy="95.2" r="7"/>
     <circle cx="32.8" cy="32.8" r="7"/>

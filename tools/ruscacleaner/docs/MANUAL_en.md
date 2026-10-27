@@ -1,6 +1,6 @@
 # RuscaCleaner — User Manual
 
-**Version** 1.99.2 · **Author** Nunzio Curcuruto · **Distribution** RuscaLinux ([ruscalinux.org](https://ruscalinux.org/)) · **License** GNU GPL v3 or later
+**Version** 1.99.2 · **Author** Nunzio Curcuruto · **Distribution** RuscaLinux ([ruscalinux.org](https://www.ruscalinux.org/)) · **License** GNU GPL v3 or later
 
 ---
 
@@ -12,7 +12,7 @@ RuscaCleaner is a GNOME desktop program that **removes activity traces from your
 
 ## 2. Installation
 
-Requirements: RuscaLinux or Debian Stable, GNOME, Python 3.10+, GTK 4, libadwaita 1.5+.
+Requirements: RuscaLinux or Debian Stable, GNOME, Python 3.10+, GTK 4.18+, libadwaita 1.7+.
 
 ```bash
 sha256sum -c SHA256SUMS                                   # check integrity first
@@ -54,12 +54,28 @@ Shell histories are **emptied**, not deleted, so the file keeps its permissions.
 
 ## 4. Using the window
 
-1. **Open the program.** A scan starts automatically: each entry shows its size, or "Nothing to remove". Entries that do not exist on your system are switched off and disabled.
-2. **Choose** what to clean with the switches. The total below the list updates with every change.
-3. **Press "Clean now".** The confirmation window lists **the real paths of the files**, the relevant warnings, and has **"Cancel"** as the default button.
-4. **Read the log**, which opens on its own: every deleted item, every skipped item with its reason, and the total freed.
+1. **Open the program.** A scan starts automatically. The list shows only the entries that really have something to remove, each with its size; if there is nothing, the window says "Nothing to clean".
+2. **Choose** what to clean with the switches. Shell, tool and editor histories are in a separate group. The total, in the bar at the bottom, updates with every change.
+3. **Press "Clean now"** in the bottom bar. The confirmation window lists **the real paths of the files** and the relevant warnings, and has **"Cancel"** as the default button.
+4. **Read the result** in the notification at the bottom. The **"Details"** button opens the log: every deleted item, every skipped item with its reason, and the total freed. After cleaning, the list refreshes on its own.
 
-Also in the window: **⟳** recalculates sizes, **"Simulate only"** tries without deleting, **"What this does not do"** lists the declared limits (§6.3), and **About** shows version, license and the AI note. The window refuses to close while a deletion is in progress.
+The **⟳** button at the top left recalculates sizes. The menu at the top right contains:
+
+- **Simulate only:** try without deleting anything. While it is on, a strip at the top says so (with a "Turn Off" button) and the bottom button becomes "Simulate".
+- **What this does not do:** the declared limits (§6.3).
+- **Keyboard Shortcuts** and **About** (version, links to website, support and license, development note).
+
+The window refuses to close while a deletion is in progress.
+
+The window follows GNOME's light or dark style, remembers its size and can be used from the keyboard:
+
+| Keys | Action |
+|---|---|
+| F5 or Ctrl+R | Recalculate sizes |
+| Ctrl+? | Keyboard shortcuts |
+| F10 | Main menu |
+| Ctrl+W | Close the window |
+| Ctrl+Q | Quit |
 
 ---
 
@@ -151,4 +167,4 @@ The language follows the system settings (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGE
 
 - **License:** GNU GPL v3 or later, without any warranty.
 - **Support:** info@ruscalinux.org
-- **AI note:** *Developed with the support of AI tools: design, specifications, review and editorial responsibility remain with the author.*
+- **AI note:** in the program's About window and in the `NOTA-IA.md` file of the repository.

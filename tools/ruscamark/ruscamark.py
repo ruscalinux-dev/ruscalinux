@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-RuscaMark 1.99.2 — Editor professionale Markdown in Python + GTK4
+RuscaMark 1.99.2 — Editor professionale Markdown in Python + GTK4 + libadwaita
 Autore : Nunzio Curcuruto
-Sito   : https://ruscalinux.org
+Sito   : https://www.ruscalinux.org
 Licenza: GPL-3.0 — https://www.gnu.org/licenses/gpl-3.0.html
 
 Resa live della formattazione, pagina centrata che segue la larghezza
@@ -23,8 +23,6 @@ import sys
 import json
 import html
 import signal
-import datetime
-import subprocess
 import shutil
 import base64
 import mimetypes
@@ -33,7 +31,8 @@ import urllib.parse
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Gdk', '4.0')
-from gi.repository import Gtk, Gdk, Gio, GLib, Pango, GdkPixbuf
+gi.require_version('Adw', '1')
+from gi.repository import Adw, Gtk, Gdk, Gio, GLib, Pango, GdkPixbuf
 # Export PDF: GtkPrintOperation + PangoCairo (pacchetto python3-gi-cairo).
 try:
     gi.require_foreign("cairo")
@@ -114,24 +113,22 @@ LANG_DIRS = (
 
 _BUILTIN_STRINGS = {
     'en': {
+        '__lang__': 'en',
+        '__name__': 'English',
         'mi_new': 'New',
         'mi_open': 'Open/Import Markdown…',
         'mi_save': 'Save/Export Markdown',
         'mi_save_as': 'Save As…',
         'mi_export_html': 'Export HTML…',
         'mi_export_pdf': 'Export PDF…',
-        'pdf_done': 'PDF exported to:\n{path}',
-        'export_footer': '{title} - page {page} / {pages}',
         'mi_live': 'Live rendering',
         'mi_preview': 'Preview',
         'mi_fullscreen': 'Full screen',
-        'mi_dark': 'Dark theme',
         'mi_preferences': 'Preferences…',
         'mi_goal': 'Word goal…',
         'mi_spell': 'Spell checking',
         'mi_find': 'Find…',
         'mi_replace': 'Find and replace…',
-        'mi_website': 'Website — ruscalinux.org',
         'mi_about': 'About RuscaMark',
         'mi_quit': 'Quit',
         'tip_new': 'New',
@@ -140,8 +137,6 @@ _BUILTIN_STRINGS = {
         'tip_preview': 'Preview (Ctrl+P)',
         'tip_spell_on': 'Spell checking on (F7 to turn off)',
         'tip_spell_off': 'Spell checking off (F7 to turn on)',
-        'tip_fullscreen': 'Full screen (F11)',
-        'tip_menu': 'Menu',
         'st_counts': 'Words: {w} · Characters: {c} · Lines: {l}',
         'st_cursor': 'Ln {ln}, Col {col}',
         'goal_tip': 'Set a word goal',
@@ -172,8 +167,6 @@ _BUILTIN_STRINGS = {
         'spell_disabled': 'Spell checking off: turn it back on from the button or F7.',
         'spell_no_backend': 'Spell checking unavailable: {e} — install gir1.2-spelling-1.',
         'spell_inactive': 'Live checking not active: {e}',
-        'pref_title': 'Preferences — RuscaMark',
-        'pref_dark': 'Dark theme (plum)',
         'pref_live': 'Live rendering of formatting',
         'pref_center': 'Centred page',
         'pref_width': 'Page width (characters)',
@@ -183,11 +176,7 @@ _BUILTIN_STRINGS = {
         'spacing_airy': 'Airy',
         'pref_font': 'System font',
         'pref_size': 'Size',
-        'pref_sample': 'Aa Sample text',
-        'pref_lang': 'Interface language',
-        'lang_english_ui': 'English interface',
         'btn_cancel': 'Cancel',
-        'btn_ok_apply': 'Apply',
         'btn_ok': 'OK',
         'btn_close': 'Close',
         'unsaved_title': 'Unsaved changes',
@@ -199,12 +188,10 @@ _BUILTIN_STRINGS = {
         'err_open': 'Cannot open the file:\n{e}',
         'err_save': 'Cannot save the file:\n{e}',
         'err_export': 'Export error:\n{e}',
-        'html_done': 'HTML exported to:\n{path}',
+        'export_footer': '{title} - page {page} / {pages}',
         'title_untitled': 'Untitled',
         'about_desc': 'Professional Markdown editor with live rendering of formatting, centred writing page, live spell checking with suggestions, pink→plum themes and word goal.',
-        'about_ai': 'Developed with the support of AI tools: design, specifications, review, and editorial responsibility remain with the author.',
-        'about_license': '© {year} — GPL-3.0 License',
-        'about_author': 'Author: {author}',
+        'about_license': 'License',
         'mi_bold': 'Bold',
         'mi_italic': 'Italic',
         'mi_link': 'Insert link…',
@@ -249,26 +236,47 @@ _BUILTIN_STRINGS = {
         'sample_s1': 'Open a file with **Ctrl+O**',
         'sample_s2': 'Save with **Ctrl+S**',
         'sample_s3': 'Updates on [ruscalinux.org](https://ruscalinux.org)',
+        'shortcuts': 'Keyboard Shortcuts',
+        'main_menu': 'Main Menu',
+        'sc_close': 'Close Window',
+        'about_website': 'Website',
+        'about_support': 'Support',
+        'dev_note_title': 'Development Note',
+        'ai_note': 'Developed with the support of AI tools: design, specifications, review, and editorial responsibility remain with the author.',
+        'mi_format': 'Format',
+        'pref_group_look': 'Appearance',
+        'pref_group_writing': 'Writing',
+        'pref_group_export': 'Export',
+        'pref_style': 'Style',
+        'style_system': 'Follow System',
+        'style_light': 'Light',
+        'style_dark': 'Dark',
+        'toast_html_done': 'HTML exported',
+        'toast_pdf_done': 'PDF exported',
+        'btn_open_file': 'Open',
+        'sc_group_file': 'File',
+        'sc_group_edit': 'Editing',
+        'sc_group_view': 'View',
+        'app_summary': 'Write Markdown with live formatting',
+        'desktop_keywords': 'Markdown;editor;text;writing;notes;',
     },
     'it': {
+        '__lang__': 'it',
+        '__name__': 'Italiano',
         'mi_new': 'Nuovo',
         'mi_open': 'Apri/Importa Markdown…',
         'mi_save': 'Salva/Esporta Markdown',
         'mi_save_as': 'Salva con nome…',
         'mi_export_html': 'Esporta HTML…',
         'mi_export_pdf': 'Esporta PDF…',
-        'pdf_done': 'PDF esportato in:\n{path}',
-        'export_footer': '{title} - pag. {page} / {pages}',
         'mi_live': 'Resa live',
         'mi_preview': 'Anteprima',
         'mi_fullscreen': 'Schermo intero',
-        'mi_dark': 'Tema scuro',
         'mi_preferences': 'Preferenze…',
         'mi_goal': 'Obiettivo parole…',
         'mi_spell': 'Controllo ortografico',
         'mi_find': 'Trova…',
         'mi_replace': 'Trova e sostituisci…',
-        'mi_website': 'Sito web — ruscalinux.org',
         'mi_about': 'Informazioni su RuscaMark',
         'mi_quit': 'Esci',
         'tip_new': 'Nuovo',
@@ -277,8 +285,6 @@ _BUILTIN_STRINGS = {
         'tip_preview': 'Anteprima (Ctrl+P)',
         'tip_spell_on': 'Controllo ortografico attivo (F7 per spegnere)',
         'tip_spell_off': 'Controllo ortografico spento (F7 per accendere)',
-        'tip_fullscreen': 'Schermo intero (F11)',
-        'tip_menu': 'Menu',
         'st_counts': 'Parole: {w} · Caratteri: {c} · Righe: {l}',
         'st_cursor': 'Ln {ln}, Col {col}',
         'goal_tip': 'Imposta un obiettivo di parole',
@@ -309,8 +315,6 @@ _BUILTIN_STRINGS = {
         'spell_disabled': 'Controllo ortografico disattivato: riaccendilo dal pulsante o con F7.',
         'spell_no_backend': 'Controllo ortografico non disponibile: {e} — installa gir1.2-spelling-1.',
         'spell_inactive': 'Controllo live non attivo: {e}',
-        'pref_title': 'Preferenze — RuscaMark',
-        'pref_dark': 'Tema scuro (prugna)',
         'pref_live': 'Resa live della formattazione',
         'pref_center': 'Pagina centrata',
         'pref_width': 'Larghezza pagina (caratteri)',
@@ -320,11 +324,7 @@ _BUILTIN_STRINGS = {
         'spacing_airy': 'Ariosa',
         'pref_font': 'Font di sistema',
         'pref_size': 'Dimensione',
-        'pref_sample': 'Aa Testo di prova',
-        'pref_lang': 'Lingua interfaccia',
-        'lang_english_ui': 'interfaccia in inglese',
         'btn_cancel': 'Annulla',
-        'btn_ok_apply': 'Applica',
         'btn_ok': 'OK',
         'btn_close': 'Chiudi',
         'unsaved_title': 'Modifiche non salvate',
@@ -336,12 +336,10 @@ _BUILTIN_STRINGS = {
         'err_open': 'Impossibile aprire il file:\n{e}',
         'err_save': 'Impossibile salvare il file:\n{e}',
         'err_export': "Errore nell'esportazione:\n{e}",
-        'html_done': 'HTML esportato in:\n{path}',
+        'export_footer': '{title} - pag. {page} / {pages}',
         'title_untitled': 'Senza titolo',
         'about_desc': 'Editor professionale Markdown con resa live della formattazione, pagina centrata per la scrittura, controllo ortografico live con suggerimenti, temi rosa→prugna e obiettivo parole.',
-        'about_ai': "Sviluppato con il supporto di strumenti AI: progettazione, specifiche, revisione e responsabilità editoriale sono dell'autore.",
-        'about_license': '© {year} — Licenza GPL-3.0',
-        'about_author': 'Autore: {author}',
+        'about_license': 'Licenza',
         'mi_bold': 'Grassetto',
         'mi_italic': 'Corsivo',
         'mi_link': 'Inserisci link…',
@@ -386,8 +384,33 @@ _BUILTIN_STRINGS = {
         'sample_s1': 'Apri un file con **Ctrl+O**',
         'sample_s2': 'Salva con **Ctrl+S**',
         'sample_s3': 'Aggiornamenti su [ruscalinux.org](https://ruscalinux.org)',
+        'shortcuts': 'Scorciatoie da tastiera',
+        'main_menu': 'Menu principale',
+        'sc_close': 'Chiudi finestra',
+        'about_website': 'Sito web',
+        'about_support': 'Supporto',
+        'dev_note_title': 'Nota di sviluppo',
+        'ai_note': 'Sviluppato con il supporto di strumenti AI: progettazione, specifiche, revisione e responsabilità editoriale sono dell’autore.',
+        'mi_format': 'Formato',
+        'pref_group_look': 'Aspetto',
+        'pref_group_writing': 'Scrittura',
+        'pref_group_export': 'Esportazione',
+        'pref_style': 'Stile',
+        'style_system': 'Segui il sistema',
+        'style_light': 'Chiaro',
+        'style_dark': 'Scuro',
+        'toast_html_done': 'HTML esportato',
+        'toast_pdf_done': 'PDF esportato',
+        'btn_open_file': 'Apri',
+        'sc_group_file': 'File',
+        'sc_group_edit': 'Modifica',
+        'sc_group_view': 'Visualizza',
+        'app_summary': 'Scrivi in Markdown con la formattazione dal vivo',
+        'desktop_keywords': 'Markdown;editor;testo;scrittura;note;',
     },
 }
+
+
 
 _lang_cache = {}
 
@@ -477,160 +500,114 @@ class Translator:
 APP_NAME    = "RuscaMark"
 APP_VERSION = "1.99.2"
 APP_AUTHOR  = "Nunzio Curcuruto"
-APP_WEBSITE = "https://ruscalinux.org"
-APP_ID      = "org.ruscalinux.ruscamark"
+APP_WEBSITE = "https://www.ruscalinux.org"
+APP_ID      = "org.ruscalinux.RuscaMark"
+STYLE_SRC   = next((p for p in (os.path.join(_PROGRAM_DIR, "style.css"),
+                                "/usr/share/ruscamark/style.css") if os.path.isfile(p)), None)
+ICON_SRC    = next((p for p in (os.path.join(_PROGRAM_DIR, "ruscamark.svg"),
+                                "/usr/share/ruscamark/ruscamark.svg") if os.path.isfile(p)), None)
 CONFIG_DIR  = os.path.join(GLib.get_user_config_dir(), "ruscamark")
 STYLES_DIR  = os.path.join(GLib.get_user_data_dir(), "gtksourceview-5", "styles")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 OLD_CONFIG_FILE = os.path.join(GLib.get_user_config_dir(), "ruscaeditor", "config.json")
 DEFAULT_CONFIG = {
-    "theme": "light", "font": "Sans", "font_size": 13,
+    # Stile: "system" segue GNOME, "light"/"dark" lo forzano.
+    "style": "system", "font": "Sans", "font_size": 13,
     "goal": 0, "lang": "it_IT", "show_preview": False,
     "live": True, "center_page": True, "page_chars": 68,
     "line_spacing": "normal",      # interlinea dell'editor: compact | normal | airy
-    "ui_lang": "",
     "html_embed_images": False,    # export HTML autonomo (immagini in base64)
     "spell_on": True,              # persiste lo stato del controllo ortografico
     "spell_panel_hidden": True,    # primo avvio: pannello nascosto
     "win_w": 1240, "win_h": 800, "paned": 620,
 }
 # ----------------------------------------------------------------------------
+# Colori di editor e anteprima, dalla palette ufficiale RuscaLinux
+# (specifiche, sezione 4.1). Ogni coppia testo/sfondo ha contrasto >= 4,5:1.
 LIGHT = {
-    "bg": "#FFF5F8", "editor_bg": "#FFF7FA", "preview_bg": "#FCEEF4",
-    "panel": "#FBDCE9", "header": "#F6CADD", "fg": "#3A0B3E",
-    "accent": "#B01E6E", "accent2": "#C2185B", "subtle": "#96557B",
-    "border": "#E9BCD1", "selection": "#F2B7D2", "sel_fg": "#3A0B3E",
-    "hover": "#F3C4D9", "code_bg": "#F6E3ED", "code_fg": "#7A1F52",
-    "heading": "#A61E6B", "link": "#9C2766", "quote": "#8A5674",
-    "trough": "#EFD1DE", "error": "#C2185B",
+    "bg": "#FBF4F7", "editor_bg": "#FFFFFF", "preview_bg": "#FBF4F7",
+    "panel": "#F6E4EC", "header": "#F6E4EC", "fg": "#2D0A1D",
+    "accent": "#7A2357", "accent_fg": "#FFFFFF", "accent2": "#8A2B5F",
+    "subtle": "#85607A", "border": "#E6CBD8", "selection": "#F8D7E6",
+    "sel_fg": "#2D0A1D", "hover": "#F6E4EC", "code_bg": "#F6E4EC",
+    "code_fg": "#7A2357", "heading": "#7A2357", "link": "#7A2357",
+    "quote": "#6B4A5C", "trough": "#F6E4EC", "error": "#C01C28",
 }
 DARK = {
-    "bg": "#1B0A1E", "editor_bg": "#1E0B21", "preview_bg": "#231026",
-    "panel": "#281029", "header": "#331437", "fg": "#F6DBE9",
-    "accent": "#E075AC", "accent2": "#C25590", "subtle": "#B98CB0",
-    "border": "#47204B", "selection": "#5E2452", "sel_fg": "#FBE9F3",
-    "hover": "#3C183F", "code_bg": "#2E1233", "code_fg": "#F0B6D4",
-    "heading": "#E88BB8", "link": "#E075AC", "quote": "#C39BB9",
-    "trough": "#3A183E", "error": "#FF6B8F",
+    "bg": "#2D0A1D", "editor_bg": "#230716", "preview_bg": "#2D0A1D",
+    "panel": "#3A1028", "header": "#3A1028", "fg": "#FFF7F0",
+    "accent": "#F2A7C8", "accent_fg": "#2D0A1D", "accent2": "#F5B8D3",
+    "subtle": "#C9A5B8", "border": "#5C1A40", "selection": "#7A2357",
+    "sel_fg": "#FFF7F0", "hover": "#40132C", "code_bg": "#40132C",
+    "code_fg": "#F5B8D3", "heading": "#F5B8D3", "link": "#F2A7C8",
+    "quote": "#D8BFCB", "trough": "#40132C", "error": "#FF7B8A",
 }
 # Interlinea dell'editor e dell'anteprima (multipli del corpo, come in CSS).
 LINE_SPACING = {"compact": 1.25, "normal": 1.5, "airy": 1.75}
+# Unico CSS proprio di RuscaMark: carattere del testo e colori della pagina
+# di anteprima. Barre, pulsanti, menu e dialoghi sono quelli di libadwaita,
+# colorati dal tema comune style.css.
 CSS_TEMPLATE = """
-window, .background { background-color: @bg; color: @fg; }
-headerbar, .titlebar {
-    background-color: @header;
-    background-image: none;
-    color: @fg;
-    border-bottom: 1px solid @border;
-}
-headerbar .title, headerbar .subtitle, windowtitle { color: @fg; }
-headerbar windowcontrols button {
-    color: @fg; background-color: transparent; background-image: none;
-}
-headerbar windowcontrols button:hover { background-color: @hover; }
-button {
-    color: @fg;
-    background-color: transparent;
-    background-image: none;
-    border-color: transparent;
-    box-shadow: none;
-    border-radius: 6px;
-    padding: 4px 8px;
-}
-button:hover { background-color: @hover; background-image: none; }
-button:active, button:checked, togglebutton:checked {
-    background-color: @accent; background-image: none; color: @sel_fg;
-}
-button.suggested-action { background-color: @accent; color: @sel_fg; }
-menubutton { background: none; box-shadow: none; }
-textview { background-color: @editor_bg; color: @fg; caret-color: @accent;
-           font-family: "__FONT__"; font-size: __SIZE__pt; }
-textview text { background-color: @editor_bg; color: @fg; }
-textview text selection { background-color: @selection; color: @sel_fg; }
-.preview, .preview text { background-color: @preview_bg; color: @fg; }
-.statusbar { background-color: @panel; color: @fg; border-top: 1px solid @border; }
-.spell-panel { background-color: @panel; color: @fg; border-top: 1px solid @border; }
-progressbar { color: @fg; }
-progressbar trough { background-color: @trough; background-image: none; border-radius: 6px; min-height: 8px; }
-progressbar progress { background-color: @accent; background-image: none; border-radius: 6px; }
-progressbar.goal-done progress { background-color: @accent2; }
-popover, popover.background, menu {
-    background-color: @panel; background-image: none; color: @fg;
-}
-popover button:hover { background-color: @hover; }
-separator { background-color: @border; }
-list { background-color: @panel; background-image: none; color: @fg; }
-row { color: @fg; border-radius: 6px; background-image: none; }
-row:hover { background-color: @hover; }
-entry, spinbutton {
-    background-color: @bg; background-image: none; color: @fg;
-    border: 1px solid @border; border-radius: 6px; padding: 4px 8px;
-}
-switch { background-color: @border; background-image: none; border-radius: 12px; padding: 2px; }
-switch:checked { background-color: @accent; background-image: none; }
-switch slider { background-color: @panel; background-image: none; border-radius: 10px; }
-scrollbar { background: none; }
-scrollbar slider { background-color: @border; background-image: none; border-radius: 8px; }
-scrollbar slider:hover { background-color: @subtle; }
-dropdown { background-color: @bg; background-image: none; color: @fg;
-           border: 1px solid @border; border-radius: 6px; }
-dropdown button { color: @fg; background-image: none; }
-.search-bar { background-color: @panel; border-bottom: 1px solid @border; padding: 6px 10px; }
+textview.ruscamark-editor, textview.preview { font-family: "__FONT__"; font-size: __SIZE__pt; }
+textview.preview, textview.preview text { background-color: @preview_bg; color: @fg; }
 """
+# Schemi colore di GtkSourceView, dalla stessa palette.
 SCHEME_LIGHT = """<?xml version="1.0" encoding="UTF-8"?>
 <style-scheme id="ruscamark-light" name="RuscaMark Chiaro" version="1.0">
   <author>Nunzio Curcuruto</author>
-  <description>Tema rosa chiaro di RuscaMark 1.99.2</description>
-  <style name="text" foreground="#3A0B3E" background="#FFF7FA"/>
-  <style name="selection" foreground="#FFFFFF" background="#C2185B"/>
-  <style name="cursor" foreground="#B01E6E"/>
-  <style name="secondary-cursor" foreground="#C2185B"/>
-  <style name="line-numbers" foreground="#C79AB1" background="#FBE9F1"/>
-  <style name="search-match" background="#F8C9DD"/>
-  <style name="bracket-match" foreground="#B01E6E" bold="true"/>
-  <style name="markdown:header" foreground="#A61E6B" bold="true"/>
-  <style name="markdown:strong-emphasis" bold="true" foreground="#7A1F52"/>
-  <style name="markdown:emphasis" italic="true" foreground="#9C2766"/>
-  <style name="markdown:code-span" foreground="#7A1F52" background="#F6E3ED"/>
-  <style name="markdown:code-block" foreground="#7A1F52" background="#F6E3ED"/>
-  <style name="markdown:blockquote-marker" foreground="#8A5674" bold="true"/>
-  <style name="markdown:list-marker" foreground="#C2185B" bold="true"/>
-  <style name="markdown:horizontal-rule" foreground="#96557B"/>
-  <style name="markdown:url" foreground="#B01E6E" underline="true"/>
-  <style name="markdown:link-text" foreground="#8E24AA" underline="true"/>
-  <style name="markdown:image-marker" foreground="#B44E87"/>
-  <style name="markdown:label" foreground="#B01E6E"/>
-  <style name="markdown:attribute-value" foreground="#B01E6E"/>
-  <style name="markdown:backslash-escape" foreground="#96557B"/>
-  <style name="markdown:line-break" background="#F6E3ED"/>
+  <description>Palette RuscaLinux, chiara</description>
+  <style name="text" foreground="#2D0A1D" background="#FFFFFF"/>
+  <style name="selection" foreground="#2D0A1D" background="#F8D7E6"/>
+  <style name="cursor" foreground="#7A2357"/>
+  <style name="secondary-cursor" foreground="#8A2B5F"/>
+  <style name="line-numbers" foreground="#85607A" background="#FBF4F7"/>
+  <style name="right-margin" foreground="#E6CBD8" background="#FFFFFF"/>
+  <style name="search-match" background="#F8D7E6"/>
+  <style name="bracket-match" foreground="#7A2357" bold="true"/>
+  <style name="markdown:header" foreground="#7A2357" bold="true"/>
+  <style name="markdown:strong-emphasis" bold="true"/>
+  <style name="markdown:emphasis" italic="true"/>
+  <style name="markdown:code-span" foreground="#7A2357" background="#F6E4EC"/>
+  <style name="markdown:code-block" foreground="#7A2357" background="#F6E4EC"/>
+  <style name="markdown:blockquote-marker" foreground="#6B4A5C" bold="true"/>
+  <style name="markdown:list-marker" foreground="#7A2357" bold="true"/>
+  <style name="markdown:horizontal-rule" foreground="#85607A"/>
+  <style name="markdown:url" foreground="#7A2357" underline="true"/>
+  <style name="markdown:link-text" foreground="#7A2357" underline="true"/>
+  <style name="markdown:image-marker" foreground="#7A2357"/>
+  <style name="markdown:label" foreground="#7A2357"/>
+  <style name="markdown:attribute-value" foreground="#7A2357"/>
+  <style name="markdown:backslash-escape" foreground="#85607A"/>
+  <style name="markdown:line-break" background="#F6E4EC"/>
 </style-scheme>
 """
 SCHEME_DARK = """<?xml version="1.0" encoding="UTF-8"?>
 <style-scheme id="ruscamark-dark" name="RuscaMark Scuro" version="1.0">
   <author>Nunzio Curcuruto</author>
-  <description>Tema prugna scuro di RuscaMark 1.99.2</description>
-  <style name="text" foreground="#F6DBE9" background="#1E0B21"/>
-  <style name="selection" foreground="#FFFFFF" background="#B44E87"/>
-  <style name="cursor" foreground="#E075AC"/>
-  <style name="secondary-cursor" foreground="#C25590"/>
-  <style name="line-numbers" foreground="#8A5F86" background="#221025"/>
-  <style name="search-match" background="#4A1E50"/>
-  <style name="bracket-match" foreground="#E075AC" bold="true"/>
-  <style name="markdown:header" foreground="#E88BB8" bold="true"/>
-  <style name="markdown:strong-emphasis" bold="true" foreground="#F0B6D4"/>
-  <style name="markdown:emphasis" italic="true" foreground="#E39FC6"/>
-  <style name="markdown:code-span" foreground="#F0B6D4" background="#2E1233"/>
-  <style name="markdown:code-block" foreground="#F0B6D4" background="#2E1233"/>
-  <style name="markdown:blockquote-marker" foreground="#C39BB9" bold="true"/>
-  <style name="markdown:list-marker" foreground="#E075AC" bold="true"/>
-  <style name="markdown:horizontal-rule" foreground="#B98CB0"/>
-  <style name="markdown:url" foreground="#E075AC" underline="true"/>
-  <style name="markdown:link-text" foreground="#D99FCB" underline="true"/>
-  <style name="markdown:image-marker" foreground="#C25590"/>
-  <style name="markdown:label" foreground="#E075AC"/>
-  <style name="markdown:attribute-value" foreground="#E075AC"/>
-  <style name="markdown:backslash-escape" foreground="#B98CB0"/>
-  <style name="markdown:line-break" background="#2E1233"/>
+  <description>Palette RuscaLinux, scura</description>
+  <style name="text" foreground="#FFF7F0" background="#230716"/>
+  <style name="selection" foreground="#FFF7F0" background="#7A2357"/>
+  <style name="cursor" foreground="#F2A7C8"/>
+  <style name="secondary-cursor" foreground="#F5B8D3"/>
+  <style name="line-numbers" foreground="#C9A5B8" background="#2D0A1D"/>
+  <style name="right-margin" foreground="#5C1A40" background="#230716"/>
+  <style name="search-match" background="#7A2357"/>
+  <style name="bracket-match" foreground="#F2A7C8" bold="true"/>
+  <style name="markdown:header" foreground="#F5B8D3" bold="true"/>
+  <style name="markdown:strong-emphasis" bold="true"/>
+  <style name="markdown:emphasis" italic="true"/>
+  <style name="markdown:code-span" foreground="#F5B8D3" background="#40132C"/>
+  <style name="markdown:code-block" foreground="#F5B8D3" background="#40132C"/>
+  <style name="markdown:blockquote-marker" foreground="#D8BFCB" bold="true"/>
+  <style name="markdown:list-marker" foreground="#F2A7C8" bold="true"/>
+  <style name="markdown:horizontal-rule" foreground="#C9A5B8"/>
+  <style name="markdown:url" foreground="#F2A7C8" underline="true"/>
+  <style name="markdown:link-text" foreground="#F2A7C8" underline="true"/>
+  <style name="markdown:image-marker" foreground="#F2A7C8"/>
+  <style name="markdown:label" foreground="#F2A7C8"/>
+  <style name="markdown:attribute-value" foreground="#F2A7C8"/>
+  <style name="markdown:backslash-escape" foreground="#C9A5B8"/>
+  <style name="markdown:line-break" background="#40132C"/>
 </style-scheme>
 """
 HEADING_SIZES = {1: "xx-large", 2: "x-large", 3: "large", 4: "large", 5: "medium", 6: "medium"}
@@ -648,6 +625,14 @@ def load_config():
     except Exception:
         pass
     cfg["lang"] = str(cfg.get("lang", "it_IT")).replace("-", "_")
+    # Fino alla 1.99.1 "theme" valeva "light" per tutti (predefinito) o "dark"
+    # se scelto: chi aveva scelto lo scuro lo conserva, gli altri seguono GNOME.
+    if "theme" in cfg:
+        if cfg.pop("theme") == "dark" and cfg.get("style", "system") == "system":
+            cfg["style"] = "dark"
+    cfg.pop("ui_lang", None)          # la lingua segue sempre il sistema
+    if cfg.get("style") not in ("system", "light", "dark"):
+        cfg["style"] = "system"
     return cfg
 
 def save_config(cfg):
@@ -2197,47 +2182,79 @@ def ensure_elision_dictionaries(locales):
             pass
     return written
 # ----------------------------------------------------------------------------
-# Finestra di dialogo personalizzata (senza API deprecate)
+# Icona e finestra «Informazioni» comuni ai RuscaLinux OS Tools
 # ----------------------------------------------------------------------------
-class DialogWindow(Gtk.Window):
-    def __init__(self, parent, title):
-        super().__init__(transient_for=parent, modal=True, title=title)
-        self.set_resizable(False)
-        self.on_response = None
-        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        self.content.set_margin_top(18); self.content.set_margin_bottom(12)
-        self.content.set_margin_start(20); self.content.set_margin_end(20)
-        self.buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.buttons.set_halign(Gtk.Align.END)
-        self.buttons.set_margin_start(20); self.buttons.set_margin_end(20)
-        self.buttons.set_margin_bottom(14)
-        outer.append(self.content); outer.append(self.buttons)
-        self.set_child(outer)
+def theme_has_icon(name=APP_ID):
+    display = Gdk.Display.get_default()
+    return display is not None and Gtk.IconTheme.get_for_display(display).has_icon(name)
 
-    def add_button(self, label, rid, suggested=False):
-        b = Gtk.Button.new_with_label(label)
-        if suggested:
-            b.add_css_class("suggested-action")
-        b.connect("clicked", lambda *_: self._emit(rid))
-        self.buttons.append(b)
-        return b
 
-    def add_label(self, text, markup=False):
-        l = Gtk.Label(label=text)
-        if markup:
-            l.set_use_markup(True)
-        l.set_wrap(True)
-        l.set_xalign(0)
-        l.set_max_width_chars(60)
-        self.content.append(l)
-        return l
+def ensure_icon():
+    """Avvio dai sorgenti: se il tema non conosce l'icona, la copia nel tema
+    hicolor dell'utente. Se non riesce, si resta senza icona."""
+    dest = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "scalable",
+                        "apps", f"{APP_ID}.svg")
+    if ICON_SRC is None or os.path.exists(dest):
+        return
+    try:
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        shutil.copyfile(ICON_SRC, dest)
+    except OSError:
+        pass
 
-    def _emit(self, rid):
-        cb = self.on_response
-        self.destroy()
-        if cb:
-            cb(rid)
+
+def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon):
+    """Finestra «Informazioni» comune ai RuscaLinux OS Tools: una sola
+    pagina, con descrizione e nota di sviluppo sempre visibili (in
+    Adw.AboutDialog la descrizione finisce in una sottopagina).
+    `tr` restituisce il testo tradotto di una chiave di lang/."""
+    def open_uri(_row, uri):
+        def done(launcher, result):
+            try:
+                launcher.launch_finish(result)
+            except GLib.Error:
+                pass
+        Gtk.UriLauncher.new(uri).launch(parent, None, done)
+
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                  margin_top=12, margin_bottom=24, margin_start=24, margin_end=24)
+    icon = Gtk.Image(icon_name=app_id if has_icon else "application-x-executable",
+                     pixel_size=128, margin_bottom=12)
+    icon.add_css_class("icon-dropshadow")
+    box.append(icon)
+    for text, css in ((app_name, "title-1"), (version, "dim-label"),
+                      (description, "body")):
+        label = Gtk.Label(label=text, wrap=True, justify=Gtk.Justification.CENTER)
+        label.add_css_class(css)
+        box.append(label)
+
+    links = Adw.PreferencesGroup(margin_top=18)
+    for title, subtitle, uri in (
+            (tr("about_website"), "www.ruscalinux.org", "https://www.ruscalinux.org/"),
+            (tr("about_support"), "info@ruscalinux.org", "mailto:info@ruscalinux.org"),
+            (tr("about_license"), "GNU GPL 3.0", "https://www.gnu.org/licenses/gpl-3.0.html")):
+        row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
+        row.add_suffix(Gtk.Image(icon_name="adw-external-link-symbolic"))
+        row.connect("activated", open_uri, uri)
+        links.add(row)
+    box.append(links)
+
+    # La nota di sviluppo è obbligatoria e sempre visibile (specifiche, sez. 12).
+    note = Adw.PreferencesGroup(title=tr("dev_note_title"),
+                                description=tr("ai_note"), margin_top=12)
+    box.append(note)
+    copyright_label = Gtk.Label(label="© 2026 Nunzio Curcuruto", margin_top=12)
+    copyright_label.add_css_class("caption")
+    copyright_label.add_css_class("dim-label")
+    box.append(copyright_label)
+
+    scroller = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
+                                  propagate_natural_height=True, child=box)
+    view = Adw.ToolbarView(content=scroller)
+    header = Adw.HeaderBar(show_title=False)
+    view.add_top_bar(header)
+    Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
+
 # ----------------------------------------------------------------------------
 class WidthAwareScrolledWindow(Gtk.ScrolledWindow):
     """ScrolledWindow che segnala ogni cambio di larghezza.
@@ -2269,7 +2286,7 @@ class WidthAwareScrolledWindow(Gtk.ScrolledWindow):
             self._on_width()
         return False
 # ----------------------------------------------------------------------------
-class RuscaWindow(Gtk.ApplicationWindow):
+class RuscaWindow(Adw.ApplicationWindow):
     NATIVE_NAMES = {
         "af": "Afrikaans", "ar": "العربية", "az": "Azərbaycan",
         "be": "Беларуская", "bg": "Български", "bs": "Bosanski",
@@ -2296,8 +2313,8 @@ class RuscaWindow(Gtk.ApplicationWindow):
         self.cfg = load_config()
         if self.cfg.get("live", True) and self.cfg.get("show_preview", False):
             self.cfg["show_preview"] = False
-        saved = self.cfg.get("ui_lang", "")
-        self.lang = saved if saved in LANGUAGES else detect_system_language()
+        # La lingua dell'interfaccia segue quella del sistema (specifiche 9.2).
+        self.lang = detect_system_language()
         self.tr = Translator(self.lang)
         self.t = self.tr.t
         self._img_cache = {}
@@ -2314,7 +2331,7 @@ class RuscaWindow(Gtk.ApplicationWindow):
         self._spell_on = False
         self._spell_combo_loading = False
         self.set_default_size(self.cfg.get("win_w", 1240), self.cfg.get("win_h", 800))
-        self._setup_icon()
+        self.set_size_request(360, 294)
         self._build_actions()
         self._build_ui()
         self._build_search_bar()
@@ -2343,61 +2360,6 @@ class RuscaWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(120, self._init_paned)
         GLib.idle_add(self._center_page)
 
-    # ------------------------------------------------------------- icona
-    def _setup_icon(self):
-        here = os.path.dirname(os.path.abspath(__file__))
-        self._icon_pixbuf = None
-        sources = (
-            os.path.join(here, "ruscamark.svg"),
-            os.path.join(here, "ruscaeditor.svg"),
-            os.path.join(here, "icons", "ruscamark.svg"),
-            os.path.join(here, "icons", "hicolor", "scalable", "apps", "ruscamark.svg"),
-            "/usr/share/icons/hicolor/scalable/apps/ruscamark.svg",
-        )
-        svg_src = None
-        for s in sources:
-            if os.path.exists(s):
-                svg_src = s
-                break
-        if svg_src is None:
-            print("[ruscamark] SVG non trovato in:", sources)
-            self.set_icon_name("text-editor")
-            return
-        try:
-            pb = GdkPixbuf.Pixbuf.new_from_file_at_size(svg_src, 128, 128)
-            self._icon_pixbuf = pb
-        except Exception as e:
-            print(f"[ruscamark] errore caricamento {svg_src}: {e}")
-            self.set_icon_name("text-editor")
-            return
-        try:
-            root = os.path.join(CONFIG_DIR, "icons")
-            apps = os.path.join(root, "hicolor", "scalable", "apps")
-            os.makedirs(apps, exist_ok=True)
-            dst = os.path.join(apps, "ruscamark.svg")
-            if not os.path.exists(dst) or os.path.getmtime(svg_src) > os.path.getmtime(dst):
-                shutil.copyfile(svg_src, dst)
-            idx = os.path.join(root, "index.theme")
-            if not os.path.exists(idx):
-                with open(idx, "w", encoding="utf-8") as f:
-                    f.write("""[Icon Theme]
-Name=hicolor
-Directories=scalable/apps
-[scalable/apps]
-Size=128
-Type=Scalable
-MinSize=16
-MaxSize=512
-""")
-            theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
-            theme.add_search_path(root)
-            self.set_icon_name("ruscamark")
-            if os.environ.get("RUSCA_DEBUG"):
-                print(f"[ruscamark] icona caricata da {svg_src}")
-        except Exception as e:
-            print(f"[ruscamark] errore tema icone: {e}")
-            self.set_icon_name("text-editor")
-
     # ------------------------------------------------------------- azioni
     def _build_actions(self):
         def plain(name, cb):
@@ -2423,11 +2385,9 @@ MaxSize=512
         plain("preferences", self._action_preferences)
         plain("goal", self._popup_goal)
         plain("about", self._action_about)
-        plain("website", self._action_website)
+        plain("shortcuts", self._action_shortcuts)
         plain("undo", self._action_undo)
         plain("redo", self._action_redo)
-        dark = self.cfg.get("theme") == "dark"
-        self.dark_action = stateful("dark-theme", dark, self._set_dark)
         self.preview_action = stateful("toggle-preview", self.cfg.get("show_preview", False),
                                        self._set_preview)
         self.live_action = stateful("live-render", self.cfg.get("live", True), self._set_live)
@@ -2456,7 +2416,8 @@ MaxSize=512
             "win.fmt-bold": ["<Primary>b"], "win.fmt-italic": ["<Primary>i"],
             "win.insert-link": ["<Primary>k"], "win.insert-image": ["<Primary><Shift>i"],
             "win.insert-table": ["<Primary><Shift>t"],
-            "app.quit": ["<Primary>q"],
+            "app.quit": ["<Primary>q"], "window.close": ["<Primary>w"],
+            "win.preferences": ["<Primary>comma"], "win.shortcuts": ["<Primary>question"],
         }
         for n in range(0, 7):
             accels[f"win.heading({n})"] = [f"<Primary>{n}"]
@@ -2465,34 +2426,32 @@ MaxSize=512
 
     # ------------------------------------------------------------- UI base
     def _build_ui(self):
-        self.hb = Gtk.HeaderBar()
-        self.set_titlebar(self.hb)
+        """Barra del titolo GNOME: a sinistra Nuovo e Apri, a destra menu
+        principale, Salva e anteprima. Ricerca sopra il testo; pannello
+        ortografico e barra di stato sotto. Ortografia e schermo intero
+        stanno nel menu (F7, F11)."""
+        self.hb = Adw.HeaderBar()
         self._hdr_tips = []
-        for icon, act, tip in (("document-new-symbolic", "win.new-file", "tip_new"),
-                               ("document-open-symbolic", "win.open-file", "tip_open"),
-                               ("document-save-symbolic", "win.save-file", "tip_save")):
+        for icon, act, tip, start in (("document-new-symbolic", "win.new-file", "tip_new", True),
+                                      ("document-open-symbolic", "win.open-file", "tip_open", True)):
             b = Gtk.Button.new_from_icon_name(icon)
             b.set_action_name(act)
             self._hdr_tips.append((b, tip))
             self.hb.pack_start(b)
-        self.preview_btn = Gtk.ToggleButton()
-        self.preview_btn.set_icon_name("view-paged-symbolic")
-        self.preview_btn.set_active(self.cfg.get("show_preview", False))
-        self.preview_btn.connect("toggled", self._on_preview_btn)
-        self.hb.pack_end(self.preview_btn)
-        self.spell_btn = Gtk.ToggleButton()
-        self.spell_btn.set_icon_name("tools-check-spelling-symbolic")
-        self.spell_btn.set_action_name("win.spell-toggle")
-        self.hb.pack_end(self.spell_btn)
-        self.fullscreen_btn = Gtk.ToggleButton()
-        self.fullscreen_btn.set_icon_name("view-fullscreen-symbolic")
-        self.fullscreen_btn.connect("toggled", self._on_fullscreen_btn)
-        self.hb.pack_end(self.fullscreen_btn)
         self.mb = Gtk.MenuButton()
         self.mb.set_icon_name("open-menu-symbolic")
         self.mb.set_primary(True)
         self.mb.set_menu_model(self._build_menu())
         self.hb.pack_end(self.mb)
+        save = Gtk.Button.new_from_icon_name("document-save-symbolic")
+        save.set_action_name("win.save-file")
+        self._hdr_tips.append((save, "tip_save"))
+        self.hb.pack_end(save)
+        self.preview_btn = Gtk.ToggleButton()
+        self.preview_btn.set_icon_name("view-dual-symbolic")
+        self.preview_btn.set_active(self.cfg.get("show_preview", False))
+        self.preview_btn.connect("toggled", self._on_preview_btn)
+        self.hb.pack_end(self.preview_btn)
         self._retranslate_header()
         self.paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
         self.paned.set_wide_handle(True)
@@ -2505,24 +2464,22 @@ MaxSize=512
         self.paned.set_start_child(self.editor_sw)
         self.paned.set_resize_start_child(True)
         self.paned.set_shrink_start_child(False)
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        self.vbox.append(self.paned)
-        self.set_child(self.vbox)
+        self.toasts = Adw.ToastOverlay(child=self.paned)
+        self.toolbar = Adw.ToolbarView(content=self.toasts)
+        self.toolbar.add_top_bar(self.hb)
+        self.set_content(self.toolbar)
 
     def _retranslate_header(self):
         for b, key in self._hdr_tips:
             b.set_tooltip_text(self.t(key))
+            b.update_property([Gtk.AccessibleProperty.LABEL], [self.t(key)])
         self.preview_btn.set_tooltip_text(self.t("tip_preview"))
-        self.fullscreen_btn.set_tooltip_text(self.t("tip_fullscreen"))
-        self.mb.set_tooltip_text(self.t("tip_menu"))
+        self.preview_btn.update_property([Gtk.AccessibleProperty.LABEL], [self.t("tip_preview")])
+        self.mb.set_tooltip_text(self.t("main_menu"))
 
     def _on_preview_btn(self, btn):
         if btn.get_active() != self.preview_action.get_state().get_boolean():
             self.preview_action.activate()
-
-    def _on_fullscreen_btn(self, btn):
-        if btn.get_active() != self.fullscreen_action.get_state().get_boolean():
-            self.fullscreen_action.activate()
 
     def _build_editor(self):
         if HAS_GSV:
@@ -2559,6 +2516,7 @@ MaxSize=512
         self.buffer.connect("changed", self._schedule_live)
         self.buffer.connect("mark-set", self._on_mark_set)
         self.buffer.connect("modified-changed", self._update_title)
+        self.view.add_css_class("ruscamark-editor")
         self.view.connect("realize", lambda *_: (
             GLib.idle_add(self._center_page),
             GLib.timeout_add(250, self._center_page),
@@ -2597,9 +2555,10 @@ MaxSize=512
         return False
 
     def _build_menu(self):
+        """Menu principale: file, vista, formato, strumenti, applicazione.
+        Apri e Salva sono già nella barra del titolo."""
         menu = Gio.Menu()
         s1 = Gio.Menu()
-        s1.append(self.t("mi_open"), "win.open-file")
         s1.append(self.t("mi_save_as"), "win.save-as")
         s1.append(self.t("mi_export_html"), "win.export-html")
         s1.append(self.t("mi_export_pdf"), "win.export-pdf")
@@ -2607,41 +2566,43 @@ MaxSize=512
         s2 = Gio.Menu()
         s2.append(self.t("mi_live"), "win.live-render")
         s2.append(self.t("mi_preview"), "win.toggle-preview")
+        s2.append(self.t("mi_spell"), "win.spell-toggle")
         s2.append(self.t("mi_fullscreen"), "win.fullscreen")
-        s2.append(self.t("mi_dark"), "win.dark-theme")
-        s2.append(self.t("mi_preferences"), "win.preferences")
         menu.append_section(None, s2)
-        sf = Gio.Menu()
-        sf.append(self.t("mi_bold"), "win.fmt-bold")
-        sf.append(self.t("mi_italic"), "win.fmt-italic")
+        fmt = Gio.Menu()
+        fmt.append(self.t("mi_bold"), "win.fmt-bold")
+        fmt.append(self.t("mi_italic"), "win.fmt-italic")
         heads = Gio.Menu()
         heads.append(self.t("mi_paragraph"), "win.heading(0)")
         for n in range(1, 7):
             heads.append(self.t("mi_heading_n", n=n), f"win.heading({n})")
-        sf.append_submenu(self.t("mi_heading"), heads)
-        sf.append(self.t("mi_link"), "win.insert-link")
-        sf.append(self.t("mi_image"), "win.insert-image")
-        sf.append(self.t("mi_table"), "win.insert-table")
-        menu.append_section(None, sf)
+        fmt.append_submenu(self.t("mi_heading"), heads)
+        fmt.append(self.t("mi_link"), "win.insert-link")
+        fmt.append(self.t("mi_image"), "win.insert-image")
+        fmt.append(self.t("mi_table"), "win.insert-table")
         s3 = Gio.Menu()
-        s3.append(self.t("mi_goal"), "win.goal")
-        s3.append(self.t("mi_spell"), "win.spell-toggle")
+        s3.append_submenu(self.t("mi_format"), fmt)
         s3.append(self.t("mi_find"), "win.search")
         s3.append(self.t("mi_replace"), "win.replace")
+        s3.append(self.t("mi_goal"), "win.goal")
         menu.append_section(None, s3)
         s4 = Gio.Menu()
-        s4.append(self.t("mi_website"), "win.website")
+        s4.append(self.t("mi_preferences"), "win.preferences")
+        s4.append(self.t("shortcuts"), "win.shortcuts")
         s4.append(self.t("mi_about"), "win.about")
-        s4.append(self.t("mi_quit"), "app.quit")
         menu.append_section(None, s4)
         return menu
 
     # ------------------------------------------------------- tema e font
+    @staticmethod
+    def _is_dark():
+        return Adw.StyleManager.get_default().get_dark()
+
     def _palette(self):
-        return DARK if self.cfg.get("theme") == "dark" else LIGHT
+        return DARK if self._is_dark() else LIGHT
 
     def _preview_palette(self):
-        return DARK if self.cfg.get("theme") == "dark" else PREVIEW_GUIDE
+        return DARK if self._is_dark() else PREVIEW_GUIDE
 
     def _apply_spacing(self):
         """Interlinea come line-height in CSS: lo spazio oltre quello naturale
@@ -2658,7 +2619,7 @@ MaxSize=512
             view.set_pixels_below_lines(extra - extra // 2)
 
     def _apply_theme(self):
-        dark = self.cfg.get("theme") == "dark"
+        dark = self._is_dark()
         c = self._palette()
         defs = "\n".join(f"@define-color {k} {v};" for k, v in c.items())
         css = defs + "\n" + CSS_TEMPLATE
@@ -2678,12 +2639,6 @@ MaxSize=512
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         self._css_provider = provider
-        try:
-            settings = Gtk.Settings.get_default()
-            if settings:
-                settings.set_property("gtk-application-prefer-dark-theme", dark)
-        except Exception:
-            pass
         if HAS_GSV:
             try:
                 mgr = GtkSource.StyleSchemeManager.get_default()
@@ -2701,7 +2656,7 @@ MaxSize=512
             c = self._palette()
             self.search_tag.set_property("background", c["hover"])
             self.search_cur_tag.set_property("background", c["accent"])
-            self.search_cur_tag.set_property("foreground", c["sel_fg"])
+            self.search_cur_tag.set_property("foreground", c["accent_fg"])
         except Exception:
             pass
         self._apply_spacing()
@@ -2713,9 +2668,14 @@ MaxSize=512
         GLib.timeout_add(80, self._center_page)
         self._schedule_refresh()
 
-    def _set_dark(self, dark):
-        self.cfg["theme"] = "dark" if dark else "light"
-        self._apply_theme()
+    def _set_style(self, style):
+        """Stile chiaro/scuro: segue GNOME o è forzato. Il cambio arriva a
+        _apply_theme tramite Adw.StyleManager:dark (vedi RuscaApplication)."""
+        self.cfg["style"] = style
+        Adw.StyleManager.get_default().set_color_scheme({
+            "light": Adw.ColorScheme.FORCE_LIGHT,
+            "dark": Adw.ColorScheme.FORCE_DARK,
+        }.get(style, Adw.ColorScheme.DEFAULT))
         save_config(self.cfg)
 
     # ------------------------------------------------------- anteprima/live/pagina
@@ -2844,6 +2804,7 @@ MaxSize=512
             except Exception:
                 pass
             self.statusbar.set_visible(False)
+            self.toolbar.set_reveal_top_bars(False)
             self._spell_panel_pre_fs = self.spell_revealer.get_reveal_child()
             self.spell_revealer.set_reveal_child(False)
         else:
@@ -2852,37 +2813,44 @@ MaxSize=512
                 self.paned.set_resize_end_child(True)
                 GLib.timeout_add(50, self._init_paned)
             self.statusbar.set_visible(True)
+            self.toolbar.set_reveal_top_bars(True)
             self.spell_revealer.set_reveal_child(
                 bool(getattr(self, "_spell_panel_pre_fs", False)))
             GLib.idle_add(self._center_page)
-        self.fullscreen_btn.set_active(fs)
         self.fullscreen_action.set_state(GLib.Variant.new_boolean(fs))
 
     # ------------------------------------------------------- barra di stato
     def _build_statusbar(self):
         bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        bar.add_css_class("statusbar")
-        bar.set_margin_start(10); bar.set_margin_end(10)
-        bar.set_margin_top(4); bar.set_margin_bottom(4)
+        bar.set_margin_start(12); bar.set_margin_end(6)
+        bar.set_margin_top(3); bar.set_margin_bottom(3)
         self.count_label = Gtk.Label(label="")
+        self.count_label.add_css_class("dim-label")
+        self.count_label.add_css_class("numeric")
+        # Su finestre strette il conteggio si accorcia invece di allargarle.
+        self.count_label.set_ellipsize(Pango.EllipsizeMode.END)
+        self.count_label.set_hexpand(True)
         self.count_label.set_xalign(0)
         bar.append(self.count_label)
         spacer = Gtk.Box(); spacer.set_hexpand(True)
         bar.append(spacer)
         self.cursor_label = Gtk.Label(label="")
+        self.cursor_label.add_css_class("dim-label")
+        self.cursor_label.add_css_class("numeric")
         bar.append(self.cursor_label)
-        bar.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL))
         self.goal_button = Gtk.Button()
+        self.goal_button.add_css_class("flat")
         self.goal_button.connect("clicked", lambda *_: self._popup_goal())
         bar.append(self.goal_button)
         self.goal_progress = Gtk.ProgressBar()
-        self.goal_progress.set_size_request(170, -1)
+        self.goal_progress.set_size_request(120, -1)
+        self.goal_progress.set_valign(Gtk.Align.CENTER)
         self.goal_progress.set_fraction(0.0)
         bar.append(self.goal_progress)
         self.goal_label = Gtk.Label(label="")
         bar.append(self.goal_label)
         self.statusbar = bar
-        self.vbox.append(bar)
+        self.toolbar.add_bottom_bar(bar)
         self._build_goal_popover()
         self._update_goal_widgets(0)
 
@@ -2941,7 +2909,8 @@ MaxSize=512
         self.search_revealer = Gtk.Revealer()
         self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
         bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        bar.add_css_class("search-bar")
+        bar.set_margin_start(6); bar.set_margin_end(6)
+        bar.set_margin_top(6); bar.set_margin_bottom(6)
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_hexpand(True)
         self.search_entry.connect("search-changed", lambda *_: self._refresh_search())
@@ -2975,16 +2944,19 @@ MaxSize=512
         self.search_status.set_hexpand(True)
         self.search_status.set_ellipsize(Pango.EllipsizeMode.END)
         bar.append(self.search_status)
+        for b in (self.case_btn, self._btn_prev, self._btn_next):
+            b.add_css_class("flat")
         self._btn_search_close = Gtk.Button.new_from_icon_name("window-close-symbolic")
+        self._btn_search_close.add_css_class("flat")
         self._btn_search_close.connect("clicked", lambda *_: self._hide_search())
         bar.append(self._btn_search_close)
         self.search_revealer.set_child(bar)
-        self.vbox.prepend(self.search_revealer)
+        self.toolbar.add_top_bar(self.search_revealer)
         self._search_ctx = None
         self.search_tag = self.buffer.create_tag("search-match", background=LIGHT["hover"])
         self.search_cur_tag = self.buffer.create_tag("search-current",
                                                      background=LIGHT["accent"],
-                                                     foreground=LIGHT["sel_fg"])
+                                                     foreground=LIGHT["accent_fg"])
         self._retranslate_search()
 
     def _retranslate_search(self):
@@ -4042,7 +4014,7 @@ MaxSize=512
         try:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(out)
-            self._message(self.t("html_done", path=path))
+            self._toast_file("toast_html_done", path)
         except Exception as e:
             self._message(self.t("err_export", e=e))
 
@@ -4116,7 +4088,7 @@ MaxSize=512
         try:
             items = MarkdownDoc(text).to_print(PRINT_COLORS, t=self.t)
             PdfExporter(items, self._pdf_image, title=title, t=self.t).export(path)
-            self._message(self.t("pdf_done", path=path))
+            self._toast_file("toast_pdf_done", path)
         except Exception as e:
             self._message(self.t("err_export", e=getattr(e, "message", None) or e))
 
@@ -4170,55 +4142,47 @@ MaxSize=512
         if HAS_GSV and self.buffer.can_redo():
             self.buffer.redo()
 
-    def _action_website(self):
-        ts = getattr(Gdk, "CURRENT_TIME", 0)
-        try:
-            Gtk.show_uri(self, APP_WEBSITE, ts)
-        except Exception:
-            subprocess.Popen(["xdg-open", APP_WEBSITE])
-
-    # ------------------------------------------------------- Informazioni
+    # ------------------------------------------------------- Informazioni e scorciatoie
     def _action_about(self):
-        w = Gtk.Window(transient_for=self, modal=True,
-                       title=self.t("mi_about"))
-        w.set_resizable(False)
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        box.set_margin_top(24); box.set_margin_bottom(18)
-        box.set_margin_start(28); box.set_margin_end(28)
-        img = Gtk.Image.new_from_icon_name("accessories-text-editor")
-        img.set_pixel_size(64)
-        pb = getattr(self, "_icon_pixbuf", None)
-        if pb is not None:
-            small = pb.scale_simple(64, 64, GdkPixbuf.InterpType.BILINEAR)
-            img.set_from_paintable(Gdk.Texture.new_for_pixbuf(small))
-            img.set_valign(Gtk.Align.CENTER)
-        box.append(img)
-        t = Gtk.Label()
-        t.set_markup(f'<span size="x-large" weight="bold">{APP_NAME}</span>')
-        box.append(t)
-        box.append(Gtk.Label(label=f"{APP_VERSION}"))
-        d = Gtk.Label(label=self.t("about_desc"))
-        d.set_wrap(True); d.set_justify(Gtk.Justification.CENTER)
-        d.set_max_width_chars(45)
-        box.append(d)
-        box.append(Gtk.Label(label=self.t("about_author", author=APP_AUTHOR)))
-        box.append(Gtk.Label(label=self.t("about_license",
-                                          year=datetime.date.today().year)))
-        ai = Gtk.Label(label=self.t("about_ai"))
-        ai.set_wrap(True)
-        ai.set_justify(Gtk.Justification.CENTER)
-        ai.set_max_width_chars(45)
-        box.append(ai)
-        link = Gtk.LinkButton.new_with_label(APP_WEBSITE, "ruscalinux.org")
-        link.set_halign(Gtk.Align.CENTER)
-        box.append(link)
-        close = Gtk.Button.new_with_label(self.t("btn_close"))
-        close.set_halign(Gtk.Align.CENTER)
-        close.set_margin_top(8)
-        close.connect("clicked", lambda *_: w.destroy())
-        box.append(close)
-        w.set_child(box)
-        w.present()
+        show_about_dialog(self, self.t, APP_ID, APP_NAME, APP_VERSION,
+                          self.t("about_desc"), theme_has_icon())
+
+    def _action_shortcuts(self):
+        """Adw.ShortcutsDialog arriva con libadwaita 1.8: su trixie si usa un
+        Adw.Dialog con righe normali."""
+        t = self.t
+        groups = (
+            (t("sc_group_file"), ((t("mi_new"), "<Primary>n"), (t("mi_open"), "<Primary>o"),
+                                  (t("mi_save"), "<Primary>s"), (t("mi_save_as"), "<Primary><Shift>s"),
+                                  (t("mi_export_html"), "<Primary><Shift>e"),
+                                  (t("mi_export_pdf"), "<Primary><Shift>p"))),
+            (t("sc_group_edit"), ((t("mi_bold"), "<Primary>b"), (t("mi_italic"), "<Primary>i"),
+                                  (t("mi_link"), "<Primary>k"), (t("mi_image"), "<Primary><Shift>i"),
+                                  (t("mi_table"), "<Primary><Shift>t"),
+                                  (t("mi_heading_n", n="1–6"), "<Primary>1"),
+                                  (t("mi_paragraph"), "<Primary>0"),
+                                  (t("mi_find"), "<Primary>f"), (t("mi_replace"), "<Primary>h"))),
+            (t("sc_group_view"), ((t("mi_preview"), "<Primary>p"), (t("mi_live"), "<Primary>l"),
+                                  (t("mi_spell"), "F7"), (t("mi_fullscreen"), "F11"),
+                                  (t("mi_preferences"), "<Primary>comma"),
+                                  (t("shortcuts"), "<Primary>question"), (t("main_menu"), "F10"),
+                                  (t("sc_close"), "<Primary>w"), (t("mi_quit"), "<Primary>q"))),
+        )
+        page = Adw.PreferencesPage()
+        for title, rows in groups:
+            group = Adw.PreferencesGroup(title=title)
+            for label, accel in rows:
+                row = Adw.ActionRow(title=label.rstrip("…"), use_markup=False)
+                ok, key, mods = Gtk.accelerator_parse(accel)
+                keys = Gtk.Label(label=Gtk.accelerator_get_label(key, mods) if ok else accel)
+                keys.add_css_class("dim-label")
+                row.add_suffix(keys)
+                group.add(row)
+            page.add(group)
+        view = Adw.ToolbarView(content=page)
+        view.add_top_bar(Adw.HeaderBar())
+        Adw.Dialog(title=t("shortcuts"), content_width=460, content_height=560,
+                   child=view).present(self)
 
     def _on_drop(self, target, value, x, y):
         try:
@@ -4232,132 +4196,106 @@ MaxSize=512
 
     # ------------------------------------------------------- preferenze
     def _action_preferences(self):
-        dlg = DialogWindow(self, self.t("pref_title"))
-        row0 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l0 = Gtk.Label(label=self.t("pref_lang")); l0.set_xalign(0)
-        langs = available_languages()
-        labels = [n if ok else f"{n} — {self.t('lang_english_ui')}" for _c, n, ok in langs]
-        lang_combo = Gtk.DropDown.new_from_strings(labels)
-        codes = [c for c, _n, _ok in langs]
-        try:
-            lang_combo.set_selected(codes.index(self.lang))
-        except ValueError:
-            lang_combo.set_selected(0)
-        lang_combo.set_hexpand(True)
-        row0.append(l0); row0.append(lang_combo)
-        dlg.content.append(row0)
-        row1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1 = Gtk.Label(label=self.t("pref_dark"))
-        l1.set_hexpand(True); l1.set_xalign(0)
-        sw = Gtk.Switch()
-        sw.set_valign(Gtk.Align.CENTER)
-        sw.set_active(self.cfg.get("theme") == "dark")
-        row1.append(l1); row1.append(sw)
-        dlg.content.append(row1)
-        row1b = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1b = Gtk.Label(label=self.t("pref_live"))
-        l1b.set_hexpand(True); l1b.set_xalign(0)
-        sw2 = Gtk.Switch()
-        sw2.set_valign(Gtk.Align.CENTER)
-        sw2.set_active(self.cfg.get("live", True))
-        row1b.append(l1b); row1b.append(sw2)
-        dlg.content.append(row1b)
-        row1c = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1c = Gtk.Label(label=self.t("pref_center"))
-        l1c.set_hexpand(True); l1c.set_xalign(0)
-        sw3 = Gtk.Switch()
-        sw3.set_valign(Gtk.Align.CENTER)
-        sw3.set_active(self.cfg.get("center_page", True))
-        row1c.append(l1c); row1c.append(sw3)
-        dlg.content.append(row1c)
-        row1d = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1d = Gtk.Label(label=self.t("pref_width"))
-        l1d.set_hexpand(True); l1d.set_xalign(0)
-        page_spin = Gtk.SpinButton.new_with_range(40, 140, 2)
-        page_spin.set_digits(0)
-        page_spin.set_value(int(self.cfg.get("page_chars", 68)))
-        row1d.append(l1d); row1d.append(page_spin)
-        dlg.content.append(row1d)
-        row1s = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1s = Gtk.Label(label=self.t("pref_spacing"))
-        l1s.set_hexpand(True); l1s.set_xalign(0)
-        spacing_keys = ["compact", "normal", "airy"]
-        spacing_combo = Gtk.DropDown.new_from_strings([self.t(f"spacing_{k}") for k in spacing_keys])
-        try:
-            spacing_combo.set_selected(spacing_keys.index(self.cfg.get("line_spacing", "normal")))
-        except ValueError:
-            spacing_combo.set_selected(1)
-        row1s.append(l1s); row1s.append(spacing_combo)
-        dlg.content.append(row1s)
-        row1e = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l1e = Gtk.Label(label=self.t("pref_embed"))
-        l1e.set_hexpand(True); l1e.set_xalign(0)
-        sw4 = Gtk.Switch()
-        sw4.set_valign(Gtk.Align.CENTER)
-        sw4.set_active(bool(self.cfg.get("html_embed_images", False)))
-        row1e.append(l1e); row1e.append(sw4)
-        dlg.content.append(row1e)
-        dlg.content.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+        """Preferenze nello stile GNOME: ogni modifica vale subito."""
+        t = self.t
+        page = Adw.PreferencesPage()
+
+        def changed():
+            self._apply_theme()
+            self._center_page()
+            GLib.timeout_add(80, self._center_page)
+            save_config(self.cfg)
+
+        look = Adw.PreferencesGroup(title=t("pref_group_look"))
+        styles = ["system", "light", "dark"]
+        style_row = Adw.ComboRow(title=t("pref_style"),
+                                 model=Gtk.StringList.new([t("style_system"), t("style_light"),
+                                                           t("style_dark")]))
+        style_row.set_selected(styles.index(self.cfg.get("style", "system")))
+        style_row.connect("notify::selected",
+                          lambda r, _p: self._set_style(styles[r.get_selected()]))
+        look.add(style_row)
+
         names = system_font_families()
-        row2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l2 = Gtk.Label(label=self.t("pref_font"))
-        l2.set_xalign(0)
-        font_combo = Gtk.DropDown.new_from_strings(names)
+        font_row = Adw.ComboRow(title=t("pref_font"), model=Gtk.StringList.new(names),
+                                enable_search=True)
         try:
-            font_combo.set_selected(names.index(self.cfg.get("font", "Sans")))
+            font_row.set_selected(names.index(self.cfg.get("font", "Sans")))
         except ValueError:
-            font_combo.set_selected(0)
-        font_combo.set_hexpand(True)
-        row2.append(l2); row2.append(font_combo)
-        dlg.content.append(row2)
-        row3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        l3 = Gtk.Label(label=self.t("pref_size"))
-        l3.set_xalign(0)
-        spin = Gtk.SpinButton.new_with_range(8, 72, 1)
-        spin.set_digits(0)
-        spin.set_value(self.cfg.get("font_size", 13))
-        sample = Gtk.Label()
-        sample.set_hexpand(True); sample.set_xalign(1)
+            font_row.set_selected(0)
 
-        def _sample(*_):
-            idx = font_combo.get_selected()
-            f = names[idx] if 0 <= idx < len(names) else "Sans"
-            s = int(spin.get_value())
-            sample.set_markup(f'<span font_family="{html.escape(f)}" size="{s * 1024}">'
-                              f'{html.escape(self.t("pref_sample"))}</span>')
-        font_combo.connect("notify::selected", _sample)
-        spin.connect("value-changed", _sample)
-        _sample()
-        row3.append(l3); row3.append(spin); row3.append(sample)
-        dlg.content.append(row3)
-        dlg.add_button(self.t("btn_cancel"), "cancel")
-        dlg.add_button(self.t("btn_ok_apply"), "ok", suggested=True)
+        def on_font(r, _p):
+            i = r.get_selected()
+            if 0 <= i < len(names):
+                self.cfg["font"] = names[i]
+                changed()
+        font_row.connect("notify::selected", on_font)
+        look.add(font_row)
 
-        def _resp(rid):
-            if rid == "ok":
-                idx = font_combo.get_selected()
-                self.cfg["font"] = names[idx] if 0 <= idx < len(names) else "Sans"
-                self.cfg["font_size"] = int(spin.get_value())
-                self.cfg["center_page"] = sw3.get_active()
-                self.cfg["page_chars"] = int(page_spin.get_value())
-                si = spacing_combo.get_selected()
-                self.cfg["line_spacing"] = spacing_keys[si] if 0 <= si < 3 else "normal"
-                self.cfg["html_embed_images"] = sw4.get_active()
-                self._set_dark(sw.get_active())
-                want_live = sw2.get_active()
-                if want_live != self.live_action.get_state().get_boolean():
-                    self.live_action.change_state(GLib.Variant.new_boolean(want_live))
-                new_lang = codes[lang_combo.get_selected()]
-                if new_lang != self.lang:
-                    self.lang = new_lang
-                    self.cfg["ui_lang"] = new_lang
-                    self.tr.set_language(new_lang)
-                    self._retranslate()
-                self._center_page()
-                GLib.timeout_add(80, self._center_page)
-                save_config(self.cfg)
-        dlg.on_response = _resp
-        dlg.present()
+        size_row = Adw.SpinRow.new_with_range(8, 72, 1)
+        size_row.set_title(t("pref_size"))
+        size_row.set_value(self.cfg.get("font_size", 13))
+
+        def on_size(r, _p):
+            self.cfg["font_size"] = int(r.get_value())
+            changed()
+        size_row.connect("notify::value", on_size)
+        look.add(size_row)
+
+        spacing_keys = ["compact", "normal", "airy"]
+        spacing_row = Adw.ComboRow(title=t("pref_spacing"), model=Gtk.StringList.new(
+            [t(f"spacing_{k}") for k in spacing_keys]))
+        try:
+            spacing_row.set_selected(spacing_keys.index(self.cfg.get("line_spacing", "normal")))
+        except ValueError:
+            spacing_row.set_selected(1)
+
+        def on_spacing(r, _p):
+            self.cfg["line_spacing"] = spacing_keys[r.get_selected()]
+            changed()
+        spacing_row.connect("notify::selected", on_spacing)
+        look.add(spacing_row)
+        page.add(look)
+
+        writing = Adw.PreferencesGroup(title=t("pref_group_writing"))
+        live_row = Adw.SwitchRow(title=t("pref_live"),
+                                 active=self.live_action.get_state().get_boolean())
+        live_row.connect("notify::active", lambda r, _p: self.live_action.change_state(
+            GLib.Variant.new_boolean(r.get_active())))
+        writing.add(live_row)
+        center_row = Adw.SwitchRow(title=t("pref_center"),
+                                   active=bool(self.cfg.get("center_page", True)))
+        width_row = Adw.SpinRow.new_with_range(40, 140, 2)
+        width_row.set_title(t("pref_width"))
+        width_row.set_value(int(self.cfg.get("page_chars", 68)))
+
+        def on_center(r, _p):
+            self.cfg["center_page"] = r.get_active()
+            changed()
+        center_row.connect("notify::active", on_center)
+
+        def on_width(r, _p):
+            self.cfg["page_chars"] = int(r.get_value())
+            changed()
+        width_row.connect("notify::value", on_width)
+        writing.add(center_row)
+        writing.add(width_row)
+        page.add(writing)
+
+        export = Adw.PreferencesGroup(title=t("pref_group_export"))
+        embed_row = Adw.SwitchRow(title=t("pref_embed"),
+                                  active=bool(self.cfg.get("html_embed_images", False)))
+
+        def on_embed(r, _p):
+            self.cfg["html_embed_images"] = r.get_active()
+            save_config(self.cfg)
+        embed_row.connect("notify::active", on_embed)
+        export.add(embed_row)
+        page.add(export)
+
+        dialog = Adw.PreferencesDialog(title=t("mi_preferences").rstrip("…"))
+        dialog.add(page)
+        dialog.present(self)
 
     def _apply_default_direction(self):
         """Arabo: tutta l'interfaccia da destra a sinistra (non solo il testo)."""
@@ -4387,7 +4325,7 @@ MaxSize=512
         self.goal_button.set_tooltip_text(self.t("goal_tip"))
         self.goal_pop_label.set_text(self.t("goal_pop_title"))
         self.goal_apply_btn.set_label(self.t("btn_apply"))
-        self.spell_title_label.set_markup(f"<b>{self.t('spell_title')}</b>")
+        self.spell_title_label.set_label(self.t('spell_title'))
         self.spell_toggle_btn.set_tooltip_text(self.t("spell_toggle_tip"))
         self._spell_hide_btn.set_tooltip_text(self.t("spell_hide_tip"))
         self._update_counts()
@@ -4400,12 +4338,12 @@ MaxSize=512
         self.spell_revealer = Gtk.Revealer()
         self.spell_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
         panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        panel.add_css_class("spell-panel")
-        panel.set_margin_start(10); panel.set_margin_end(10)
-        panel.set_margin_top(8); panel.set_margin_bottom(8)
+        panel.set_margin_start(12); panel.set_margin_end(6)
+        panel.set_margin_top(6); panel.set_margin_bottom(6)
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.spell_title_label = Gtk.Label()
         self.spell_title_label.set_xalign(0)
+        self.spell_title_label.add_css_class("heading")
         head.append(self.spell_title_label)
         self.lang_combo = Gtk.DropDown.new_from_strings(["…"])
         head.append(self.lang_combo)
@@ -4415,18 +4353,19 @@ MaxSize=512
         self.spell_status.set_hexpand(True)
         self.spell_status.set_xalign(0)
         self.spell_status.set_ellipsize(Pango.EllipsizeMode.END)
+        self.spell_status.add_css_class("dim-label")
         head.append(self.spell_status)
         self.spell_toggle_btn = Gtk.ToggleButton(label="")
         self.spell_toggle_btn.set_action_name("win.spell-toggle")
         head.append(self.spell_toggle_btn)
         self._spell_hide_btn = Gtk.Button.new_from_icon_name("window-close-symbolic")
+        self._spell_hide_btn.add_css_class("flat")
         self._spell_hide_btn.connect("clicked", self._hide_spell_panel)
         head.append(self._spell_hide_btn)
         panel.append(head)
         self.spell_revealer.set_child(panel)
-        self.vbox.append(self.spell_revealer)
-        self.vbox.reorder_child_after(self.spell_revealer, self.paned)
-        self.spell_title_label.set_markup(f"<b>{self.t('spell_title')}</b>")
+        self.toolbar.add_bottom_bar(self.spell_revealer)
+        self.spell_title_label.set_label(self.t('spell_title'))
         self.spell_toggle_btn.set_tooltip_text(self.t("spell_toggle_tip"))
         self._spell_hide_btn.set_tooltip_text(self.t("spell_hide_tip"))
 
@@ -4728,12 +4667,40 @@ MaxSize=512
 
     # ------------------------------------------------------- dialoghi
     def _message(self, text, secondary=None):
-        dlg = DialogWindow(self, APP_NAME)
-        dlg.add_label(text)
-        if secondary:
-            dlg.add_label(secondary)
-        dlg.add_button(self.t("btn_ok"), "ok", suggested=True)
-        dlg.present()
+        """Errore o avviso che richiede attenzione."""
+        dlg = Adw.AlertDialog(heading=APP_NAME, body=text if not secondary
+                              else f"{text}\n\n{secondary}")
+        dlg.add_response("ok", self.t("btn_close"))
+        dlg.present(self)
+
+    def _toast_file(self, key, path):
+        """Esito positivo di un export: notifica con «Apri» invece di un
+        dialogo da chiudere."""
+        toast = Adw.Toast(title=GLib.markup_escape_text(self.t(key)),
+                          button_label=self.t("btn_open_file"), timeout=6)
+
+        def open_file(*_a):
+            Gtk.FileLauncher.new(Gio.File.new_for_path(path)).launch(self, None, None)
+        toast.connect("button-clicked", open_file)
+        self.toasts.add_toast(toast)
+
+    def _ask_unsaved(self, body, save_label, on_save, on_discard):
+        dlg = Adw.AlertDialog(heading=self.t("unsaved_title"), body=body)
+        dlg.add_response("cancel", self.t("btn_cancel"))
+        dlg.add_response("discard", self.t("btn_nosave"))
+        dlg.add_response("save", save_label)
+        dlg.set_response_appearance("discard", Adw.ResponseAppearance.DESTRUCTIVE)
+        dlg.set_response_appearance("save", Adw.ResponseAppearance.SUGGESTED)
+        dlg.set_default_response("save")
+        dlg.set_close_response("cancel")
+
+        def on_response(_d, rid):
+            if rid == "save":
+                on_save()
+            elif rid == "discard":
+                on_discard()
+        dlg.connect("response", on_response)
+        dlg.present(self)
 
     def _confirm_discard(self, callback):
         if not self.buffer.get_modified():
@@ -4741,20 +4708,12 @@ MaxSize=512
             return
         name = os.path.basename(self.current_path) if self.current_path \
             else self.t("title_untitled")
-        dlg = DialogWindow(self, self.t("unsaved_title"))
-        dlg.add_label(self.t("unsaved_open", name=name))
-        dlg.add_button(self.t("btn_cancel"), "cancel")
-        dlg.add_button(self.t("btn_nosave"), "no")
-        dlg.add_button(self.t("btn_save"), "yes", suggested=True)
 
-        def _resp(rid):
-            if rid == "yes":
-                if self.save_file():
-                    callback(True)
-            elif rid == "no":
+        def save():
+            if self.save_file():
                 callback(True)
-        dlg.on_response = _resp
-        dlg.present()
+        self._ask_unsaved(self.t("unsaved_open", name=name), self.t("btn_save"),
+                          save, lambda: callback(True))
 
     def _on_close_request(self, *_):
         if self._closing:
@@ -4766,22 +4725,14 @@ MaxSize=512
         return False
 
     def _confirm_discard_close(self):
-        dlg = DialogWindow(self, self.t("unsaved_title"))
-        dlg.add_label(self.t("unsaved_close"))
-        dlg.add_button(self.t("btn_cancel"), "cancel")
-        dlg.add_button(self.t("btn_nosave"), "no")
-        dlg.add_button(self.t("btn_save_exit"), "yes", suggested=True)
+        def close():
+            self._closing = True
+            self.close()
 
-        def _resp(rid):
-            if rid == "yes":
-                if self.save_file():
-                    self._closing = True
-                    self.close()
-            elif rid == "no":
-                self._closing = True
-                self.close()
-        dlg.on_response = _resp
-        dlg.present()
+        def save():
+            if self.save_file():
+                close()
+        self._ask_unsaved(self.t("unsaved_close"), self.t("btn_save_exit"), save, close)
 
     def _finalize(self):
         try:
@@ -4831,11 +4782,44 @@ MaxSize=512
         self.buffer.set_modified(False)
         self._update_title()
 # ----------------------------------------------------------------------------
-class RuscaApplication(Gtk.Application):
+class RuscaApplication(Adw.Application):
     def __init__(self):
         super().__init__(application_id=APP_ID,
                          flags=Gio.ApplicationFlags.HANDLES_OPEN)
         self.win = None
+
+    def do_startup(self):
+        Adw.Application.do_startup(self)
+        if not theme_has_icon():
+            ensure_icon()
+        # Stile chiaro/scuro scelto nelle preferenze (predefinito: sistema).
+        style = load_config().get("style", "system")
+        manager = Adw.StyleManager.get_default()
+        manager.set_color_scheme({"light": Adw.ColorScheme.FORCE_LIGHT,
+                                  "dark": Adw.ColorScheme.FORCE_DARK}
+                                 .get(style, Adw.ColorScheme.DEFAULT))
+        # Tema comune RuscaLinux; se manca restano i colori di GNOME.
+        if STYLE_SRC:
+            provider = Gtk.CssProvider()
+            provider.load_from_path(STYLE_SRC)
+            Gtk.StyleContext.add_provider_for_display(
+                Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        manager.connect("notify::dark", lambda *_a: self.update_theme())
+        self.connect("window-added", lambda *_a: self.update_theme())
+        quit_action = Gio.SimpleAction.new("quit", None)
+        # Passa da close-request: le modifiche non salvate vengono chieste.
+        quit_action.connect("activate", lambda *_a: [w.close() for w in self.get_windows()])
+        self.add_action(quit_action)
+
+    def update_theme(self):
+        dark = Adw.StyleManager.get_default().get_dark()
+        for window in self.get_windows():
+            window.remove_css_class("rusca-light" if dark else "rusca-dark")
+            window.add_css_class("rusca-dark" if dark else "rusca-light")
+            # Una finestra appena creata (window-added arriva durante
+            # __init__) applica il tema da sé quando è completa.
+            if isinstance(window, RuscaWindow) and hasattr(window, "statusbar"):
+                window._apply_theme()
 
     def do_activate(self):
         self._open_window(None)
@@ -4873,7 +4857,7 @@ def _install_gtk_warning_filter():
 def main():
     GLib.set_application_name(APP_NAME)
     # Identificativo identico al nome del file .desktop
-    # (org.ruscalinux.ruscamark.desktop): GNOME associa così la finestra al
+    # (org.ruscalinux.RuscaMark.desktop): GNOME associa così la finestra al
     # suo lanciatore e mostra l'icona di RuscaMark invece di quella generica.
     GLib.set_prgname(APP_ID)
     _install_gtk_warning_filter()

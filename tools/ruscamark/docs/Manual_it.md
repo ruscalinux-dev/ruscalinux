@@ -6,7 +6,7 @@ RuscaMark è l'editor Markdown dei RuscaLinux OS Tools. È pensato per scrivere 
 |---|---|
 | Versione | 1.99.2 |
 | Autore | Nunzio Curcuruto (ruscalinux-dev) |
-| Sito web | [ruscalinux.org](https://ruscalinux.org) |
+| Sito web | [ruscalinux.org](https://www.ruscalinux.org) |
 | Contatto | info@ruscalinux.org |
 | Licenza | GPL-3.0 — <https://www.gnu.org/licenses/gpl-3.0.html> |
 
@@ -17,8 +17,8 @@ RuscaMark è l'editor Markdown dei RuscaLinux OS Tools. È pensato per scrivere 
 | Requisito | Valore |
 |---|---|
 | Sistema | RuscaLinux o Debian Stable |
-| Desktop | GNOME (funziona anche in altri ambienti GTK 4) |
-| Toolkit | GTK 4 |
+| Desktop | GNOME |
+| Librerie grafiche | GTK 4.18 o successivo e libadwaita 1.7 o successiva |
 | Linguaggio | Python 3.10 o successivo |
 
 Prima di installare, verifica l'integrità del pacchetto nella cartella che contiene il file `SHA256SUMS`:
@@ -58,7 +58,8 @@ Puoi anche trascinare un file `.md` dentro la finestra.
 
 ## 3. La finestra
 
-- **Barra superiore**: a sinistra Nuovo, Apri e Salva; a destra il menu principale, l'anteprima, il controllo ortografico e lo schermo intero.
+- **Barra del titolo**: a sinistra Nuovo e Apri; a destra l'anteprima, Salva e il menu principale. Dal menu principale si raggiungono anche esportazione, resa live, controllo ortografico, schermo intero, formato, ricerca, obiettivo di parole, Preferenze, Scorciatoie da tastiera e Informazioni.
+- **Stile chiaro o scuro**: RuscaMark segue l'impostazione di GNOME; nelle Preferenze puoi anche forzare lo stile chiaro o quello scuro.
 - **Pagina di scrittura**: il testo occupa una colonna centrata, larga quanto impostato nelle Preferenze (68 caratteri di default). I margini si ricalcolano quando ridimensioni, massimizzi o metti a schermo intero la finestra, e quando apri l'anteprima.
 - **Barra di stato**: parole, caratteri e righe, posizione del cursore e obiettivo di parole.
 - **Barra ortografia**: compare sotto il testo quando accendi il controllo ortografico.
@@ -67,7 +68,7 @@ Puoi anche trascinare un file `.md` dentro la finestra.
 
 **Resa live (Ctrl+L)** — modalità predefinita. Titoli, grassetti, corsivi, codice, link, citazioni ed elenchi assumono subito il loro aspetto e i marcatori (`**`, `#`, `>`…) si nascondono. Quando porti il cursore su un elemento, la sua sintassi riappare per poterla modificare. Le tabelle restano in carattere monospazio, così le colonne allineate rimangono incolonnate.
 
-**Anteprima classica (Ctrl+P)** — divide la finestra: a sinistra il sorgente con la sintassi colorata, a destra il documento impaginato. Solo l'anteprima mostra le immagini vere, le tabelle disegnate a griglia e le note raccolte in fondo. Con il tema chiaro l'anteprima usa gli stessi colori dell'export PDF e HTML; con il tema scuro resta prugna.
+**Anteprima classica (Ctrl+P)** — divide la finestra: a sinistra il sorgente con la sintassi colorata, a destra il documento impaginato. Solo l'anteprima mostra le immagini vere, le tabelle disegnate a griglia e le note raccolte in fondo. Con lo stile chiaro l'anteprima usa gli stessi colori dell'export PDF e HTML; con lo stile scuro resta prugna.
 
 Le due modalità si escludono: accendendone una, l'altra si spegne.
 
@@ -222,6 +223,9 @@ Consiglio: salva il documento prima di inserire immagini, così i percorsi saran
 | Ctrl+P | Anteprima |
 | F11 | Schermo intero |
 | F7 | Controllo ortografico acceso/spento |
+| F10 | Menu principale |
+| Ctrl+, | Preferenze |
+| Ctrl+? | Scorciatoie da tastiera |
 | Ctrl+Z / Ctrl+Maiusc+Z | Annulla / Ripeti |
 | Ctrl+F | Trova |
 | Ctrl+H | Trova e sostituisci |
@@ -230,7 +234,10 @@ Consiglio: salva il documento prima di inserire immagini, così i percorsi saran
 | Ctrl+Maiusc+I | Immagine |
 | Ctrl+Maiusc+T | Inserisci o allinea tabella |
 | Ctrl+1 … Ctrl+6, Ctrl+0 | Livello del titolo / testo normale |
+| Ctrl+W | Chiudi la finestra |
 | Ctrl+Q | Esci |
+
+L'elenco completo si apre anche dal programma con **Ctrl+?** o dal menu principale → **Scorciatoie da tastiera**.
 
 ## 8. Trova e sostituisci
 
@@ -243,7 +250,7 @@ Consiglio: salva il documento prima di inserire immagini, così i percorsi saran
 
 ## 9. Controllo ortografico
 
-Premi **F7** o il pulsante con il segno di spunta. Le parole sconosciute vengono sottolineate mentre scrivi; con il **tasto destro** su una parola ottieni i suggerimenti e puoi aggiungerla al dizionario personale. La lingua del dizionario si sceglie dal menu a tendina nella barra ortografia ed è indipendente dalla lingua dell'interfaccia: puoi avere i menu in italiano e controllare un testo in inglese britannico (`en_GB`, pacchetto `hunspell-en-gb`).
+Premi **F7** oppure scegli **Controllo ortografico** dal menu principale. Le parole sconosciute vengono sottolineate mentre scrivi; con il **tasto destro** su una parola ottieni i suggerimenti e puoi aggiungerla al dizionario personale. La lingua del dizionario si sceglie dal menu a tendina nella barra ortografia ed è indipendente dalla lingua dell'interfaccia: puoi avere i menu in italiano e controllare un testo in inglese britannico (`en_GB`, pacchetto `hunspell-en-gb`).
 
 Per italiano e francese RuscaMark aggiunge al dizionario personale i frammenti di elisione (`dell'`, `quest'`, `qu'`, `jusqu'`…), così non vengono segnalati come errori. La scelta acceso/spento viene ricordata al riavvio.
 
@@ -255,7 +262,7 @@ Fai clic su **🎯 Obiettivo** nella barra di stato (o usa il menu) e imposta il
 
 ## 11. Esportare in PDF e in HTML
 
-PDF e HTML hanno lo **stesso stile**, quello delle guide di riferimento dei RuscaLinux OS Tools, indipendentemente dal tema chiaro o scuro dell'editor:
+PDF e HTML hanno lo **stesso stile**, quello delle guide di riferimento dei RuscaLinux OS Tools, indipendentemente dallo stile chiaro o scuro dell'editor:
 
 - i titoli di livello 1 diventano un **banner** con sfumatura dal rosa al prugna e testo bianco; il paragrafo subito dopo è un'introduzione in corpo più grande;
 - i titoli di livello 2 sono prugna con un filetto rosa sotto, quelli di livello 3 e successivi in malva;
@@ -288,24 +295,23 @@ Il codice HTML scritto dentro il Markdown (ad esempio `<br>` o `<div>`) non vien
 
 ## 12. Preferenze
 
-Dal menu principale → **Preferenze…**
+Dal menu principale → **Preferenze…** (Ctrl+,). Ogni modifica vale subito.
 
-| Opzione | Effetto |
-|---|---|
-| Lingua interfaccia | Una delle 15 lingue ufficiali; il cambio è immediato. Con l'arabo tutta l'interfaccia passa da destra a sinistra. |
-| Tema scuro (prugna) | Alterna il tema rosa chiaro e il tema prugna scuro. |
-| Resa live della formattazione | Come Ctrl+L. |
-| Pagina centrata | Se attiva, il testo resta in una colonna centrata; se disattiva occupa tutta la larghezza e una linea guida verticale indica la larghezza di pagina. |
-| Larghezza pagina (caratteri) | Da 40 a 140; misurata sul carattere medio del font scelto. 60–75 è la misura più comoda da leggere. |
-| Interlinea | *Compatta*, *Normale* (predefinita) o *Ariosa*: lo spazio tra le righe dell'editor e dell'anteprima, in proporzione al corpo del font (1,25 – 1,5 – 1,75 volte). Blocchi di codice e tabelle restano compatti. |
-| Incorpora le immagini nell'export HTML | Vedi sezione 11. |
-| Font di sistema e Dimensione | Carattere dell'editor, con anteprima. |
+| Gruppo | Opzione | Effetto |
+|---|---|---|
+| Aspetto | Stile | *Segui il sistema* (predefinito), *Chiaro* o *Scuro*. |
+| Aspetto | Font di sistema e Dimensione | Carattere dell'editor e dell'anteprima. |
+| Aspetto | Interlinea | *Compatta*, *Normale* (predefinita) o *Ariosa*: lo spazio tra le righe dell'editor e dell'anteprima, in proporzione al corpo del font (1,25 – 1,5 – 1,75 volte). Blocchi di codice e tabelle restano compatti. |
+| Scrittura | Resa live della formattazione | Come Ctrl+L. |
+| Scrittura | Pagina centrata | Se attiva, il testo resta in una colonna centrata; se disattiva occupa tutta la larghezza e una linea guida verticale indica la larghezza di pagina. |
+| Scrittura | Larghezza pagina (caratteri) | Da 40 a 140; misurata sul carattere medio del font scelto. 60–75 è la misura più comoda da leggere. |
+| Esportazione | Incorpora le immagini nell'export HTML | Vedi sezione 11. |
 
 I margini laterali si adattano alla finestra: nelle finestre strette restano almeno al 4% della larghezza (da 16 a 48 pixel), in quelle larghe lo spazio libero viene diviso in parti uguali ai due lati.
 
 ## 13. Lingue dell'interfaccia
 
-Inglese, cinese semplificato, spagnolo, hindi, arabo, portoghese brasiliano, russo, giapponese, tedesco, francese, italiano, coreano, indonesiano, turco e polacco. Al primo avvio RuscaMark usa la lingua del sistema; poi ricorda quella scelta nelle Preferenze.
+Inglese, cinese semplificato, spagnolo, hindi, arabo, portoghese brasiliano, russo, giapponese, tedesco, francese, italiano, coreano, indonesiano, turco e polacco. RuscaMark usa sempre la lingua del sistema; per cambiarla si usa Impostazioni di GNOME → Sistema → Regione e lingua. Con l'arabo tutta l'interfaccia passa da destra a sinistra.
 
 Le traduzioni sono file JSON in `/usr/share/ruscamark/lang/`. Per correggere o personalizzare una traduzione copia il file in `~/.config/ruscamark/lang/` e modificalo: la copia personale ha la precedenza. Se una frase manca, viene mostrata in inglese.
 
@@ -341,7 +347,7 @@ RuscaMark non contiene codice che si collega alla rete. In particolare:
 
 - l'anteprima mostra solo immagini presenti sul computer; quelle con indirizzo `https://…` non vengono scaricate e al loro posto compare un avviso;
 - il controllo ortografico usa esclusivamente i dizionari installati (hunspell); il testo non lascia mai il computer;
-- la voce di menu «Sito web — ruscalinux.org» apre il tuo browser, e solo quando la scegli.
+- nella finestra Informazioni, le righe «Sito web», «Supporto» e «Licenza» aprono il browser o il programma di posta, e solo quando le scegli.
 
 L'HTML esportato è un file come un altro: se il documento contiene immagini remote, sarà il **browser** che apre l'HTML a scaricarle. Per un file completamente autonomo usa immagini locali e attiva «Incorpora le immagini nell'export HTML».
 
@@ -377,11 +383,11 @@ Il dizionario personale in `~/.config/enchant/` è condiviso con altri programmi
 
 | Problema | Soluzione |
 |---|---|
-| Il programma non si avvia | Verifica Python 3 e GTK 4 (`gir1.2-gtk-4.0`); controlla il pacchetto con `sha256sum -c SHA256SUMS` e reinstallalo. |
+| Il programma non si avvia | Verifica Python 3, GTK 4 (`gir1.2-gtk-4.0`) e libadwaita (`gir1.2-adw-1`); controlla il pacchetto con `sha256sum -c SHA256SUMS` e reinstallalo. |
 | «Controllo ortografico non disponibile» | Installa `gir1.2-spelling-1` e il dizionario della lingua (es. `hunspell-it`). |
 | Annulla/Ripeti o la ricerca evidenziata non funzionano | Installa `gir1.2-gtksource-5`. |
 | L'export PDF segnala «python3-gi-cairo» | Installa il pacchetto `python3-gi-cairo` (normalmente arriva insieme a RuscaMark). |
-| Nel pannello compare un'icona generica | Avvia RuscaMark dal menu delle applicazioni dopo averlo installato dal pacchetto: l'icona dipende dal file `org.ruscalinux.ruscamark.desktop`. Avviando `ruscamark.py` direttamente dalla cartella dei sorgenti, GNOME non trova il lanciatore e mostra l'icona generica. |
+| Nel pannello compare un'icona generica | Avvia RuscaMark dal menu delle applicazioni dopo averlo installato dal pacchetto: l'icona dipende dal file `org.ruscalinux.RuscaMark.desktop`. Se avevi fissato RuscaMark nella dash con una versione precedente alla 1.99.2, toglilo e fissalo di nuovo: l'identificativo è cambiato. Avviando `ruscamark.py` direttamente dalla cartella dei sorgenti, GNOME non trova il lanciatore e mostra l'icona generica. |
 | Un'immagine non compare in anteprima | Controlla il percorso: se relativo, parte dalla cartella del documento salvato. Le immagini remote non vengono mostrate per scelta. |
 | Le colonne di una tabella sono storte | Metti il cursore nella tabella e premi Ctrl+Maiusc+T. |
 | Una riga con `---` sotto diventa un titolo | Lascia una riga vuota prima di `---` per avere una linea orizzontale. |
@@ -392,4 +398,4 @@ Assistenza: info@ruscalinux.org
 
 RuscaMark è software libero distribuito con licenza GPL-3.0: <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-Nota di sviluppo: «Sviluppato con il supporto di strumenti AI: progettazione, specifiche, revisione e responsabilità editoriale sono dell'autore».
+La nota sull'uso di strumenti di intelligenza artificiale si trova nella finestra Informazioni del programma e nel file `NOTA-IA.md` del repository.

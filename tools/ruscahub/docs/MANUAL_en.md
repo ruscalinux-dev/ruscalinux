@@ -10,11 +10,11 @@ RuscaHub is the official AppImage manager of RuscaLinux. It allows you to:
 - **install** them (creates a GNOME menu entry with the program's original icon);
 - **uninstall** them (removes only the menu entry);
 - **run** them directly from the list;
-- **delete** them permanently (entry, icon and file).
+- **delete** them (entry and icon are removed, the AppImage file goes to the trash).
 
 ## 2. Requirements
 - RuscaLinux or Debian Stable (or derivative) with a GNOME environment;
-- Python ≥ 3.10 with `python3-gi`, `python3-cairo`, `gir1.2-gtk-4.0`;
+- Python ≥ 3.10 with `python3-gi`, `gir1.2-gtk-4.0` (GTK ≥ 4.18) and `gir1.2-adw-1` (libadwaita ≥ 1.7);
 - `squashfs-tools` recommended: it lets RuscaHub read the AppImage name and icon
   **without running it**, and is the most reliable way to get the right icon;
 - FUSE 2 recommended (`libfuse2t64` on Debian 13, `libfuse2` on Debian 12) to
@@ -45,10 +45,27 @@ The `lang/` folder must sit next to `ruscahub.py`.
 From the GNOME menu: **RuscaHub** (Utility category), or from a terminal: `ruscahub`.
 
 ## 5. Main window
-- **Header bar (pink):** "Add AppImage" button, activity spinner, About button.
-- **List:** for each AppImage it shows icon, name, path, state
-  ("Installed" / "Archived") and the Run, Install/Uninstall, Remove buttons.
-- **Empty page:** drag & drop hint when no AppImage is archived.
+- **Header bar:** on the left the **+** button ("Add AppImage"); on the right the
+  activity indicator and the main menu with "Keyboard Shortcuts" and
+  "About RuscaHub".
+- **"Your AppImages" list:** for each AppImage it shows icon, name, state
+  ("Installed" / "Archived") and file name (hover the row to see the full path),
+  with the Run, menu switch and Delete controls.
+- **Empty page:** when there are no AppImages, it invites you to drag one in or
+  press "Add AppImage".
+- **Notifications:** a short notification at the bottom confirms imports,
+  installations and deletions, or reports an error.
+
+The window follows GNOME's light or dark style, remembers its size and can be
+used from the keyboard:
+
+| Keys | Action |
+|---|---|
+| Ctrl+O | Add AppImage |
+| Ctrl+? | Keyboard shortcuts |
+| F10 | Main menu |
+| Ctrl+W | Close the window |
+| Ctrl+Q | Quit |
 
 ## 6. Importing an AppImage
 1. Drag the `.AppImage` file onto the window, or press "Add AppImage" and pick it
@@ -76,12 +93,15 @@ The `StartupWMClass` key links the running program window to its menu entry, so
 the GNOME dash shows the correct icon too.
 
 ## 7. Available operations
-| Button | Effect |
+| Control | Effect |
 |---|---|
 | ▶ Run | Launches the AppImage immediately |
-| Install | Creates the GNOME menu entry (`~/.local/share/applications/`) |
-| Uninstall | Removes the menu entry, keeps the file |
-| 🗑 Remove | Deletes entry, icon, `.desktop` file and the AppImage file |
+| Switch on | Creates the GNOME menu entry (`~/.local/share/applications/`) |
+| Switch off | Removes the menu entry, keeps the file |
+| 🗑 Delete | After confirmation, removes entry, icon and `.desktop` file and moves the AppImage file to the trash |
+
+An AppImage deleted by mistake can be recovered from the GNOME Trash and
+imported again.
 
 ## 8. Automatic icon repair
 AppImages imported with earlier RuscaHub versions and left without an icon are
@@ -120,9 +140,9 @@ RuscaHub is translated into 15 languages:
 - Translations are UTF-8 JSON files in the `lang/` folder: to fix one, just edit
   that language's file.
 
-## 11. About panel
-Follows the RuscaTools style (pink header, pink⇒plum gradient): name, version,
-description, author, license, AI-support note and website link.
+## 11. About window
+Opens from the main menu as a single page: icon, name, version, description,
+links to website, support and license, and the development note.
 
 ## 12. Building the .deb package
 From the project root:
@@ -159,8 +179,8 @@ operation (Remove) acts only on files created by RuscaHub itself and is started
 explicitly by the user.
 
 ## 15. Development note
-Developed with the support of AI tools: design, specifications, review and
-editorial responsibility belong to the author.
+The note on the use of AI tools is in the About window (§11) and in the
+`NOTA-IA.md` file of the repository.
 
 ## 16. License and contacts
 GPL-3.0 — Nunzio Curcuruto (ruscalinux-dev) — <info@ruscalinux.org>

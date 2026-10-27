@@ -18,7 +18,7 @@
 """
 RuscaCleaner — rimuove le tracce di attività dalla home dell'utente.
 
-Requisiti: Python 3.10+, PyGObject, GTK 4, libadwaita 1.5+
+Requisiti: Python 3.10+, PyGObject, GTK 4.18+, libadwaita 1.7+
 (Debian: python3-gi gir1.2-gtk-4.0 gir1.2-adw-1).
 
     ruscacleaner             apre la finestra
@@ -60,9 +60,12 @@ CACHE = _xdg("XDG_CACHE_HOME", HOME / ".cache")
 DATA = _xdg("XDG_DATA_HOME", HOME / ".local" / "share")
 STATE = _xdg("XDG_STATE_HOME", HOME / ".local" / "state")
 FLATPAK = HOME / ".var" / "app"
+CONFIG = _xdg("XDG_CONFIG_HOME", HOME / ".config") / "ruscacleaner"
 BASE_DIR = Path(__file__).resolve().parent
 LANG_DIR = BASE_DIR / "lang"
 ICON_SRC = BASE_DIR / "ruscacleaner.svg"
+STYLE_SRC = BASE_DIR / "style.css"      # tema comune RuscaLinux
+ADW_MIN = (1, 7)                         # libadwaita di Debian 13 trixie
 
 # --------------------------------------------------------------- traduzioni ---
 # lang/xx.json o lang/xx_YY.json. en.json è la base; una chiave che manca
@@ -106,7 +109,11 @@ def _language_codes() -> List[str]:
     return codes
 
 
-def _load_strings() -> dict:
+RTL_LANGS = ("ar",)
+
+
+def _load_strings() -> Tuple[dict, str]:
+    """Restituisce le stringhe e il codice della lingua usata."""
     strings = _read_lang("en")
     for code in _language_codes():
         if code.split("_")[0] == "en":
@@ -114,11 +121,11 @@ def _load_strings() -> dict:
         translated = _read_lang(code)
         if translated:
             strings.update(translated)
-            break
-    return strings
+            return strings, code
+    return strings, "en"
 
 
-_STRINGS = _load_strings()
+_STRINGS, _LANG = _load_strings()
 
 
 def _(key: str, **fields) -> str:
@@ -625,20 +632,33 @@ def run_simulation() -> int:
 # ======================================================================= #
 #  INTERFACCIA                                                            #
 # ======================================================================= #
-CSS = """
-.rusca-hero {
-  background: linear-gradient(135deg, #4a1f42 0%, #6e3460 55%, #8a3f74 100%);
-  color: #f7ecf3;
-  padding: 14px 20px;
-  border-radius: 14px;
-}
-.rusca-hero .title { font-size: 1.45rem; font-weight: 800; letter-spacing: 0.4px; }
-.rusca-hero .subtitle { color: #f7ecf3; font-size: 0.92rem; }
-.rusca-hero .version { color: alpha(#f7ecf3, 0.85); font-size: 0.78rem; font-weight: 600; }
-.rusca-total { font-size: 1.15rem; font-weight: 700; color: @accent_color; }
-.rusca-log { font-family: monospace; font-size: 0.85rem; padding: 8px; }
-.rusca-log text { background: alpha(@accent_bg_color, 0.06); }
-"""
+WINDOW_STATE = CONFIG / "window.json"
+DEFAULT_SIZE = (600, 700)
+
+
+def load_window_state() -> Tuple[int, int, bool]:
+    """Dimensione e stato massimizzato dell'ultima chiusura. Valori assurdi o
+    file illeggibile: si torna ai predefiniti, senza errori."""
+    try:
+        with WINDOW_STATE.open(encoding="utf-8") as handle:
+            data = json.load(handle)
+        width, height = int(data["width"]), int(data["height"])
+        if 360 <= width <= 10000 and 294 <= height <= 10000:
+            return width, height, bool(data.get("maximized", False))
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return DEFAULT_SIZE[0], DEFAULT_SIZE[1], False
+
+
+def save_window_state(width: int, height: int, maximized: bool) -> None:
+    try:
+        CONFIG.mkdir(parents=True, exist_ok=True)
+        tmp = WINDOW_STATE.with_suffix(".tmp")
+        with tmp.open("w", encoding="utf-8") as handle:
+            json.dump({"width": width, "height": height, "maximized": maximized}, handle)
+        os.replace(tmp, WINDOW_STATE)
+    except OSError:
+        pass                    # non ricordare la dimensione non è un errore
 
 
 def ensure_icon() -> None:
@@ -662,7 +682,7 @@ def have_gtk() -> bool:
         gi.require_version("Gtk", "4.0")
         gi.require_version("Adw", "1")
         from gi.repository import Adw, Gtk  # noqa: F401
-        return True
+        return (Adw.get_major_version(), Adw.get_minor_version()) >= ADW_MIN
     except (ImportError, ValueError):
         return False
 
@@ -683,134 +703,206 @@ def run_gui(dry_run: bool) -> int:
     import gi
     gi.require_version("Gtk", "4.0")
     gi.require_version("Adw", "1")
-    from gi.repository import Adw, Gdk, Gio, GLib, Gtk
+    from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango
+
+    def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon):
+        """Finestra «Informazioni» comune ai RuscaLinux OS Tools: una sola
+        pagina, con descrizione e nota di sviluppo sempre visibili (in
+        Adw.AboutDialog la descrizione finisce in una sottopagina).
+        `tr` restituisce il testo tradotto di una chiave di lang/."""
+        def open_uri(_row, uri):
+            def done(launcher, result):
+                try:
+                    launcher.launch_finish(result)
+                except GLib.Error:
+                    pass
+            Gtk.UriLauncher.new(uri).launch(parent, None, done)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                      margin_top=12, margin_bottom=24, margin_start=24, margin_end=24)
+        icon = Gtk.Image(icon_name=app_id if has_icon else "application-x-executable",
+                         pixel_size=128, margin_bottom=12)
+        icon.add_css_class("icon-dropshadow")
+        box.append(icon)
+        for text, css in ((app_name, "title-1"), (version, "dim-label"),
+                          (description, "body")):
+            label = Gtk.Label(label=text, wrap=True, justify=Gtk.Justification.CENTER)
+            label.add_css_class(css)
+            box.append(label)
+
+        links = Adw.PreferencesGroup(margin_top=18)
+        for title, subtitle, uri in (
+                (tr("about_website"), "www.ruscalinux.org", "https://www.ruscalinux.org/"),
+                (tr("about_support"), "info@ruscalinux.org", "mailto:info@ruscalinux.org"),
+                (tr("about_license"), "GNU GPL 3.0", "https://www.gnu.org/licenses/gpl-3.0.html")):
+            row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
+            row.add_suffix(Gtk.Image(icon_name="adw-external-link-symbolic"))
+            row.connect("activated", open_uri, uri)
+            links.add(row)
+        box.append(links)
+
+        # La nota di sviluppo è obbligatoria e sempre visibile (specifiche, sez. 12).
+        note = Adw.PreferencesGroup(title=tr("dev_note_title"),
+                                    description=tr("ai_note"), margin_top=12)
+        box.append(note)
+        copyright_label = Gtk.Label(label="© 2026 Nunzio Curcuruto", margin_top=12)
+        copyright_label.add_css_class("caption")
+        copyright_label.add_css_class("dim-label")
+        box.append(copyright_label)
+
+        scroller = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
+                                      propagate_natural_height=True, child=box)
+        view = Adw.ToolbarView(content=scroller)
+        header = Adw.HeaderBar(show_title=False)
+        view.add_top_bar(header)
+        Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
 
     class RuscaWindow(Adw.ApplicationWindow):
-        _LOG_MAX_LINES = 400   # il registro non deve crescere senza limite
+        """Una pagina sola: elenco di cosa si può pulire (solo le voci con
+        dati), totale e pulsante sempre visibili nella barra in basso.
+        Simulazione, limiti, scorciatoie e informazioni stanno nel menu."""
 
         def __init__(self, app, dry_run: bool):
             super().__init__(application=app, title="RuscaCleaner")
-            self.set_default_size(600, 680)
-            self.set_size_request(400, 400)
+            width, height, maximized = load_window_state()
+            self.set_default_size(width, height)
+            self.set_size_request(360, 294)
+            if maximized:
+                self.maximize()
             if _theme_has_icon():
                 self.set_icon_name(ICON_NAME)
             self.targets = build_targets()
             self.sizes = {}
             self.busy = False
             self.dry_run = dry_run
+            self.log_lines: List[str] = []
 
-            self.toasts = Adw.ToastOverlay()
-            self.set_content(self.toasts)
-            toolbar = Adw.ToolbarView()
-            self.toasts.set_child(toolbar)
+            # --- azioni -------------------------------------------------
+            for name, callback in (("rescan", lambda *_a: self.scan()),
+                                   ("log", self.show_log),
+                                   ("limits", self.show_limits),
+                                   ("shortcuts", self.show_shortcuts),
+                                   ("about", self.show_about)):
+                action = Gio.SimpleAction.new(name, None)
+                action.connect("activate", callback)
+                self.add_action(action)
+            dry_action = Gio.SimpleAction.new_stateful(
+                "dry", None, GLib.Variant.new_boolean(dry_run))
+            dry_action.connect("change-state", self.on_dry_changed)
+            self.add_action(dry_action)
+
+            # --- barra del titolo -----------------------------------------
             header = Adw.HeaderBar()
-            self.scan_button = Gtk.Button(icon_name="view-refresh-symbolic",
-                                          tooltip_text=_("rescan_tooltip"))
-            self.scan_button.connect("clicked", lambda *_a: self.scan())
-            header.pack_end(self.scan_button)
+            scan_button = Gtk.Button(icon_name="view-refresh-symbolic",
+                                     tooltip_text=_("rescan_tooltip"),
+                                     action_name="win.rescan")
+            scan_button.update_property([Gtk.AccessibleProperty.LABEL],
+                                        [_("rescan_tooltip")])
+            header.pack_start(scan_button)
             menu = Gio.Menu()
-            menu.append(_("about"), "win.about")
+            options = Gio.Menu()
+            options.append(_("dry_title"), "win.dry")
+            options.append(_("group_limits"), "win.limits")
+            menu.append_section(None, options)
+            app_menu = Gio.Menu()
+            app_menu.append(_("shortcuts"), "win.shortcuts")
+            app_menu.append(_("about"), "win.about")
+            menu.append_section(None, app_menu)
             header.pack_end(Gtk.MenuButton(icon_name="open-menu-symbolic",
-                                           menu_model=menu))
-            about_action = Gio.SimpleAction.new("about", None)
-            about_action.connect("activate", self.show_about)
-            self.add_action(about_action)
-            toolbar.add_top_bar(header)
+                                           menu_model=menu, primary=True,
+                                           tooltip_text=_("main_menu")))
+
+            # Avviso di simulazione: sempre visibile finché è attiva.
+            self.banner = Adw.Banner(title=_("dry_banner"),
+                                     button_label=_("dry_off"),
+                                     action_name="win.dry", revealed=dry_run)
+
+            # --- contenuto ----------------------------------------------
+            self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
+            loading = Adw.StatusPage(title=_("scanning"))
+            loading.set_paintable(Adw.SpinnerPaintable(widget=loading))
+            self.stack.add_named(loading, "loading")
+            self.stack.add_named(Adw.StatusPage(icon_name="emblem-ok-symbolic",
+                                                title=_("all_clean_title"),
+                                                description=_("all_clean_desc")),
+                                 "clean")
+
             page = Adw.PreferencesPage()
-            toolbar.set_content(page)
-
-            # --- intestazione -------------------------------------------
-            hero_group = Adw.PreferencesGroup()
-            hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-            hero.add_css_class("rusca-hero")
-            for text, css, wrap in (("RuscaCleaner", "title", False),
-                                    (_("app_subtitle"), "subtitle", True),
-                                    (f"v{APP_VERSION}", "version", False)):
-                label = Gtk.Label(label=text, xalign=0, wrap=wrap)
-                label.add_css_class(css)
-                hero.append(label)
-            hero_group.add(hero)
-            page.add(hero_group)
-
-            # --- selezione ----------------------------------------------
-            # Le cronologie partono spente e stanno in una riga espansibile.
-            self.group = Adw.PreferencesGroup(title=_("group_what"))
-            page.add(self.group)
-            hist_row = Adw.ExpanderRow(title=_("group_hist"))
+            self.main_group = Adw.PreferencesGroup(title=_("group_what"))
+            self.hist_group = Adw.PreferencesGroup(title=_("group_hist"))
+            page.add(self.main_group)
+            page.add(self.hist_group)
+            self.size_labels = {}
+            self.rows = {}
             for target in self.targets:
-                row = Adw.SwitchRow(title=target.title, subtitle=target.subtitle)
-                row.set_active(target.default)
-                row.connect("notify::active", lambda *_a: self.update_total())
-                target.row = row
-                if target.history:
-                    hist_row.add_row(row)
-                else:
-                    self.group.add(row)
-            self.group.add(hist_row)
-            self.dry_row = Adw.SwitchRow(title=_("dry_title"), subtitle=_("dry_sub"))
-            self.dry_row.set_active(dry_run)
-            self.dry_row.connect("notify::active", self.on_dry_toggled)
-            self.group.add(self.dry_row)
+                row = Adw.ActionRow(title=target.title, subtitle=target.subtitle,
+                                    subtitle_lines=2)
+                size = Gtk.Label(valign=Gtk.Align.CENTER)
+                size.add_css_class("dim-label")
+                size.add_css_class("numeric")
+                row.add_suffix(size)
+                switch = Gtk.Switch(active=target.default, valign=Gtk.Align.CENTER)
+                switch.update_property([Gtk.AccessibleProperty.LABEL], [target.title])
+                switch.connect("notify::active", lambda *_a: self.update_total())
+                row.add_suffix(switch)
+                row.set_activatable_widget(switch)
+                target.row = switch
+                self.rows[target.key] = row
+                self.size_labels[target.key] = size
+                (self.hist_group if target.history else self.main_group).add(row)
+            self.stack.add_named(page, "list")
 
-            # --- azione --------------------------------------------------
-            action_group = Adw.PreferencesGroup()
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-            self.total_label = Gtk.Label(label=_("total_pending"), hexpand=True, xalign=0)
-            self.total_label.add_css_class("rusca-total")
-            box.append(self.total_label)
-            self.spinner = Gtk.Spinner()
-            box.append(self.spinner)
-            self.clean_button = Gtk.Button(label=_("btn_clean"))
-            self.clean_button.add_css_class("destructive-action")
-            self.clean_button.add_css_class("pill")
+            # --- barra in basso: totale e azione, sempre a portata --------
+            # A capo invece dei puntini: la cifra deve restare leggibile.
+            self.total_label = Gtk.Label(label=_("total_pending"), xalign=0,
+                                         wrap=True, hexpand=True)
+            self.total_label.add_css_class("heading")
+            self.clean_button = Gtk.Button(valign=Gtk.Align.CENTER)
             self.clean_button.connect("clicked", self.on_clean_clicked)
-            box.append(self.clean_button)
-            action_group.add(box)
-            page.add(action_group)
+            self.total_label.set_margin_start(6)
+            self.clean_button.set_margin_end(6)
+            self.action_bar = Gtk.ActionBar()
+            self.action_bar.pack_start(self.total_label)
+            self.action_bar.pack_end(self.clean_button)
+            self.update_clean_button()
 
-            # --- limiti dichiarati: a un clic, non un muro di testo -------
-            limits_group = Adw.PreferencesGroup()
-            limits_row = Adw.ActionRow(title=_("group_limits"), activatable=True)
-            limits_row.add_suffix(Gtk.Image(icon_name="dialog-information-symbolic"))
-            limits_row.connect("activated", self.show_limits)
-            limits_group.add(limits_row)
-            page.add(limits_group)
-
-            # --- registro: chiuso, si apre da solo durante la pulizia -----
-            log_group = Adw.PreferencesGroup()
-            self.log_expander = Gtk.Expander(label=_("group_log"), margin_top=4)
-            scroller = Gtk.ScrolledWindow(min_content_height=140, max_content_height=240)
-            scroller.add_css_class("card")
-            self.log_view = Gtk.TextView(editable=False, cursor_visible=False,
-                                         wrap_mode=Gtk.WrapMode.WORD_CHAR,
-                                         top_margin=8, bottom_margin=8,
-                                         left_margin=8, right_margin=8)
-            self.log_view.add_css_class("rusca-log")
-            scroller.set_child(self.log_view)
-            self.log_expander.set_child(scroller)
-            log_group.add(self.log_expander)
-            page.add(log_group)
+            # Le notifiche compaiono sopra la barra in basso, non su di essa.
+            self.toasts = Adw.ToastOverlay(child=self.stack)
+            toolbar = Adw.ToolbarView(content=self.toasts)
+            toolbar.add_top_bar(header)
+            toolbar.add_top_bar(self.banner)
+            toolbar.add_bottom_bar(self.action_bar)
+            self.set_content(toolbar)
 
             # La finestra non si chiude a metà cancellazione.
             self.connect("close-request", self.on_close_request)
-            self.log(_("ready"))
             self.scan()
 
         # -- dialoghi -------------------------------------------------------
         def show_about(self, *_a):
-            dialog = Adw.AboutDialog(
-                application_name="RuscaCleaner",
-                version=APP_VERSION,
-                developer_name="Nunzio Curcuruto",
-                copyright="© 2026 Nunzio Curcuruto",
-                license_type=Gtk.License.GPL_3_0,
-                website="https://ruscalinux.org/",
-                support_url="mailto:info@ruscalinux.org",
-                comments=_("app_subtitle") + "\n\n" + _("ai_note"),
-            )
-            if _theme_has_icon():
-                dialog.set_application_icon(ICON_NAME)
-            dialog.present(self)
+            show_about_dialog(self, _, APP_ID, "RuscaCleaner", APP_VERSION,
+                              _("app_subtitle"), _theme_has_icon())
+
+        def show_shortcuts(self, *_a):
+            """Adw.ShortcutsDialog arriva solo con libadwaita 1.8: su trixie si
+            usa un Adw.Dialog con righe normali."""
+            group = Adw.PreferencesGroup()
+            for title, accel in ((_("rescan_tooltip"), "F5"),
+                                 (_("shortcuts"), "<Control>question"),
+                                 (_("main_menu"), "F10"),
+                                 (_("sc_close"), "<Control>w"),
+                                 (_("sc_quit"), "<Control>q")):
+                row = Adw.ActionRow(title=title)
+                ok, key, mods = Gtk.accelerator_parse(accel)
+                keys = Gtk.Label(label=Gtk.accelerator_get_label(key, mods) if ok else accel)
+                keys.add_css_class("dim-label")
+                row.add_suffix(keys)
+                group.add(row)
+            page = Adw.PreferencesPage()
+            page.add(group)
+            view = Adw.ToolbarView(content=page)
+            view.add_top_bar(Adw.HeaderBar())
+            Adw.Dialog(title=_("shortcuts"), content_width=420, child=view).present(self)
 
         def show_limits(self, *_a):
             dialog = Adw.AlertDialog(heading=_("group_limits"), body=_("limits_body"))
@@ -819,45 +911,67 @@ def run_gui(dry_run: bool) -> int:
             dialog.set_close_response("close")
             dialog.present(self)
 
+        def show_log(self, *_a):
+            view = Gtk.TextView(editable=False, cursor_visible=False,
+                                wrap_mode=Gtk.WrapMode.WORD_CHAR,
+                                top_margin=12, bottom_margin=12,
+                                left_margin=12, right_margin=12)
+            view.add_css_class("monospace")
+            view.get_buffer().set_text("\n".join(self.log_lines))
+            scroller = Gtk.ScrolledWindow(child=view, vexpand=True)
+            toolbar = Adw.ToolbarView(content=scroller)
+            toolbar.add_top_bar(Adw.HeaderBar())
+            Adw.Dialog(title=_("group_log"), content_width=560, content_height=420,
+                       child=toolbar).present(self)
+
         # -- utilità ------------------------------------------------------
         def log(self, text: str):
-            buf = self.log_view.get_buffer()
-            buf.insert(buf.get_end_iter(), text + "\n")
-            excess = buf.get_line_count() - self._LOG_MAX_LINES
-            if excess > 0:
-                # GTK 4: get_iter_at_line() restituisce (ok, iter).
-                ok, cut = buf.get_iter_at_line(excess)
-                if ok:
-                    buf.delete(buf.get_start_iter(), cut)
-            mark = buf.create_mark(None, buf.get_end_iter(), False)
-            self.log_view.scroll_to_mark(mark, 0, False, 0, 0)
-            buf.delete_mark(mark)
+            self.log_lines.append(text)
+            del self.log_lines[:-self._LOG_MAX_LINES]
             return False
+
+        _LOG_MAX_LINES = 400   # il registro non deve crescere senza limite
 
         def on_close_request(self, *_a):
             if self.busy:
                 self.toasts.add_toast(Adw.Toast(title=_("toast_busy")))
                 return True
+            width, height = self.get_default_size()
+            save_window_state(width, height, self.is_maximized())
             return False
 
-        def on_dry_toggled(self, *_a):
-            self.dry_run = self.dry_row.get_active()
+        def on_dry_changed(self, action, value):
+            action.set_state(value)
+            self.dry_run = value.get_boolean()
+            self.banner.set_revealed(self.dry_run)
+            self.update_clean_button()
+
+        def update_clean_button(self):
+            # In simulazione nulla viene cancellato: niente rosso.
+            self.clean_button.set_label(_("btn_simulate") if self.dry_run
+                                        else _("btn_clean"))
+            self.clean_button.remove_css_class("destructive-action")
+            self.clean_button.remove_css_class("suggested-action")
+            self.clean_button.add_css_class("suggested-action" if self.dry_run
+                                            else "destructive-action")
 
         def set_busy(self, busy: bool):
             self.busy = busy
-            for widget in (self.clean_button, self.scan_button, self.dry_row):
-                widget.set_sensitive(not busy)
-            self.spinner.set_visible(busy)
-            self.spinner.set_spinning(busy)
+            self.clean_button.set_sensitive(not busy)
+            for name in ("rescan", "dry"):
+                self.lookup_action(name).set_enabled(not busy)
 
         def selected(self) -> List[Target]:
-            return [t for t in self.targets if t.row.get_active()]
+            return [t for t in self.targets
+                    if self.rows[t.key].get_visible() and t.row.get_active()]
 
         # -- analisi -------------------------------------------------------
         def scan(self):
             if self.busy:
                 return
             self.set_busy(True)
+            self.stack.set_visible_child_name("loading")
+            self.action_bar.set_revealed(False)
             threading.Thread(target=self._scan_worker, daemon=True).start()
 
         def _scan_worker(self):
@@ -866,15 +980,21 @@ def run_gui(dry_run: bool) -> int:
 
         def _scan_done(self, sizes):
             self.sizes = sizes
+            # Si mostrano solo le voci che hanno davvero qualcosa da rimuovere:
+            # una cartella vuota non è una traccia.
             for target in self.targets:
                 size, exists = sizes[target.key]
-                target.row.set_sensitive(exists)
-                if not exists:
-                    target.row.set_subtitle(_("no_data"))
+                present = exists and size > 0
+                self.rows[target.key].set_visible(present)
+                self.size_labels[target.key].set_label(fmt(size))
+                if not present:
                     target.row.set_active(False)
-                else:
-                    suffix = fmt(size) if size else _("empty")
-                    target.row.set_subtitle(f"{target.subtitle} · {suffix}")
+            for group, history in ((self.main_group, False), (self.hist_group, True)):
+                group.set_visible(any(self.rows[t.key].get_visible()
+                                      for t in self.targets if t.history == history))
+            anything = any(self.rows[t.key].get_visible() for t in self.targets)
+            self.stack.set_visible_child_name("list" if anything else "clean")
+            self.action_bar.set_revealed(anything)
             self.update_total()
             self.log(_("scan_done", size=fmt(self._total_bytes())))
             self.set_busy(False)
@@ -894,21 +1014,33 @@ def run_gui(dry_run: bool) -> int:
                 return
             # La conferma elenca i percorsi veri: chi autorizza una
             # cancellazione ha diritto di sapere su quali file.
-            lines = [_("confirm_body")]
             notes: List[str] = []
+            listing: List[str] = []
             for target in chosen:
-                lines.append(f"• {target.title}")
-                lines += [f"    {tilde(p)}" for p in target.resolved_paths()
-                          if os.path.lexists(p)]
+                listing.append(f"<b>{GLib.markup_escape_text(target.title)}</b>")
+                listing += [GLib.markup_escape_text(tilde(p))
+                            for p in target.resolved_paths() if os.path.lexists(p)]
                 if target.note and target.note not in notes:
                     notes.append(target.note)
-            lines += notes + [_("confirm_caveat")]
-            if self.dry_run:
-                lines.append(_("confirm_dry"))
-            dialog = Adw.AlertDialog(heading=_("confirm_heading"), body="\n".join(lines))
+            # In simulazione contano solo i percorsi: avvisi e limiti no.
+            body = [_("confirm_dry")] if self.dry_run else [_("confirm_caveat")] + notes
+            dialog = Adw.AlertDialog(heading=_("confirm_heading"),
+                                     body="\n\n".join(body))
+            paths = Gtk.Label(label="\n".join(listing), use_markup=True, xalign=0,
+                              wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                              margin_top=8, margin_bottom=8,
+                              margin_start=12, margin_end=12)
+            paths.add_css_class("caption")
+            scroller = Gtk.ScrolledWindow(child=paths, max_content_height=180,
+                                          propagate_natural_height=True,
+                                          hscrollbar_policy=Gtk.PolicyType.NEVER)
+            scroller.add_css_class("card")
+            dialog.set_extra_child(scroller)
             dialog.add_response("cancel", _("cancel"))
-            dialog.add_response("clean", _("clean"))
-            dialog.set_response_appearance("clean", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.add_response("clean", _("btn_simulate") if self.dry_run else _("clean"))
+            dialog.set_response_appearance(
+                "clean", Adw.ResponseAppearance.SUGGESTED if self.dry_run
+                else Adw.ResponseAppearance.DESTRUCTIVE)
             dialog.set_default_response("cancel")
             dialog.set_close_response("cancel")
             dialog.connect("response", self.on_dialog_response, chosen)
@@ -918,7 +1050,7 @@ def run_gui(dry_run: bool) -> int:
             if response != "clean":
                 return
             self.set_busy(True)
-            self.log_expander.set_expanded(True)
+            self.clean_button.set_label(_("cleaning"))
             self.log("")
             self.log(_("cleaning"))
             if self.dry_run:
@@ -945,9 +1077,11 @@ def run_gui(dry_run: bool) -> int:
             else:
                 message = _("done", size=size)
             self.log(message)
-            self.toasts.add_toast(Adw.Toast(
-                title=message if dry else _("toast_freed", size=size)))
+            toast = Adw.Toast(title=GLib.markup_escape_text(message), timeout=8,
+                              button_label=_("details"), action_name="win.log")
+            self.toasts.add_toast(toast)
             self.set_busy(False)
+            self.update_clean_button()
             if not dry:            # in simulazione nulla è cambiato
                 self.scan()
             return False
@@ -959,15 +1093,46 @@ def run_gui(dry_run: bool) -> int:
 
         def do_startup(self):
             Adw.Application.do_startup(self)
+            # GTK sceglie la direzione dalla propria lingua; se le traduzioni
+            # del programma sono in arabo il layout va comunque da destra.
+            if _LANG.split("_")[0] in RTL_LANGS:
+                Gtk.Widget.set_default_direction(Gtk.TextDirection.RTL)
             if not _theme_has_icon():
                 ensure_icon()
             if _theme_has_icon():
                 Gtk.Window.set_default_icon_name(ICON_NAME)
-            provider = Gtk.CssProvider()
-            provider.load_from_string(CSS)          # GTK 4.12+, garantito da libadwaita 1.5
-            Gtk.StyleContext.add_provider_for_display(
-                Gdk.Display.get_default(), provider,
-                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            # Tema comune RuscaLinux. Se manca, l'app resta usabile con i
+            # colori standard di GNOME.
+            if STYLE_SRC.is_file():
+                provider = Gtk.CssProvider()
+                provider.load_from_path(str(STYLE_SRC))
+                Gtk.StyleContext.add_provider_for_display(
+                    Gdk.Display.get_default(), provider,
+                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            # Le classi rusca-light/rusca-dark scelgono la palette (style.css)
+            # e seguono la modalità chiara/scura del sistema.
+            style = Adw.StyleManager.get_default()
+            style.connect("notify::dark", lambda *_a: self.update_theme())
+            self.connect("window-added", lambda *_a: self.update_theme())
+            quit_action = Gio.SimpleAction.new("quit", None)
+            quit_action.connect("activate", self.on_quit)
+            self.add_action(quit_action)
+            for action, accels in (("app.quit", ["<Control>q"]),
+                                   ("window.close", ["<Control>w"]),
+                                   ("win.rescan", ["F5", "<Control>r"]),
+                                   ("win.shortcuts", ["<Control>question"])):
+                self.set_accels_for_action(action, accels)
+
+        def update_theme(self):
+            dark = Adw.StyleManager.get_default().get_dark()
+            for window in self.get_windows():
+                window.remove_css_class("rusca-light" if dark else "rusca-dark")
+                window.add_css_class("rusca-dark" if dark else "rusca-light")
+
+        def on_quit(self, *_a):
+            # Passa da close-request: una pulizia in corso blocca l'uscita.
+            for window in list(self.get_windows()):
+                window.close()
 
         def do_activate(self):
             window = self.props.active_window or RuscaWindow(self, self.dry_run)

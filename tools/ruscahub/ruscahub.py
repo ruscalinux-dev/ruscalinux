@@ -15,19 +15,22 @@ Funzioni:
     usr/share/pixmaps; usa unsquashfs (senza eseguire l'AppImage) e ripiega
     sul runtime --appimage-extract. Riparazione automatica delle voci già
     importate senza icona.
-  * Pannello "Informazioni" nello stile RuscaTools (rosa → prugna)
+  * Interfaccia GNOME (libadwaita) con il tema comune RuscaLinux (style.css),
+    modalità chiara/scura automatica, scorciatoie da tastiera
+  * Eliminazione con conferma: il file AppImage va nel cestino
   * Internazionalizzazione: 15 lingue in lang/*.json, fallback en.json
     (override con variabile d'ambiente RUSCAHUB_LANG)
+
+Requisiti: Python 3.10+, PyGObject, GTK 4.18+, libadwaita 1.7+
+(Debian: python3-gi gir1.2-gtk-4.0 gir1.2-adw-1).
 """
 
 import gi
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, Gdk, Gio, GLib, Pango
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gtk, Gdk, Gio, GLib
 
-import cairo
-import math
 import os
-import io
 import json
 import gzip
 import shutil
@@ -53,12 +56,20 @@ APPS_DIR    = BASE_DIR / "apps"
 ICONS_DIR   = BASE_DIR / "icons"
 DB_FILE     = BASE_DIR / "ruscahub.json"
 DESKTOP_DIR = Path(GLib.get_user_data_dir()) / "applications"   # ~/.local/share/applications
+CONFIG_DIR  = Path(GLib.get_user_config_dir()) / "ruscahub"     # stato della finestra
+WINDOW_STATE = CONFIG_DIR / "window.json"
+DEFAULT_SIZE = (720, 560)
 
 ICON_SCAN_VERSION = 2       # incrementare quando cambia la logica di estrazione icone
 
 # ------------------------------------------------------------------ i18n
 SCRIPT_DIR = Path(__file__).resolve().parent
+STYLE_SRC  = SCRIPT_DIR / "style.css"          # tema comune RuscaLinux
+ICON_SRC   = SCRIPT_DIR / "ruscahub.svg"
 LANG_DIRS  = (SCRIPT_DIR / "lang", Path("/usr/share/ruscahub/lang"))
+for _alt in (Path("/usr/share/ruscahub/style.css"),):
+    if not STYLE_SRC.is_file() and _alt.is_file():
+        STYLE_SRC = _alt
 
 SUPPORTED_LANGS = ("en", "zh_CN", "es", "hi", "ar", "pt_BR", "ru", "ja",
                    "de", "fr", "it", "ko", "id", "tr", "pl")
@@ -67,29 +78,43 @@ RTL_LANGS = ("ar",)
 
 # Copia interna di en.json: ultima rete di sicurezza se la cartella lang/ manca.
 BUILTIN_EN = {
-    "app_description": ("AppImage manager with drag & drop import, storage in a hidden "
-                        "folder of the Home, installation and uninstallation from the "
-                        "GNOME menu, pink⇒plum themes."),
-    "ai_note": ("Developed with the support of AI tools: design, specifications, "
-                "review and editorial responsibility belong to the author."),
-    "license": "© 2026 — GPL-3.0 License",
+    "app_description": "AppImage manager with drag & drop import, storage in a hidden folder of the Home, installation and uninstallation from the GNOME menu, pink⇒plum themes.",
+    "ai_note": "Developed with the support of AI tools: design, specifications, review, and editorial responsibility remain with the author.",
     "add_appimage": "Add AppImage",
     "about_title": "About %s",
-    "close": "Close",
-    "author": "Author: %s",
     "empty_title": "No AppImage archived",
     "empty_hint": "Drag an .AppImage file here or press “Add AppImage”.",
     "state_installed": "Installed",
     "state_archived": "Archived",
     "run_tooltip": "Run the AppImage",
-    "install": "Install",
-    "uninstall": "Uninstall",
     "install_tooltip": "Create or remove the entry in the GNOME menu",
-    "remove_tooltip": "Remove: deletes entry, icon and AppImage file",
+    "remove_tooltip": "Delete: removes the menu entry and icon, moves the AppImage to the trash",
     "chooser_title": "Select one or more AppImage files",
-    "open": "Open",
     "cancel": "Cancel",
     "desktop_comment_default": "AppImage managed by RuscaHub",
+    "shortcuts": "Keyboard Shortcuts",
+    "main_menu": "Main Menu",
+    "sc_close": "Close Window",
+    "sc_quit": "Quit",
+    "app_summary": "Manage AppImage applications",
+    "desktop_keywords": "AppImage;applications;install;manager;launcher;",
+    "list_title": "Your AppImages",
+    "list_hint": "Drag more .AppImage files onto the window to add them.",
+    "delete_heading": "Delete %s?",
+    "delete_body": "The menu entry and the icon will be removed, and the AppImage file will be moved to the trash.",
+    "delete": "Delete",
+    "toast_added": "%s added",
+    "toast_installed": "%s added to the applications menu",
+    "toast_uninstalled": "%s removed from the applications menu",
+    "toast_deleted": "%s moved to the trash",
+    "toast_delete_failed": "Could not move %s to the trash",
+    "toast_import_failed": "Could not import %s",
+    "toast_not_appimage": "%s is not an AppImage file",
+    "toast_launch_failed": "Could not start %s",
+    "about_website": "Website",
+    "about_support": "Support",
+    "about_license": "License",
+    "dev_note_title": "Development Note",
 }
 
 
@@ -150,176 +175,62 @@ def _f(key, value):
     """Traduzione con un segnaposto %s; tollera traduzioni senza segnaposto."""
     return _(key).replace("%s", str(value), 1)
 
-# ------------------------------------------------------------------ tema CSS
-CSS = """
-window.ruscahub-win, window.about-win { background-color: #f9eef4; }
-
-headerbar {
-    background-color: #f2c7db;
-    border-bottom: 1px solid #e2a9c8;
-}
-headerbar label, headerbar .title { color: #4a1d43; font-weight: bold; }
-headerbar button { color: #4a1d43; background: none; border: none; box-shadow: none; }
-
-button.plum {
-    background-image: linear-gradient(to bottom, #c86aa6, #7c2f63);
-    color: #ffffff; font-weight: bold;
-    border-radius: 9px; border: none;
-    padding: 6px 14px;
-}
-button.plum:hover { background-image: linear-gradient(to bottom, #d47cb2, #8a3a70); }
-
-button.flat-plum { background: none; border: none; box-shadow: none;
-                   color: #7c2f63; font-weight: bold; padding: 6px 18px; }
-button.flat-plum:hover { background-color: #f0d8e6; border-radius: 8px; }
-
-button.trash { background: none; border: none; box-shadow: none; color: #8a2f4d; }
-button.trash:hover { background-color: #f3d3de; border-radius: 8px; }
-
-button.run { background: none; border: none; box-shadow: none; color: #7c2f63; }
-button.run:hover { background-color: #f0d8e6; border-radius: 8px; }
-
-list.apps { background: none; }
-row { background: none; }
-row.approw {
-    background-color: #fdf4f9;
-    border: 1px solid #eccfe0;
-    border-radius: 12px;
-    margin: 4px 8px;
-}
-row.approw:hover { background-color: #fbeaf3; }
-
-label.app-name  { color: #4a1d43; font-weight: bold; font-size: 15px; }
-label.app-sub   { color: #8a5f7d; font-size: 12px; }
-label.chip-yes  { background-color: #d98cb3; color: #3d1230;
-                  border-radius: 8px; padding: 2px 10px; font-weight: bold; font-size: 12px; }
-label.chip-no   { background-color: #efd7e5; color: #7c4a68;
-                  border-radius: 8px; padding: 2px 10px; font-size: 12px; }
-label.hint      { color: #8a5f7d; font-size: 14px; }
-
-label.about-name { color: #4a1d43; font-size: 24px; font-weight: 800; }
-label.about-ver  { color: #7c4a68; font-size: 15px; }
-label.about-body { color: #5a2b50; font-size: 15px; }
-label.about-dim  { color: #7c4a68; font-size: 13px; }
-linkbutton label { color: #7c2f63; }
-"""
-
-# ------------------------------------------------------------------ icone
-def _round_rect(ctx, x, y, w, h, r):
-    ctx.new_sub_path()
-    ctx.arc(x + w - r, y + r, r, math.radians(-90), math.radians(0))
-    ctx.arc(x + w - r, y + h - r, r, math.radians(0), math.radians(90))
-    ctx.arc(x + r, y + h - r, r, math.radians(90), math.radians(180))
-    ctx.arc(x + r, y + r, r, math.radians(180), math.radians(270))
-    ctx.close_path()
+# ------------------------------------------------------------------ icone e stato finestra
+def theme_has_icon(name=APP_ID):
+    display = Gdk.Display.get_default()
+    return display is not None and Gtk.IconTheme.get_for_display(display).has_icon(name)
 
 
-def render_hub_icon(size=96):
-    """Icona RuscaHub: quadrato arrotondato con gradiente rosa → prugna e glifo 'hub'."""
-    surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
-    ctx = cairo.Context(surf)
-    _round_rect(ctx, 0, 0, size, size, size * 0.22)
-    g = cairo.LinearGradient(0, 0, size, size)
-    g.add_color_stop_rgb(0.00, 0.83, 0.42, 0.66)   # rosa
-    g.add_color_stop_rgb(0.55, 0.62, 0.22, 0.47)   # magenta
-    g.add_color_stop_rgb(1.00, 0.33, 0.10, 0.30)   # prugna scuro
-    ctx.set_source(g)
-    ctx.fill()
-
-    c = size / 2.0
-    ctx.set_source_rgba(1, 1, 1, 0.95)
-    ctx.set_line_width(size * 0.07)
-    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
-    for ang in (45, 135, 225, 315):                # raggi del mozzo (hub)
-        a = math.radians(ang)
-        ctx.move_to(c + math.cos(a) * size * 0.15, c + math.sin(a) * size * 0.15)
-        ctx.line_to(c + math.cos(a) * size * 0.29, c + math.sin(a) * size * 0.29)
-        ctx.stroke()
-        ctx.arc(c + math.cos(a) * size * 0.345, c + math.sin(a) * size * 0.345,
-                size * 0.055, 0, 2 * math.pi)
-        ctx.fill()
-    ctx.arc(c, c, size * 0.11, 0, 2 * math.pi)     # mozzo centrale
-    ctx.fill()
-    surf.flush()
-    return surf
-
-
-def texture_from_surface(surf):
-    buf = io.BytesIO()
-    surf.write_to_png(buf)
-    return Gdk.Texture.new_from_bytes(GLib.Bytes.new(buf.getvalue()))
-
-
-def _icon_model(texture):
-    """Modello GListModel contenente una texture (firma ufficiale GTK 4)."""
-    model = Gio.ListStore.new(Gdk.Texture)
-    model.append(texture)
-    return model
-
-
-def set_win_icon(win, size=64):
-    """Imposta l'icona della finestra in modo compatibile con GTK 4."""
-    tex = texture_from_surface(render_hub_icon(size))
-    for attempt in (
-        lambda: win.set_icon_list([tex]),               # alcune build accettano la lista
-        lambda: win.set_icon_list(_icon_model(tex)),    # firma ufficiale: GListModel
-    ):
-        try:
-            attempt()
-            return
-        except Exception:
-            continue
+def ensure_icon():
+    """Avvio dai sorgenti: se il tema non conosce l'icona, la copia nel tema
+    hicolor dell'utente. Se non riesce, si resta senza icona."""
+    dest = Path(GLib.get_user_data_dir()) / "icons" / "hicolor" / "scalable" / "apps" / f"{APP_ID}.svg"
+    if dest.exists() or not ICON_SRC.is_file():
+        return
     try:
-        win.set_icon_name(APP_ID)                       # ultima ratio: icona di tema
-    except Exception:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ICON_SRC, dest)
+    except OSError:
         pass
 
 
-def icon_picture(surface, size):
-    """Icona a dimensione fissa: DrawingArea + superficie cairo disegnata esatta.
-
-    La draw-func di Gtk.DrawingArea riceve un cairo.Context: la superficie
-    viene scalata e centrata nel rettangolo richiesto. Il widget non si
-    espande mai (size-request + allineamenti CENTER + expand disattivati).
-    """
-    area = Gtk.DrawingArea()
-    area.set_size_request(size, size)
-    area.set_hexpand(False)
-    area.set_vexpand(False)
-    area.set_halign(Gtk.Align.CENTER)
-    area.set_valign(Gtk.Align.CENTER)
-
-    def _draw(widget, cr, width, height):
-        sw = surface.get_width()
-        sh = surface.get_height()
-        if sw <= 0 or sh <= 0:
-            return
-        scale = min(width / sw, height / sh)
-        cr.scale(scale, scale)
-        ox = (width / scale - sw) / 2.0
-        oy = (height / scale - sh) / 2.0
-        cr.set_source_surface(surface, ox, oy)
-        cr.get_source().set_filter(cairo.FILTER_BEST)   # scalatura pulita
-        cr.paint()
-
-    area.set_draw_func(_draw)
-    return area
-
-
-def app_icon_widget(path, size=48):
-    """Icona di un'AppImage (PNG o SVG) a dimensione fissa; ripiega sull'icona hub."""
+def app_icon_widget(path, size=32):
+    """Icona di un'AppImage (PNG o SVG); ripiega sull'icona generica del tema."""
     if path and Path(path).is_file():
         try:
             tex = Gdk.Texture.new_from_filename(str(path))
             img = Gtk.Image.new_from_paintable(tex)
             img.set_pixel_size(size)
-            img.set_size_request(size, size)
-            img.set_halign(Gtk.Align.CENTER)
-            img.set_valign(Gtk.Align.CENTER)
+            img.add_css_class("lowres-icon")
             return img
-        except Exception:
+        except GLib.Error:
             pass
-    return icon_picture(render_hub_icon(96), size)
+    img = Gtk.Image.new_from_icon_name("application-x-executable")
+    img.set_pixel_size(size)
+    return img
+
+
+def load_window_state():
+    """Dimensione e stato massimizzato dell'ultima chiusura, o i predefiniti."""
+    try:
+        data = json.loads(WINDOW_STATE.read_text(encoding="utf-8"))
+        w, h = int(data["width"]), int(data["height"])
+        if 360 <= w <= 10000 and 294 <= h <= 10000:
+            return w, h, bool(data.get("maximized", False))
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return DEFAULT_SIZE[0], DEFAULT_SIZE[1], False
+
+
+def save_window_state(width, height, maximized):
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        tmp = WINDOW_STATE.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"width": width, "height": height,
+                                   "maximized": maximized}), encoding="utf-8")
+        os.replace(tmp, WINDOW_STATE)
+    except OSError:
+        pass
 
 # ------------------------------------------------------------------ meta AppImage
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -533,133 +444,211 @@ def extract_meta(app_path: Path, entry_id: str):
     return meta
 
 # ------------------------------------------------------------------ finestra Informazioni
-class AboutWindow(Gtk.Window):
-    """Ricalca lo stile del pannello Informazioni di RuscaMark (modello RuscaTools)."""
+def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon):
+    """Finestra «Informazioni» comune ai RuscaLinux OS Tools: una sola
+    pagina, con descrizione e nota di sviluppo sempre visibili (in
+    Adw.AboutDialog la descrizione finisce in una sottopagina).
+    `tr` restituisce il testo tradotto di una chiave di lang/."""
+    def open_uri(_row, uri):
+        def done(launcher, result):
+            try:
+                launcher.launch_finish(result)
+            except GLib.Error:
+                pass
+        Gtk.UriLauncher.new(uri).launch(parent, None, done)
 
-    def __init__(self, parent):
-        super().__init__(transient_for=parent, modal=True)
-        self.add_css_class("about-win")
-        self.set_title("")
-        self.set_default_size(500, 680)
-        set_win_icon(self)
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                  margin_top=12, margin_bottom=24, margin_start=24, margin_end=24)
+    icon = Gtk.Image(icon_name=app_id if has_icon else "application-x-executable",
+                     pixel_size=128, margin_bottom=12)
+    icon.add_css_class("icon-dropshadow")
+    box.append(icon)
+    for text, css in ((app_name, "title-1"), (version, "dim-label"),
+                      (description, "body")):
+        label = Gtk.Label(label=text, wrap=True, justify=Gtk.Justification.CENTER)
+        label.add_css_class(css)
+        box.append(label)
 
-        hb = Gtk.HeaderBar()
-        hb.set_show_title_buttons(False)
-        hb.set_title_widget(Gtk.Label(label=_f("about_title", APP_NAME)))
-        btn_x = Gtk.Button.new_from_icon_name("window-close-symbolic")
-        btn_x.set_tooltip_text(_("close"))
-        btn_x.connect("clicked", lambda *_: self.close())
-        hb.pack_end(btn_x)
-        self.set_titlebar(hb)
+    links = Adw.PreferencesGroup(margin_top=18)
+    for title, subtitle, uri in (
+            (tr("about_website"), "www.ruscalinux.org", "https://www.ruscalinux.org/"),
+            (tr("about_support"), "info@ruscalinux.org", "mailto:info@ruscalinux.org"),
+            (tr("about_license"), "GNU GPL 3.0", "https://www.gnu.org/licenses/gpl-3.0.html")):
+        row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
+        row.add_suffix(Gtk.Image(icon_name="adw-external-link-symbolic"))
+        row.connect("activated", open_uri, uri)
+        links.add(row)
+    box.append(links)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        box.set_margin_top(28); box.set_margin_bottom(20)
-        box.set_margin_start(32); box.set_margin_end(32)
+    # La nota di sviluppo è obbligatoria e sempre visibile (specifiche, sez. 12).
+    note = Adw.PreferencesGroup(title=tr("dev_note_title"),
+                                description=tr("ai_note"), margin_top=12)
+    box.append(note)
+    copyright_label = Gtk.Label(label="© 2026 Nunzio Curcuruto", margin_top=12)
+    copyright_label.add_css_class("caption")
+    copyright_label.add_css_class("dim-label")
+    box.append(copyright_label)
 
-        icon = icon_picture(render_hub_icon(128), 128)
-        box.append(icon)
+    scroller = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
+                                  propagate_natural_height=True, child=box)
+    view = Adw.ToolbarView(content=scroller)
+    header = Adw.HeaderBar(show_title=False)
+    view.add_top_bar(header)
+    Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
 
-        def label(text, css=None, wrap=False):
-            lb = Gtk.Label(label=text)
-            lb.set_halign(Gtk.Align.CENTER)
-            lb.set_justify(Gtk.Justification.CENTER)
-            if css:
-                lb.add_css_class(css)
-            if wrap:
-                lb.set_wrap(True)
-                lb.set_max_width_chars(52)
-            box.append(lb)
-            return lb
-
-        label(APP_NAME, "about-name")
-        label(APP_VERSION, "about-ver")
-        label(_("app_description"), "about-body", wrap=True)
-        label(_f("author", AUTHOR), "about-body")
-        label(_("license"), "about-body")
-        label(_("ai_note"), "about-dim", wrap=True)
-
-        link = Gtk.LinkButton.new_with_label(SITE_URI, SITE_LABEL)
-        link.set_halign(Gtk.Align.CENTER)
-        box.append(link)
-
-        box.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
-        btn = Gtk.Button(label=_("close"))
-        btn.add_css_class("flat-plum")
-        btn.set_halign(Gtk.Align.CENTER)
-        btn.connect("clicked", lambda *_: self.close())
-        box.append(btn)
-
-        sw = Gtk.ScrolledWindow()
-        sw.set_child(box)
-        sw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.set_child(sw)
 
 # ------------------------------------------------------------------ finestra principale
-class RuscaHubWindow(Gtk.ApplicationWindow):
+class RuscaHubWindow(Adw.ApplicationWindow):
 
     def __init__(self, app):
-        super().__init__(application=app)
+        super().__init__(application=app, title=APP_NAME)
         self.app = app
-        self.add_css_class("ruscahub-win")
-        self.set_title(APP_NAME)
-        self.set_default_size(780, 560)
-        set_win_icon(self)
+        width, height, maximized = load_window_state()
+        self.set_default_size(width, height)
+        self.set_size_request(360, 294)
+        if maximized:
+            self.maximize()
         self.entries = {}          # id -> dict
         self._pending = 0
 
         for d in (BASE_DIR, APPS_DIR, ICONS_DIR, DESKTOP_DIR):
             d.mkdir(parents=True, exist_ok=True)
 
-        # ---------- headerbar
-        hb = Gtk.HeaderBar()
-        btn_add = Gtk.Button(label=_("add_appimage"))
-        btn_add.add_css_class("plum")
-        btn_add.connect("clicked", lambda *_: self.open_chooser())
+        # ---------- azioni della finestra
+        for name, callback in (("add", lambda *_a: self.open_chooser()),
+                               ("shortcuts", lambda *_a: self.show_shortcuts()),
+                               ("about", lambda *_a: self.show_about())):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect("activate", callback)
+            self.add_action(action)
+
+        # ---------- barra del titolo: azione principale a sinistra, menu a destra
+        hb = Adw.HeaderBar()
+        btn_add = Gtk.Button(icon_name="list-add-symbolic", action_name="win.add",
+                             tooltip_text=_("add_appimage"))
+        btn_add.update_property([Gtk.AccessibleProperty.LABEL], [_("add_appimage")])
         hb.pack_start(btn_add)
-
-        self.spinner = Gtk.Spinner()
+        menu = Gio.Menu()
+        menu.append(_("shortcuts"), "win.shortcuts")
+        menu.append(_f("about_title", APP_NAME), "win.about")
+        hb.pack_end(Gtk.MenuButton(icon_name="open-menu-symbolic", menu_model=menu,
+                                   primary=True, tooltip_text=_("main_menu")))
+        self.spinner = Adw.Spinner(visible=False)
         hb.pack_end(self.spinner)
-        btn_info = Gtk.Button.new_from_icon_name("dialog-information-symbolic")
-        btn_info.set_tooltip_text(_f("about_title", APP_NAME))
-        btn_info.connect("clicked", lambda *_: AboutWindow(self).present())
-        hb.pack_end(btn_info)
-        self.set_titlebar(hb)
 
-        # ---------- corpo
-        self.stack = Gtk.Stack()
-        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        # ---------- corpo: pagina vuota oppure elenco
+        self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
 
-        empty = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        empty.set_valign(Gtk.Align.CENTER)
-        ic = icon_picture(render_hub_icon(128), 128)
-        empty.append(ic)
-        t = Gtk.Label(label=_("empty_title"))
-        t.add_css_class("app-name"); t.set_halign(Gtk.Align.CENTER)
-        empty.append(t)
-        h = Gtk.Label(label=_("empty_hint"))
-        h.set_wrap(True); h.set_justify(Gtk.Justification.CENTER)
-        h.add_css_class("hint"); h.set_halign(Gtk.Align.CENTER)
-        empty.append(h)
+        empty = Adw.StatusPage(title=_("empty_title"), description=_("empty_hint"))
+        if theme_has_icon():
+            empty.set_icon_name(APP_ID)
+        else:
+            empty.set_icon_name("application-x-executable-symbolic")
+        empty_btn = Gtk.Button(label=_("add_appimage"), action_name="win.add",
+                               halign=Gtk.Align.CENTER)
+        empty_btn.add_css_class("pill")
+        empty_btn.add_css_class("suggested-action")
+        empty.set_child(empty_btn)
         self.stack.add_named(empty, "empty")
 
-        self.listbox = Gtk.ListBox()
-        self.listbox.add_css_class("apps")
-        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        sw = Gtk.ScrolledWindow()
-        sw.set_child(self.listbox)
-        sw.set_margin_top(6); sw.set_margin_bottom(6)
-        self.stack.add_named(sw, "list")
+        page = Adw.PreferencesPage()
+        self.group = Adw.PreferencesGroup(title=_("list_title"),
+                                          description=_("list_hint"))
+        page.add(self.group)
+        self.stack.add_named(page, "list")
+        self._rows = []
 
-        self.set_child(self.stack)
+        view = Adw.ToolbarView(content=self.stack)
+        view.add_top_bar(hb)
+        self.toasts = Adw.ToastOverlay(child=view)
+        self.set_content(self.toasts)
 
         # ---------- drag & drop
-        drop = Gtk.DropTarget.new(Gio.File, Gdk.DragAction.COPY)
+        drop = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
         drop.connect("drop", self._on_drop)
         self.add_controller(drop)
+
+        self.connect("close-request", self._on_close_request)
 
         self.load_db()
         self.refresh()
         self._repair_icons()
+
+    # -------------------------------------------------- utilità UI
+    def toast(self, text):
+        self.toasts.add_toast(Adw.Toast(title=GLib.markup_escape_text(text)))
+
+    def _set_pending(self, delta):
+        self._pending = max(0, self._pending + delta)
+        self.spinner.set_visible(self._pending > 0)
+
+    def _on_close_request(self, *_a):
+        width, height = self.get_default_size()
+        save_window_state(width, height, self.is_maximized())
+        return False
+
+    def show_about(self):
+        show_about_dialog(self, _, APP_ID, APP_NAME, APP_VERSION,
+                          _("app_description"), theme_has_icon())
+
+    def show_shortcuts(self):
+        """Adw.ShortcutsDialog arriva con libadwaita 1.8: su trixie si usa un
+        Adw.Dialog con righe normali."""
+        group = Adw.PreferencesGroup()
+        for title, accel in ((_("add_appimage"), "<Control>o"),
+                             (_("shortcuts"), "<Control>question"),
+                             (_("main_menu"), "F10"),
+                             (_("sc_close"), "<Control>w"),
+                             (_("sc_quit"), "<Control>q")):
+            row = Adw.ActionRow(title=title)
+            ok, key, mods = Gtk.accelerator_parse(accel)
+            keys = Gtk.Label(label=Gtk.accelerator_get_label(key, mods) if ok else accel)
+            keys.add_css_class("dim-label")
+            row.add_suffix(keys)
+            group.add(row)
+        page = Adw.PreferencesPage()
+        page.add(group)
+        view = Adw.ToolbarView(content=page)
+        view.add_top_bar(Adw.HeaderBar())
+        Adw.Dialog(title=_("shortcuts"), content_width=420, child=view).present(self)
+
+    def confirm_delete(self, e):
+        dialog = Adw.AlertDialog(heading=_f("delete_heading", e["name"]),
+                                 body=_("delete_body"))
+        dialog.add_response("cancel", _("cancel"))
+        dialog.add_response("delete", _("delete"))
+        dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response("cancel")
+        dialog.set_close_response("cancel")
+
+        def on_response(_d, response):
+            if response != "delete":
+                return
+            name = e["name"]
+            if self.delete_entry(e):
+                self.save_db()
+                self.refresh()
+                self.toast(_f("toast_deleted", name))
+            else:
+                self.toast(_f("toast_delete_failed", name))
+        dialog.connect("response", on_response)
+        dialog.present(self)
+
+    def _on_toggle_menu(self, switch, _pspec, e):
+        want = switch.get_active()
+        if want == bool(e["installed"]):
+            return
+        if want:
+            self.install(e)
+            self.toast(_f("toast_installed", e["name"]))
+        else:
+            self._remove_desktop(e)
+            if shutil.which("update-desktop-database"):
+                subprocess.run(["update-desktop-database", str(DESKTOP_DIR)],
+                               capture_output=True)
+            self.toast(_f("toast_uninstalled", e["name"]))
+        self.save_db()
+        GLib.idle_add(self.refresh)
 
     # -------------------------------------------------- persistenza
     def load_db(self):
@@ -684,21 +673,12 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
         filt.set_name("AppImage")
         filt.add_pattern("*.AppImage")
         filt.add_pattern("*.appimage")
-        try:  # GTK >= 4.10
-            dlg = Gtk.FileDialog()
-            dlg.set_title(_("chooser_title"))
-            store = Gio.ListStore.new(Gtk.FileFilter)
-            store.append(filt)
-            dlg.set_filters(store)
-            dlg.open_multiple(self, None, self._on_files_chosen, None)
-        except AttributeError:  # GTK 4.8 (Debian Stable)
-            native = Gtk.FileChooserNative.new(
-                _("chooser_title"), self,
-                Gtk.FileChooserAction.OPEN, _("open"), _("cancel"))
-            native.set_select_multiple(True)
-            native.add_filter(filt)
-            native.connect("response", self._on_native_response)
-            native.show()
+        dlg = Gtk.FileDialog()                  # GTK 4.10+, usa il portale
+        dlg.set_title(_("chooser_title"))
+        store = Gio.ListStore.new(Gtk.FileFilter)
+        store.append(filt)
+        dlg.set_filters(store)
+        dlg.open_multiple(self, None, self._on_files_chosen, None)
 
     def _on_files_chosen(self, dlg, res, _ud=None):
         try:
@@ -707,13 +687,6 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
             self.import_files(files)
         except GLib.Error:
             pass
-
-    def _on_native_response(self, native, resp):
-        if resp == Gtk.ResponseType.ACCEPT:
-            model = native.get_files()
-            files = [model.get_item(i) for i in range(model.get_n_items())]
-            self.import_files(files)
-        native.destroy()
 
     def _on_drop(self, _t, value, _x, _y):
         if isinstance(value, Gdk.FileList):
@@ -729,10 +702,11 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
         for gf in gfiles:
             p = gf.get_path()
             if p and Path(p).is_file() and p.lower().endswith(".appimage"):
-                self._pending += 1
-                self.spinner.set_spinning(True)
+                self._set_pending(+1)
                 threading.Thread(target=self._import_worker,
                                  args=(Path(p),), daemon=True).start()
+            else:
+                self.toast(_f("toast_not_appimage", gf.get_basename() or "?"))
 
     def _import_worker(self, src: Path):
         try:
@@ -755,18 +729,19 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
                 "installed": False,
                 "desktop": None,
             }
-            GLib.idle_add(self._finish_import, entry)
+            GLib.idle_add(self._finish_import, entry, src.name)
         except Exception:
-            GLib.idle_add(self._finish_import, None)
+            GLib.idle_add(self._finish_import, None, src.name)
 
-    def _finish_import(self, entry):
-        self._pending -= 1
-        if self._pending <= 0:
-            self.spinner.set_spinning(False)
+    def _finish_import(self, entry, src_name):
+        self._set_pending(-1)
         if entry:
             self.entries[entry["id"]] = entry
             self.save_db()
             self.refresh()
+            self.toast(_f("toast_added", entry["name"]))
+        else:
+            self.toast(_f("toast_import_failed", src_name))
         return False
 
     # -------------------------------------------------- riparazione icone
@@ -777,8 +752,7 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
                 and not (e.get("icon") and Path(e["icon"]).is_file())]
         if not todo:
             return
-        self._pending += 1
-        self.spinner.set_spinning(True)
+        self._set_pending(+1)
         threading.Thread(target=self._repair_worker, args=(todo,), daemon=True).start()
 
     def _repair_worker(self, todo):
@@ -791,9 +765,7 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self._finish_repair, results)
 
     def _finish_repair(self, results):
-        self._pending -= 1
-        if self._pending <= 0:
-            self.spinner.set_spinning(False)
+        self._set_pending(-1)
         for eid, meta in results:
             e = self.entries.get(eid)
             if e is None:                       # eliminata nel frattempo
@@ -855,11 +827,15 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
         e["desktop"] = None
 
     def delete_entry(self, e):
+        """Sposta l'AppImage nel cestino, poi rimuove voce e icona.
+        Se il cestino non è disponibile non cancella nulla: False."""
+        app_file = Path(e["path"])
+        if app_file.exists():
+            try:
+                Gio.File.new_for_path(str(app_file)).trash(None)
+            except GLib.Error:
+                return False
         self._remove_desktop(e)
-        try:
-            Path(e["path"]).unlink(missing_ok=True)
-        except OSError:
-            pass
         if e.get("icon") and Path(e["icon"]).is_file():
             try:
                 Path(e["icon"]).unlink()
@@ -869,6 +845,7 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
         if shutil.which("update-desktop-database"):
             subprocess.run(["update-desktop-database", str(DESKTOP_DIR)],
                            capture_output=True)
+        return True
 
     def launch(self, e):
         try:
@@ -879,112 +856,99 @@ class RuscaHubWindow(Gtk.ApplicationWindow):
             subprocess.Popen([e["path"]], start_new_session=True,
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except OSError:  # fallback senza FUSE
-            subprocess.Popen([e["path"], "--appimage-extract-and-run"],
-                             start_new_session=True,
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                subprocess.Popen([e["path"], "--appimage-extract-and-run"],
+                                 start_new_session=True,
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except OSError:
+                self.toast(_f("toast_launch_failed", e["name"]))
 
     # -------------------------------------------------- UI
     def refresh(self):
-        while True:
-            row = self.listbox.get_first_child()
-            if row is None:
-                break
-            self.listbox.remove(row)
+        for row in self._rows:
+            self.group.remove(row)
+        self._rows = []
 
         if not self.entries:
             self.stack.set_visible_child_name("empty")
-            return
+            return False
         self.stack.set_visible_child_name("list")
 
         for e in sorted(self.entries.values(), key=lambda x: x["name"].lower()):
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-            box.set_margin_top(10); box.set_margin_bottom(10)
-            box.set_margin_start(12); box.set_margin_end(12)
+            state = _("state_installed") if e["installed"] else _("state_archived")
+            row = Adw.ActionRow(title=e["name"], subtitle=f"{state} · {e['filename']}",
+                                use_markup=False, title_lines=1, subtitle_lines=1)
+            row.set_tooltip_text(e["path"])
+            row.add_prefix(app_icon_widget(e.get("icon"), 32))
 
-            img = app_icon_widget(e.get("icon"), 48)
-            box.append(img)
+            run = Gtk.Button(icon_name="media-playback-start-symbolic",
+                             tooltip_text=_("run_tooltip"), valign=Gtk.Align.CENTER)
+            run.add_css_class("flat")
+            run.update_property([Gtk.AccessibleProperty.LABEL],
+                                [f"{_('run_tooltip')}: {e['name']}"])
+            run.connect("clicked", lambda _b, e=e: self.launch(e))
+            row.add_suffix(run)
 
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-            nm = Gtk.Label(label=e["name"])
-            nm.add_css_class("app-name")
-            nm.set_halign(Gtk.Align.START)
-            nm.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-            vbox.append(nm)
-            sb = Gtk.Label(label=f"{e['filename']}  •  {e['path']}")
-            sb.add_css_class("app-sub")
-            sb.set_halign(Gtk.Align.START)
-            sb.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-            vbox.append(sb)
-            vbox.set_hexpand(True)
-            box.append(vbox)
+            switch = Gtk.Switch(active=bool(e["installed"]), valign=Gtk.Align.CENTER,
+                                tooltip_text=_("install_tooltip"))
+            switch.update_property([Gtk.AccessibleProperty.LABEL],
+                                   [f"{_('install_tooltip')}: {e['name']}"])
+            switch.connect("notify::active", self._on_toggle_menu, e)
+            row.add_suffix(switch)
 
-            chip = Gtk.Label(label=_("state_installed") if e["installed"] else _("state_archived"))
-            chip.add_css_class("chip-yes" if e["installed"] else "chip-no")
-            chip.set_valign(Gtk.Align.CENTER)
-            box.append(chip)
+            trash = Gtk.Button(icon_name="user-trash-symbolic",
+                               tooltip_text=_("remove_tooltip"), valign=Gtk.Align.CENTER)
+            trash.add_css_class("flat")
+            trash.update_property([Gtk.AccessibleProperty.LABEL],
+                                  [f"{_('remove_tooltip')}: {e['name']}"])
+            trash.connect("clicked", lambda _b, e=e: self.confirm_delete(e))
+            row.add_suffix(trash)
 
-            br = Gtk.Button.new_from_icon_name("media-playback-start-symbolic")
-            br.add_css_class("run")
-            br.set_tooltip_text(_("run_tooltip"))
-            br.set_valign(Gtk.Align.CENTER)
-            br.connect("clicked", lambda _b, e=e: self.launch(e))
-            box.append(br)
-
-            bi = Gtk.Button(label=_("uninstall") if e["installed"] else _("install"))
-            bi.add_css_class("plum" if not e["installed"] else "flat-plum")
-            bi.set_tooltip_text(_("install_tooltip"))
-            bi.set_valign(Gtk.Align.CENTER)
-
-            def on_toggle(_b, e=e):
-                if e["installed"]:
-                    self._remove_desktop(e)
-                else:
-                    self.install(e)
-                self.save_db()
-                self.refresh()
-            bi.connect("clicked", on_toggle)
-            box.append(bi)
-
-            bd = Gtk.Button.new_from_icon_name("user-trash-symbolic")
-            bd.add_css_class("trash")
-            bd.set_tooltip_text(_("remove_tooltip"))
-            bd.set_valign(Gtk.Align.CENTER)
-
-            def on_del(_b, e=e):
-                self.delete_entry(e)
-                self.save_db()
-                self.refresh()
-            bd.connect("clicked", on_del)
-            box.append(bd)
-
-            row = Gtk.ListBoxRow()
-            row.add_css_class("approw")
-            row.set_selectable(False)
-            row.set_activatable(False)
-            row.set_child(box)
-            self.listbox.append(row)
+            self.group.add(row)
+            self._rows.append(row)
+        return False
 
 # ------------------------------------------------------------------ applicazione
-class RuscaHubApp(Gtk.Application):
+class RuscaHubApp(Adw.Application):
     def __init__(self):
         super().__init__(application_id=APP_ID,
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
 
     def do_startup(self):
-        Gtk.Application.do_startup(self)
+        Adw.Application.do_startup(self)
         if LANG in RTL_LANGS:
             Gtk.Widget.set_default_direction(Gtk.TextDirection.RTL)
-        provider = Gtk.CssProvider()
-        try:
-            provider.load_from_string(CSS)
-        except AttributeError:
-            provider.load_from_data(CSS.encode(), -1)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(), provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        if not theme_has_icon():
+            ensure_icon()
+        # Tema comune RuscaLinux; se manca restano i colori di GNOME.
+        if STYLE_SRC.is_file():
+            provider = Gtk.CssProvider()
+            provider.load_from_path(str(STYLE_SRC))
+            Gtk.StyleContext.add_provider_for_display(
+                Gdk.Display.get_default(), provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        style = Adw.StyleManager.get_default()
+        style.connect("notify::dark", lambda *_a: self.update_theme())
+        self.connect("window-added", lambda *_a: self.update_theme())
+
+        quit_action = Gio.SimpleAction.new("quit", None)
+        quit_action.connect("activate", lambda *_a: [w.close() for w in self.get_windows()])
+        self.add_action(quit_action)
+        for action, accels in (("app.quit", ["<Control>q"]),
+                               ("window.close", ["<Control>w"]),
+                               ("win.add", ["<Control>o"]),
+                               ("win.shortcuts", ["<Control>question"])):
+            self.set_accels_for_action(action, accels)
+
+    def update_theme(self):
+        dark = Adw.StyleManager.get_default().get_dark()
+        for window in self.get_windows():
+            window.remove_css_class("rusca-light" if dark else "rusca-dark")
+            window.add_css_class("rusca-dark" if dark else "rusca-light")
 
     def do_activate(self):
-        win = RuscaHubWindow(self)
+        # Una sola finestra: un secondo avvio la riporta in primo piano.
+        win = self.props.active_window or RuscaHubWindow(self)
         win.present()
 
 

@@ -21,6 +21,12 @@
 - **RuscaCleaner** has been rewritten. It removes activity traces from the
   home folder, lists everything it does and does not do, and is now
   translated into 15 languages, with a user manual in English and Italian.
+- **One look for the in-house tools.** RuscaCleaner, RuscaHub and RuscaMark
+  are now native GNOME (libadwaita) applications in the RuscaLinux plum and
+  pink colours. They follow the system light or dark style, share the same
+  About window and keyboard shortcuts, and RuscaHub asks before deleting an
+  AppImage and moves it to the trash. RuscaMark's app ID is now
+  `org.ruscalinux.RuscaMark`: if you pinned it to the dash, pin it again.
 - **SMPlayer** replaces VLC as the video player.
 - **Python virtual environments** work out of the box: `python3 -m venv`.
 - New boot splash.

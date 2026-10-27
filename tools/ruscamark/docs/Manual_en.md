@@ -6,7 +6,7 @@ RuscaMark is the Markdown editor of the RuscaLinux OS Tools. It is designed for 
 |---|---|
 | Version | 1.99.2 |
 | Author | Nunzio Curcuruto (ruscalinux-dev) |
-| Website | [ruscalinux.org](https://ruscalinux.org) |
+| Website | [ruscalinux.org](https://www.ruscalinux.org) |
 | Contact | info@ruscalinux.org |
 | License | GPL-3.0 — <https://www.gnu.org/licenses/gpl-3.0.html> |
 
@@ -17,8 +17,8 @@ RuscaMark is the Markdown editor of the RuscaLinux OS Tools. It is designed for 
 | Requirement | Value |
 |---|---|
 | System | RuscaLinux or Debian Stable |
-| Desktop | GNOME (other GTK 4 environments work too) |
-| Toolkit | GTK 4 |
+| Desktop | GNOME |
+| Graphics libraries | GTK 4.18 or later and libadwaita 1.7 or later |
 | Language | Python 3.10 or later |
 
 Before installing, verify the package in the folder that contains the `SHA256SUMS` file:
@@ -58,7 +58,8 @@ You can also drag a `.md` file into the window.
 
 ## 3. The window
 
-- **Header bar**: New, Open and Save on the left; main menu, preview, spell checking and full screen on the right.
+- **Header bar**: New and Open on the left; preview, Save and the main menu on the right. The main menu also holds export, live rendering, spell checking, full screen, formatting, search, word goal, Preferences, Keyboard Shortcuts and About.
+- **Light or dark style**: RuscaMark follows the GNOME setting; in Preferences you can also force the light or the dark style.
 - **Writing page**: the text sits in a centred column whose width is set in Preferences (68 characters by default). The margins are recalculated whenever you resize, maximise or full-screen the window, and when you open the preview.
 - **Status bar**: words, characters and lines, cursor position and word goal.
 - **Spelling bar**: appears below the text when spell checking is on.
@@ -67,7 +68,7 @@ You can also drag a `.md` file into the window.
 
 **Live rendering (Ctrl+L)** — the default mode. Headings, bold, italic, code, links, quotes and lists take on their final look immediately and the markers (`**`, `#`, `>`…) are hidden. When you move the cursor onto an element, its syntax reappears so you can edit it. Tables stay in a monospaced font, so aligned columns remain aligned.
 
-**Classic preview (Ctrl+P)** — splits the window: source with syntax colouring on the left, the laid-out document on the right. Only the preview shows real images, tables drawn as grids and footnotes collected at the end. With the light theme the preview uses the same colours as the PDF and HTML exports; with the dark theme it stays plum.
+**Classic preview (Ctrl+P)** — splits the window: source with syntax colouring on the left, the laid-out document on the right. Only the preview shows real images, tables drawn as grids and footnotes collected at the end. With the light style the preview uses the same colours as the PDF and HTML exports; with the dark style it stays plum.
 
 The two modes are mutually exclusive: turning one on turns the other off.
 
@@ -222,6 +223,9 @@ Tip: save the document before inserting images, so paths are relative and the do
 | Ctrl+P | Preview |
 | F11 | Full screen |
 | F7 | Spell checking on/off |
+| F10 | Main menu |
+| Ctrl+, | Preferences |
+| Ctrl+? | Keyboard shortcuts |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / Redo |
 | Ctrl+F | Find |
 | Ctrl+H | Find and replace |
@@ -230,7 +234,10 @@ Tip: save the document before inserting images, so paths are relative and the do
 | Ctrl+Shift+I | Image |
 | Ctrl+Shift+T | Insert or align table |
 | Ctrl+1 … Ctrl+6, Ctrl+0 | Heading level / normal text |
+| Ctrl+W | Close the window |
 | Ctrl+Q | Quit |
+
+The full list also opens from the program with **Ctrl+?** or from the main menu → **Keyboard Shortcuts**.
 
 ## 8. Find and replace
 
@@ -243,7 +250,7 @@ Tip: save the document before inserting images, so paths are relative and the do
 
 ## 9. Spell checking
 
-Press **F7** or the tick button. Unknown words are underlined as you type; **right-click** a word for suggestions or to add it to your personal dictionary. The dictionary language is chosen from the drop-down in the spelling bar and is independent of the interface language: you can have Italian menus and check a British English text (`en_GB`, package `hunspell-en-gb`).
+Press **F7** or choose **Spell checking** from the main menu. Unknown words are underlined as you type; **right-click** a word for suggestions or to add it to your personal dictionary. The dictionary language is chosen from the drop-down in the spelling bar and is independent of the interface language: you can have Italian menus and check a British English text (`en_GB`, package `hunspell-en-gb`).
 
 For Italian and French, RuscaMark adds the elision fragments (`dell'`, `quest'`, `qu'`, `jusqu'`…) to your personal dictionary so they are not flagged as errors. Whether spell checking is on or off is remembered across restarts.
 
@@ -255,7 +262,7 @@ Click **🎯 Goal** in the status bar (or use the menu) and set the number of wo
 
 ## 11. Exporting to PDF and HTML
 
-PDF and HTML share the **same style**, that of the RuscaLinux OS Tools reference guides, whatever the editor's light or dark theme:
+PDF and HTML share the **same style**, that of the RuscaLinux OS Tools reference guides, whatever the editor's light or dark style:
 
 - level-1 headings become a **banner** with a pink-to-plum gradient and white text; the paragraph right after it is an introduction in a larger size;
 - level-2 headings are plum with a pink rule underneath, level 3 and below are mauve;
@@ -288,24 +295,23 @@ HTML written inside the Markdown (for example `<br>` or `<div>`) is not executed
 
 ## 12. Preferences
 
-Main menu → **Preferences…**
+Main menu → **Preferences…** (Ctrl+,). Every change applies immediately.
 
-| Option | Effect |
-|---|---|
-| Interface language | One of the 15 official languages; the change is immediate. With Arabic the whole interface switches to right-to-left. |
-| Dark theme (plum) | Switches between the light pink theme and the dark plum theme. |
-| Live rendering of formatting | Same as Ctrl+L. |
-| Centred page | When on, text stays in a centred column; when off it uses the full width and a vertical guide line marks the page width. |
-| Page width (characters) | From 40 to 140, measured on the average character of the chosen font. 60–75 is the most comfortable reading measure. |
-| Line spacing | *Compact*, *Normal* (default) or *Airy*: the space between lines in the editor and the preview, in proportion to the font size (1.25 – 1.5 – 1.75 times). Code blocks and tables stay compact. |
-| Embed images in HTML export | See section 11. |
-| System font and Size | Editor typeface, with a sample. |
+| Group | Option | Effect |
+|---|---|---|
+| Appearance | Style | *Follow System* (default), *Light* or *Dark*. |
+| Appearance | System font and Size | Typeface of the editor and the preview. |
+| Appearance | Line spacing | *Compact*, *Normal* (default) or *Airy*: the space between lines in the editor and the preview, in proportion to the font size (1.25 – 1.5 – 1.75 times). Code blocks and tables stay compact. |
+| Writing | Live rendering of formatting | Same as Ctrl+L. |
+| Writing | Centred page | When on, text stays in a centred column; when off it uses the full width and a vertical guide line marks the page width. |
+| Writing | Page width (characters) | From 40 to 140, measured on the average character of the chosen font. 60–75 is the most comfortable reading measure. |
+| Export | Embed images in HTML export | See section 11. |
 
 Side margins adapt to the window: in narrow windows they are at least 4% of the width (16 to 48 pixels); in wide windows the free space is split evenly between both sides.
 
 ## 13. Interface languages
 
-English, Simplified Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Italian, Korean, Indonesian, Turkish and Polish. On first launch RuscaMark follows the system language; afterwards it remembers the one chosen in Preferences.
+English, Simplified Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Italian, Korean, Indonesian, Turkish and Polish. RuscaMark always uses the system language; to change it, use GNOME Settings → System → Region & Language. With Arabic the whole interface switches to right-to-left.
 
 Translations are JSON files in `/usr/share/ruscamark/lang/`. To fix or customise a translation, copy the file to `~/.config/ruscamark/lang/` and edit it: your copy takes precedence. Any missing phrase is shown in English.
 
@@ -341,7 +347,7 @@ RuscaMark contains no code that connects to the network. In particular:
 
 - the preview shows only images stored on your computer; those with an `https://…` address are not downloaded and a notice is shown instead;
 - spell checking uses only the installed dictionaries (hunspell); your text never leaves your computer;
-- the "Website — ruscalinux.org" menu item opens your browser, and only when you choose it.
+- in the About window, the "Website", "Support" and "License" rows open your browser or mail program, and only when you choose them.
 
 Exported HTML is an ordinary file: if the document contains remote images, the **browser** that opens the HTML will download them. For a fully self-contained file, use local images and turn on "Embed images in HTML export".
 
@@ -377,11 +383,11 @@ The personal dictionary in `~/.config/enchant/` is shared with other programs: i
 
 | Problem | Solution |
 |---|---|
-| The program does not start | Check Python 3 and GTK 4 (`gir1.2-gtk-4.0`); verify the package with `sha256sum -c SHA256SUMS` and reinstall it. |
+| The program does not start | Check Python 3, GTK 4 (`gir1.2-gtk-4.0`) and libadwaita (`gir1.2-adw-1`); verify the package with `sha256sum -c SHA256SUMS` and reinstall it. |
 | "Spell checking unavailable" | Install `gir1.2-spelling-1` and the language dictionary (e.g. `hunspell-en-gb`). |
 | Undo/redo or highlighted search do not work | Install `gir1.2-gtksource-5`. |
 | PDF export reports "python3-gi-cairo" | Install the `python3-gi-cairo` package (normally installed together with RuscaMark). |
-| A generic icon appears in the panel | Launch RuscaMark from the applications menu after installing the package: the icon comes from the `org.ruscalinux.ruscamark.desktop` file. When `ruscamark.py` is run directly from the source folder, GNOME cannot find the launcher and shows a generic icon. |
+| A generic icon appears in the panel | Launch RuscaMark from the applications menu after installing the package: the icon comes from the `org.ruscalinux.RuscaMark.desktop` file. If you had pinned RuscaMark to the dash with a version before 1.99.2, unpin it and pin it again: the identifier has changed. When `ruscamark.py` is run directly from the source folder, GNOME cannot find the launcher and shows a generic icon. |
 | An image does not appear in the preview | Check the path: a relative path starts from the saved document's folder. Remote images are deliberately not shown. |
 | Table columns are misaligned | Put the cursor in the table and press Ctrl+Shift+T. |
 | A line with `---` under it becomes a heading | Leave a blank line before `---` to get a horizontal rule. |
@@ -392,4 +398,4 @@ Support: info@ruscalinux.org
 
 RuscaMark is free software released under the GPL-3.0 license: <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-Development note: "Developed with the support of AI tools: design, specifications, review, and editorial responsibility remain with the author".
+The note on the use of AI tools is in the program's About window and in the `NOTA-IA.md` file of the repository.

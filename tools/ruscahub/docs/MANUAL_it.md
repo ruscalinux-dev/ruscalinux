@@ -10,11 +10,11 @@ RuscaHub è il gestore ufficiale di AppImage di RuscaLinux. Permette di:
 - **installarli** (crea una voce nel menu GNOME con l'icona originale del programma);
 - **disinstallarli** (rimuove solo la voce di menu);
 - **avviarli** direttamente dall'elenco;
-- **eliminarli** definitivamente (voce, icona e file).
+- **eliminarli** (voce e icona vengono rimosse, il file AppImage va nel cestino).
 
 ## 2. Requisiti
 - RuscaLinux o Debian Stable (o derivata) con ambiente GNOME;
-- Python ≥ 3.10 con `python3-gi`, `python3-cairo`, `gir1.2-gtk-4.0`;
+- Python ≥ 3.10 con `python3-gi`, `gir1.2-gtk-4.0` (GTK ≥ 4.18) e `gir1.2-adw-1` (libadwaita ≥ 1.7);
 - consigliato `squashfs-tools`: permette di leggere nome e icona dell'AppImage
   **senza eseguirla** ed è il metodo più affidabile per ottenere l'icona corretta;
 - consigliato FUSE 2 (`libfuse2t64` su Debian 13, `libfuse2` su Debian 12) per
@@ -45,10 +45,27 @@ La cartella `lang/` deve trovarsi accanto a `ruscahub.py`.
 Dal menu GNOME: **RuscaHub** (categoria Utilità), oppure da terminale: `ruscahub`.
 
 ## 5. Finestra principale
-- **Barra superiore (rosa):** pulsante «Aggiungi AppImage», indicatore di attività, pulsante Informazioni.
-- **Elenco:** per ogni AppImage mostra icona, nome, percorso, stato
-  («Installata» / «Archiviata») e i pulsanti Avvia, Installa/Disinstalla, Elimina.
-- **Pagina vuota:** suggerimento per il trascinamento quando non ci sono AppImage archiviate.
+- **Barra del titolo:** a sinistra il pulsante **+** («Aggiungi AppImage»); a destra
+  l'indicatore di attività e il menu principale con «Scorciatoie da tastiera» e
+  «Informazioni su RuscaHub».
+- **Elenco «Le tue AppImage»:** per ogni AppImage mostra icona, nome, stato
+  («Installata» / «Archiviata») e nome del file (passando il mouse sulla riga si
+  vede il percorso completo), con i comandi Avvia, interruttore del menu ed Elimina.
+- **Pagina vuota:** quando non ci sono AppImage, invita a trascinarne una o a
+  premere «Aggiungi AppImage».
+- **Notifiche:** una breve notifica in basso conferma importazioni, installazioni
+  ed eliminazioni, o segnala un errore.
+
+La finestra segue lo stile chiaro o scuro di GNOME, ricorda la propria dimensione
+e si usa anche da tastiera:
+
+| Tasti | Azione |
+|---|---|
+| Ctrl+O | Aggiungi AppImage |
+| Ctrl+? | Scorciatoie da tastiera |
+| F10 | Menu principale |
+| Ctrl+W | Chiudi la finestra |
+| Ctrl+Q | Esci |
 
 ## 6. Importare una AppImage
 1. Trascina il file `.AppImage` sulla finestra, oppure premi «Aggiungi AppImage» e selezionalo
@@ -76,12 +93,15 @@ La chiave `StartupWMClass` collega la finestra del programma in esecuzione alla
 sua voce di menu, così anche nella dash di GNOME compare l'icona corretta.
 
 ## 7. Operazioni disponibili
-| Pulsante | Effetto |
+| Comando | Effetto |
 |---|---|
 | ▶ Avvia | Avvia subito l'AppImage |
-| Installa | Crea la voce nel menu GNOME (`~/.local/share/applications/`) |
-| Disinstalla | Rimuove la voce di menu, conserva il file |
-| 🗑 Elimina | Cancella voce, icona, file `.desktop` e file AppImage |
+| Interruttore acceso | Crea la voce nel menu GNOME (`~/.local/share/applications/`) |
+| Interruttore spento | Rimuove la voce di menu, conserva il file |
+| 🗑 Elimina | Dopo una conferma rimuove voce, icona e file `.desktop` e sposta il file AppImage nel cestino |
+
+Un'AppImage eliminata per errore si può recuperare dal Cestino di GNOME e
+importare di nuovo.
 
 ## 8. Riparazione automatica delle icone
 Le AppImage importate con versioni precedenti di RuscaHub e rimaste senza icona
@@ -120,9 +140,9 @@ RuscaHub è tradotto in 15 lingue:
 - Le traduzioni sono file JSON UTF-8 nella cartella `lang/`: per correggerle basta
   modificare il file della lingua.
 
-## 11. Pannello Informazioni
-Segue lo stile RuscaTools (barra rosa, gradiente rosa⇒prugna): nome, versione,
-descrizione, autore, licenza, nota sul supporto IA e collegamento al sito.
+## 11. Finestra Informazioni
+Si apre dal menu principale ed è una pagina unica: icona, nome, versione,
+descrizione, collegamenti a sito web, supporto e licenza, e la nota di sviluppo.
 
 ## 12. Creazione del pacchetto .deb
 Dalla radice del progetto:
@@ -158,8 +178,8 @@ distruttiva (Elimina) agisce solo sui file creati da RuscaHub stesso ed è avvia
 esplicitamente dall'utente.
 
 ## 15. Nota di sviluppo
-Sviluppato con il supporto di strumenti AI: progettazione, specifiche,
-revisione e responsabilità editoriale sono dell'autore.
+La nota sull'uso di strumenti di intelligenza artificiale si trova nella finestra
+Informazioni (§11) e nel file `NOTA-IA.md` del repository.
 
 ## 16. Licenza e contatti
 GPL-3.0 — Nunzio Curcuruto (ruscalinux-dev) — <info@ruscalinux.org>

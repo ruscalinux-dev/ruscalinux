@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <title>RuscaMark</title>
-  <desc>Editor Markdown RuscaMark: cancelletto bianco su gradiente rosa-prugna</desc>
+  <desc>Editor Markdown RuscaMark: cancelletto crema su gradiente prugna, palette RuscaLinux</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0"    stop-color="#E075AC"/>
-      <stop offset="0.55" stop-color="#8E2E63"/>
-      <stop offset="1"    stop-color="#2E0F31"/>
-    </linearGradient>
-    <linearGradient id="hash" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFF7FA"/>
-      <stop offset="1" stop-color="#F9DCE9"/>
+      <stop offset="0"    stop-color="#2D0A1D"/>
+      <stop offset="0.55" stop-color="#5C1A40"/>
+      <stop offset="1"    stop-color="#8A2B5F"/>
     </linearGradient>
   </defs>
 
@@ -20,7 +16,7 @@
         fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="3"/>
 
   <!-- ombra morbida del cancelletto -->
-  <g transform="translate(0 3.5)" stroke="#1B0A1E" stroke-opacity="0.35"
+  <g transform="translate(0 3.5)" stroke="#1A0511" stroke-opacity="0.35"
      stroke-width="12" stroke-linecap="round" fill="none">
     <path d="M54 32 L46 96"/>
     <path d="M84 32 L76 96"/>
@@ -29,7 +25,8 @@
   </g>
 
   <!-- cancelletto -->
-  <g stroke="url(#hash)" stroke-width="12" stroke-linecap="round" fill="none">
+  <!-- tinta unita: un gradiente su linee orizzontali (altezza zero) non si vede -->
+  <g stroke="#FFF7F0" stroke-width="12" stroke-linecap="round" fill="none">
     <path d="M54 32 L46 96"/>
     <path d="M84 32 L76 96"/>
     <path d="M33 52 L97 52"/>

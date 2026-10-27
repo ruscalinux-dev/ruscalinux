@@ -36,11 +36,15 @@ For an application named `RuscaFoo`, all of these must agree:
 | Debian package | `ruscafoo` |
 | Command | `/usr/bin/ruscafoo` |
 | Data | `/usr/share/ruscafoo/` |
-| Desktop file | `ruscafoo.desktop` |
+| Desktop file | `org.ruscalinux.RuscaFoo.desktop` |
 | App ID | `org.ruscalinux.RuscaFoo` |
 | Metainfo | `org.ruscalinux.RuscaFoo.metainfo.xml` |
 | `StartupWMClass` | `org.ruscalinux.RuscaFoo` |
-| Icon | `ruscafoo` |
+| Icon | `org.ruscalinux.RuscaFoo` (plus `org.ruscalinux.RuscaFoo-symbolic`) |
+
+The desktop file, the metainfo and the icon are all named after the app ID:
+that is the GNOME convention, and portals and notifications look the desktop
+file up by the app ID.
 
 Two of these pairings are not cosmetic. `StartupWMClass` must match the app ID
 the application registers with GTK, or GNOME will not connect the running

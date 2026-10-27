@@ -14,9 +14,12 @@
 #     compare solo nel nome del file .deb (ruscamark-ruscalinux_*.deb);
 #   * versione identica a RuscaLinux (1.99.2);
 #   * 15 lingue ufficiali (varianti zh_CN e pt_BR), fallback en.json;
-#   * Python >= 3.10, GTK 4, dipendenze minime;
+#   * Python >= 3.10, GTK >= 4.18, libadwaita >= 1.7, dipendenze minime;
+#   * tema comune RuscaLinux (style.css), icona simbolica, metainfo
+#     e voce del menu con testi tradotti presi da lang/;
 #   * Recommends: hunspell-en-gb (ortografia en_GB, controllo presente);
-#   * GPL-3.0, nota IA, elaborazione solo locale (no telemetria).
+#   * GPL-3.0, nota IA nel file copyright (specifiche, sez. 12.2),
+#     elaborazione solo locale (no telemetria).
 #
 # Ortografia  : libspelling (gir1.2-spelling-1) o GSpell 2; il binding
 #               python3-enchant NON è usato né raccomandato.
@@ -35,9 +38,10 @@ SUFFIX="ruscalinux"                # suffisso obbligatorio, solo nel nome del fi
 VER="1.99.2"                       # identica alla versione di RuscaLinux
 ARCH="all"
 MAINT="Nunzio Curcuruto <info@ruscalinux.org>"
-HOMEPAGE="https://ruscalinux.org"
+HOMEPAGE="https://www.ruscalinux.org/"
 
-APP_ID="org.ruscalinux.ruscamark"   # = application_id in ruscamark.py
+APP_ID="org.ruscalinux.RuscaMark"   # = APP_ID in ruscamark.py
+OLD_APP_ID="org.ruscalinux.ruscamark" # fino alla 1.99.1
 DESKTOP_ID="${APP_ID}.desktop"       # GNOME associa la finestra a questo file
 
 OUT="build-deb"
@@ -50,21 +54,47 @@ DEB_NAME="${PKG}-${SUFFIX}_${VER}_${ARCH}.deb"
 # ---- controlli preliminari ---------------------------------------------------
 [ -f ruscamark.py ]  || { echo "ERRORE: ruscamark.py non trovato."; exit 1; }
 [ -f ruscamark.svg ] || { echo "ERRORE: ruscamark.svg non trovato."; exit 1; }
+[ -f ruscamark-symbolic.svg ] || { echo "ERRORE: ruscamark-symbolic.svg non trovato."; exit 1; }
+[ -f style.css ] || { echo "ERRORE: style.css (tema RuscaLinux) non trovato."; exit 1; }
+grep -q "^APP_VERSION = \"${VER}\"" ruscamark.py || { echo "ERRORE: APP_VERSION diversa da ${VER}."; exit 1; }
 # Privacy e sicurezza sono documentate nei manuali docs/Manual_{it,en}.md.
 
-# Le 15 lingue ufficiali sono in lang/*.json. Inglese e italiano sono anche
-# incorporati in ruscamark.py, quindi il programma funziona comunque.
+# Le 15 lingue ufficiali sono in lang/*.json: devono avere le stesse chiavi
+# di en.json. Lo stesso passaggio prepara i testi tradotti per il file
+# .desktop e per la metainfo (una sola fonte).
 LANGS="en zh_CN es hi ar pt_BR ru ja de fr it ko id tr pl"
 HAVE_I18N=1
-for l in $LANGS; do
-    if [ ! -f "lang/${l}.json" ]; then
-        echo "AVVISO: lang/${l}.json mancante (quella lingua userà l'inglese)."
-        HAVE_I18N=0
-    elif command -v python3 >/dev/null 2>&1 && \
-         ! python3 -c "import json,sys; json.load(open(sys.argv[1], encoding='utf-8'))" "lang/${l}.json"; then
-        echo "ERRORE: lang/${l}.json non è un JSON valido."; exit 1
-    fi
-done
+TEXTS="$(mktemp -d)"
+python3 - "$TEXTS" $LANGS <<'PYCHECK' || { echo "ERRORE: traduzioni incomplete (vedi sopra)."; exit 1; }
+import json, re, sys
+from xml.sax.saxutils import escape
+out, codes = sys.argv[1], sys.argv[2:]
+load = lambda c: json.load(open(f"lang/{c}.json", encoding="utf-8"))
+ref, problems = load("en"), []
+rows = {"desktop": [], "summary": [], "description": []}
+fields = lambda v: sorted(re.findall(r"{(\w+)}", v))
+for code in codes:
+    try:
+        data = load(code)
+    except (OSError, ValueError) as err:
+        problems.append(f"{code}: {err}")
+        continue
+    problems += [f"{code}: manca {k}" for k in ref if k not in data]
+    problems += [f"{code}: chiave sconosciuta {k}" for k in data if k not in ref]
+    problems += [f"{code}: segnaposto diversi in {k}" for k in ref
+                 if k in data and not k.startswith("__") and fields(data[k]) != fields(ref[k])]
+    text = lambda k: data.get(k, ref[k])
+    sfx = "" if code == "en" else f"[{code}]"
+    lang = "" if code == "en" else f' xml:lang="{code}"'
+    rows["desktop"] += [f"Comment{sfx}={text('app_summary')}",
+                        f"Keywords{sfx}={text('desktop_keywords')}"]
+    rows["summary"].append(f"  <summary{lang}>{escape(text('app_summary'))}</summary>")
+    rows["description"].append(f"    <p{lang}>{escape(text('about_desc'))}</p>")
+if problems:
+    sys.exit("\n".join(problems))
+for name, lines in rows.items():
+    open(f"{out}/{name}", "w", encoding="utf-8").write("\n".join(lines) + "\n")
+PYCHECK
 [ -f docs/Manual_it.md ] && [ -f docs/Manual_en.md ] || \
     echo "AVVISO: docs/Manual_it.md o docs/Manual_en.md mancanti: manuali non inclusi."
 
@@ -73,17 +103,22 @@ RECOMMENDS="gir1.2-spelling-1, gir1.2-gtksource-5, hunspell-it, hunspell-en-gb"
 SUGGESTS="xdg-utils, hunspell-en-us"
 
 rm -rf "$OUT"
-trap 'rm -rf "$STAGE"' EXIT
+trap 'rm -rf "$STAGE" "$TEXTS"' EXIT
 mkdir -p "${ROOT}/DEBIAN" \
     "${ROOT}/usr/bin" \
     "${ROOT}/usr/share/${APP}" \
     "${ROOT}/usr/share/applications" \
     "${ROOT}/usr/share/icons/hicolor/scalable/apps" \
+    "${ROOT}/usr/share/icons/hicolor/symbolic/apps" \
     "${ROOT}/usr/share/metainfo" \
+    "${ROOT}/usr/share/man/man1" \
     "${ROOT}/usr/share/doc/${PKG}"
 
 # ---- programma + lanciatore --------------------------------------------------
 install -m 755 ruscamark.py "${ROOT}/usr/share/${APP}/ruscamark.py"
+# Tema comune e icona accanto al programma (li cerca in /usr/share/ruscamark).
+install -m 644 style.css "${ROOT}/usr/share/${APP}/style.css"
+install -m 644 ruscamark.svg "${ROOT}/usr/share/${APP}/ruscamark.svg"
 cat > "${ROOT}/usr/bin/${APP}" <<'LAUNCHER'
 #!/bin/sh
 exec python3 /usr/share/ruscamark/ruscamark.py "$@"
@@ -98,63 +133,93 @@ for f in lang/*.json; do
 done
 
 # ---- icona -------------------------------------------------------------------
-install -m 644 ruscamark.svg "${ROOT}/usr/share/icons/hicolor/scalable/apps/${APP}.svg"
+install -m 644 ruscamark.svg "${ROOT}/usr/share/icons/hicolor/scalable/apps/${APP_ID}.svg"
+install -m 644 ruscamark-symbolic.svg \
+        "${ROOT}/usr/share/icons/hicolor/symbolic/apps/${APP_ID}-symbolic.svg"
 
 # ---- voce .desktop -----------------------------------------------------------
 # Il nome del file coincide con l'identificativo dell'applicazione: su
-# Wayland GTK 4 annuncia l'app_id org.ruscalinux.ruscamark e GNOME cerca
-# org.ruscalinux.ruscamark.desktop per mostrare l'icona nel pannello.
-cat > "${ROOT}/usr/share/applications/${DESKTOP_ID}" <<'DESKTOP'
+# Wayland GTK 4 annuncia l'app_id org.ruscalinux.RuscaMark e GNOME cerca
+# org.ruscalinux.RuscaMark.desktop per mostrare l'icona nel pannello.
+# Il vecchio org.ruscalinux.ruscamark.desktop sparisce con l'aggiornamento.
+{
+cat <<DESKTOP
 [Desktop Entry]
 Type=Application
 Name=RuscaMark
 GenericName=Markdown Editor
-Comment=Editor Markdown con resa live, pagina centrata e ortografia live
-Comment[it]=Editor Markdown con resa live, pagina centrata e ortografia live
-Comment[en]=Markdown editor with live rendering, centred page and live spelling
 Exec=ruscamark %F
-Icon=ruscamark
+Icon=${APP_ID}
 Terminal=false
-Categories=Utility;TextEditor;
+Categories=GNOME;GTK;Utility;TextEditor;
 MimeType=text/markdown;text/x-markdown;
-StartupWMClass=org.ruscalinux.ruscamark
+StartupWMClass=${APP_ID}
 StartupNotify=true
-Keywords=markdown;editor;scrittura;
 DESKTOP
+cat "${TEXTS}/desktop"
+} > "${ROOT}/usr/share/applications/${DESKTOP_ID}"
 
 # ---- metainfo AppStream ------------------------------------------------------
-cat > "${ROOT}/usr/share/metainfo/${APP_ID}.metainfo.xml" <<'METAINFO'
+cat > "${ROOT}/usr/share/metainfo/${APP_ID}.metainfo.xml" <<METAINFO
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.ruscalinux.ruscamark</id>
+  <id>${APP_ID}</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>RuscaMark</name>
-  <summary>Editor Markdown con resa live, pagina centrata e ortografia live</summary>
+$(cat "${TEXTS}/summary")
+  <developer id="org.ruscalinux">
+    <name>Nunzio Curcuruto</name>
+  </developer>
   <description>
-    <p>RuscaMark è un editor Markdown orientato alla scrittura: resa live della
-    formattazione durante la digitazione, pagina centrata, temi dal rosa al
-    prugna, controllo ortografico live con suggerimenti nel menu contestuale
-    (libspelling / GSpell 2), tabelle, immagini, liste di attività e note a
-    piè di pagina, obiettivo parole, barra Trova/Sostituisci, export HTML e
-    PDF. Tutta l'elaborazione avviene in locale: nessun dato viene inviato
-    su internet.</p>
-    <p>Interfaccia tradotta nelle 15 lingue ufficiali di RuscaLinux,
-    commutabili dalle Preferenze.</p>
-    <p>Sviluppato con il supporto di strumenti AI (Qwen): progettazione,
-    specifiche, revisione e responsabilità editoriale sono dell'autore.</p>
+$(cat "${TEXTS}/description")
   </description>
-  <launchable type="desktop-id">org.ruscalinux.ruscamark.desktop</launchable>
-  <url type="homepage">https://ruscalinux.org</url>
+  <launchable type="desktop-id">${DESKTOP_ID}</launchable>
+  <replaces>
+    <id>${OLD_APP_ID}</id>
+  </replaces>
+  <url type="homepage">${HOMEPAGE}</url>
+  <url type="bugtracker">https://github.com/ruscalinux-dev/ruscalinux/issues</url>
   <provides>
     <binary>ruscamark</binary>
+    <mediatype>text/markdown</mediatype>
   </provides>
+  <branding>
+    <color type="primary" scheme_preference="light">#f8d7e6</color>
+    <color type="primary" scheme_preference="dark">#2d0a1d</color>
+  </branding>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="1.99.2" date="2026-09-27"/>
+    <release version="${VER}" date="$(date -u +%Y-%m-%d)"/>
   </releases>
 </component>
 METAINFO
+
+# ---- pagina di manuale -------------------------------------------------------
+cat <<MANPAGE | gzip -9n > "${ROOT}/usr/share/man/man1/${APP}.1.gz"
+.TH RUSCAMARK 1 "$(LC_ALL=C date -u '+%B %Y')" "RuscaMark ${VER}" "RuscaLinux OS Tools"
+.SH NAME
+ruscamark \\- Markdown editor with live formatting
+.SH SYNOPSIS
+.B ruscamark
+[\\fIFILE\\fR]
+.SH DESCRIPTION
+RuscaMark is a GNOME Markdown editor. Formatting is applied while you type,
+the page stays centred, spelling is checked live with local dictionaries,
+and documents can be exported to HTML and PDF. Everything is processed
+locally. If FILE is given, it is opened at start.
+.SH FILES
+.TP
+.I ~/.config/ruscamark/config.json
+Preferences and window size.
+.SH SEE ALSO
+/usr/share/doc/ruscamark/Manual_en.md
+.SH AUTHOR
+Nunzio Curcuruto <info@ruscalinux.org>
+MANPAGE
 
 # ---- documentazione ----------------------------------------------------------
 # I manuali includono anche le note di privacy e sicurezza (sezione 15).
@@ -168,22 +233,44 @@ cat > "${ROOT}/usr/share/doc/${PKG}/copyright" <<'COPYRIGHT'
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: RuscaMark
 Upstream-Contact: Nunzio Curcuruto <info@ruscalinux.org>
-Source: https://ruscalinux.org
+Source: https://www.ruscalinux.org/
 
 Files: *
 Copyright: 2026 Nunzio Curcuruto
-License: GPL-3.0+
- Sviluppato con il supporto di strumenti AI (Qwen): progettazione,
- specifiche, revisione e responsabilità editoriale sono dell'autore.
+License: GPL-3+
+Comment: Developed with the support of AI tools: design, specifications,
+ review, and editorial responsibility remain with the author.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation, either version 3 of the License, or (at your option)
+ any later version.
  .
- Su sistemi Debian il testo completo della GPL-3 è in:
- /usr/share/common-licenses/GPL-3
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in "/usr/share/common-licenses/GPL-3".
 COPYRIGHT
 
-# ---- changelog Debian (DEP-1, gzip -9n) --------------------------------------
-cat > "${ROOT}/usr/share/doc/${PKG}/changelog.Debian" <<CHANGELOG
+# ---- changelog (pacchetto nativo: changelog.gz, gzip -9n) --------------------------------------
+cat > "${ROOT}/usr/share/doc/${PKG}/changelog" <<CHANGELOG
 ${PKG} (${VER}) unstable; urgency=medium
 
+  * Interfaccia portata su libadwaita secondo le linee guida GNOME e il
+    tema comune RuscaLinux (style.css); colori di editor e anteprima dalla
+    palette ufficiale, stile chiaro/scuro che segue il sistema.
+  * Barra del titolo semplificata (Nuovo, Apri, anteprima, Salva, menu);
+    ortografia e schermo intero nel menu (F7, F11).
+  * Preferenze con applicazione immediata; la lingua dell'interfaccia
+    segue sempre quella del sistema.
+  * Finestra Informazioni e Scorciatoie da tastiera comuni ai
+    RuscaLinux OS Tools; notifiche con «Apri» dopo gli export.
+  * Identificativo org.ruscalinux.RuscaMark (prima ...ruscamark); icona
+    simbolica, metainfo tradotta, pagina di manuale.
   * Export PDF diretto (Ctrl+Maiusc+P): solo il contenuto del documento,
     senza intestazioni, piè di pagina o riferimenti al programma. Anche
     l'export HTML non aggiunge più piè di pagina né meta "generator".
@@ -215,13 +302,14 @@ ${PKG} (${VER}) unstable; urgency=medium
     sostituzione singola ora raggiunge l'occorrenza anche senza
     selezione preventiva.
   * Conformità alle specifiche RuscaLinux OS Tools: script make-deb.sh,
-    cartella build-deb/, suffisso -ruscalinux nel nome del file, SHA256SUMS, 15 lingue
-    ufficiali (varianti zh_CN e pt_BR), fallback inglese, Python >= 3.10,
+    cartella build-deb/, suffisso -ruscalinux nel nome del file,
+    SHA256SUMS, 15 lingue ufficiali (varianti zh_CN e pt_BR), fallback
+    inglese, Python >= 3.10,
     Recommends hunspell-en-gb.
 
--- ${MAINT}  Sun, 27 Sep 2026 12:00:00 +0200
+ -- ${MAINT}  $(LC_ALL=C date -Ru)
 CHANGELOG
-gzip -9n "${ROOT}/usr/share/doc/${PKG}/changelog.Debian"
+gzip -9n "${ROOT}/usr/share/doc/${PKG}/changelog"
 
 # ---- permessi ----------------------------------------------------------------
 find "${ROOT}/usr" -type d -exec chmod 755 {} +
@@ -237,7 +325,7 @@ SIZE_KB=$(du -sk "${ROOT}/usr" | cut -f1)
     echo "Version: ${VER}"
     echo "Architecture: ${ARCH}"
     echo "Maintainer: ${MAINT}"
-    echo "Depends: python3 (>= 3.10), python3-gi, python3-gi-cairo, gir1.2-gtk-4.0, librsvg2-common, fonts-dejavu-core"
+    echo "Depends: python3 (>= 3.10), python3-gi, python3-gi-cairo, gir1.2-gtk-4.0 (>= 4.18), gir1.2-adw-1 (>= 1.7), librsvg2-common, fonts-dejavu-core"
     echo "Recommends: ${RECOMMENDS}"
     echo "Suggests: ${SUGGESTS}"
     # Le build precedenti si chiamavano "ruscamark-ruscalinux" e installavano
@@ -252,22 +340,18 @@ SIZE_KB=$(du -sk "${ROOT}/usr" | cut -f1)
     echo "Description: Editor Markdown con resa live per la scrittura"
     echo " RuscaMark applica la formattazione Markdown durante la digitazione e"
     echo " centra la pagina come un foglio di scrittura. Tabelle, immagini, liste"
-    echo " di attività e note a piè di pagina. Temi dal rosa al prugna,"
-    echo " controllo ortografico live con suggerimenti nel menu contestuale"
-    echo " (libspelling / GSpell 2), interfaccia nelle 15 lingue ufficiali di"
-    echo " RuscaLinux, obiettivo parole, Trova/Sostituisci ed export HTML."
-    echo " Nessuna traduzione automatica: il programma non integra motori LLM"
-    echo " né servizi esterni; tutta l'elaborazione avviene in locale."
-    echo " ."
-    echo " Sviluppato con supporto AI (Qwen): progettazione, specifiche, revisione"
-    echo " e responsabilità editoriale sono dell'autore."
+    echo " di attività e note a piè di pagina. Interfaccia GNOME nei colori di"
+    echo " RuscaLinux, controllo ortografico live con suggerimenti nel menu"
+    echo " contestuale (libspelling / GSpell 2), interfaccia nelle 15 lingue"
+    echo " ufficiali di RuscaLinux, obiettivo parole, Trova/Sostituisci, export"
+    echo " HTML e PDF. Tutta l'elaborazione avviene in locale."
 } > "${ROOT}/DEBIAN/control"
 
 # ---- validazioni opzionali (non bloccanti) -----------------------------------
 command -v desktop-file-validate >/dev/null 2>&1 && \
     desktop-file-validate "${ROOT}/usr/share/applications/${DESKTOP_ID}" || true
 command -v appstreamcli >/dev/null 2>&1 && \
-    appstreamcli validate "${ROOT}/usr/share/metainfo/${APP_ID}.metainfo.xml" || true
+    appstreamcli validate --no-net "${ROOT}/usr/share/metainfo/${APP_ID}.metainfo.xml" || true
 
 # ---- costruzione e impronta --------------------------------------------------
 dpkg-deb --build --root-owner-group -Zxz -z9 "${ROOT}" "${OUT}/${DEB_NAME}"

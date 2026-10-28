@@ -526,6 +526,45 @@ EOF
 chmod +x .work/config/hooks/normal/9992-remove-skel-face.hook.chroot
 
 # ---------------------------------------------------------------------------
+# APPLICAZIONI NASCOSTE NEL MENU DI GNOME (v@VERSION@)
+# ---------------------------------------------------------------------------
+# Totem (Video) e la Guida di riferimento Debian restano installati, perche'
+# altri pacchetti ne dipendono, ma non compaiono nella griglia delle
+# applicazioni ne' nella ricerca.
+#
+# Non si modificano i file .desktop in /usr/share/applications: il prossimo
+# aggiornamento del pacchetto li riscriverebbe. Se ne mette invece una copia
+# con NoDisplay=true in /usr/local/share/applications, che nella precedenza
+# XDG viene prima di /usr/share e sopravvive agli aggiornamenti. La copia
+# conserva Exec e MimeType: "Apri con" continua a funzionare, e i video si
+# aprono comunque con SMPlayer (vedi mimeapps.list sopra).
+#
+# I file si trovano con dpkg -L, non per nome: cosi' funziona anche se
+# Debian li rinomina, e comprende tutte le lingue della guida
+# (debian-reference-it, -en, ...).
+# ---------------------------------------------------------------------------
+cat <<'EOF' > .work/config/hooks/normal/9994-hide-apps.hook.chroot
+#!/bin/sh
+set -e
+DEST=/usr/local/share/applications
+mkdir -p "$DEST"
+for PKG in totem $(dpkg-query -W -f '${Package}\n' 'debian-reference*' 2>/dev/null); do
+    dpkg -L "$PKG" 2>/dev/null | grep '^/usr/share/applications/.*\.desktop$' |
+    while read -r F; do
+        [ -f "$F" ] || continue
+        # Copia con NoDisplay=true subito dopo l'intestazione [Desktop Entry]
+        # (e senza un eventuale NoDisplay gia' presente).
+        grep -v '^NoDisplay=' "$F" | sed '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' \
+            > "$DEST/$(basename "$F")"
+        echo "nascosto nel menu: $(basename "$F") ($PKG)"
+    done
+done
+command -v update-desktop-database >/dev/null && update-desktop-database -q "$DEST" || true
+exit 0
+EOF
+chmod +x .work/config/hooks/normal/9994-hide-apps.hook.chroot
+
+# ---------------------------------------------------------------------------
 # RIMOZIONE SFONDI DEBIAN DAL SELETTORE DI GNOME (v@VERSION@)
 # ---------------------------------------------------------------------------
 # In Impostazioni → Sfondo devono restare solo gli sfondi GNOME (pacchetto

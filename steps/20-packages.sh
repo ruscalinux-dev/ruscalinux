@@ -64,6 +64,7 @@ live-build
 squashfs-tools
 fastfetch
 pdftk
+tree
 
 # Linux e sviluppo
 build-essential

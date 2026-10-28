@@ -130,5 +130,11 @@
   "save_code_title": "Pilih Folder untuk Kode",
   "code_saved": "{n} berkas disimpan",
   "copied": "Disalin",
-  "log_empty": "Mesin belum menulis apa pun."
+  "log_empty": "Mesin belum menulis apa pun.",
+  "group_text": "Teks",
+  "font_size": "Ukuran Teks",
+  "font_size_sub": "Ctrl++ dan Ctrl+− mengubahnya, Ctrl+0 kembali ke ukuran sistem",
+  "zoom_in": "Teks Lebih Besar",
+  "zoom_out": "Teks Lebih Kecil",
+  "zoom_reset": "Ukuran Teks Bawaan"
 }

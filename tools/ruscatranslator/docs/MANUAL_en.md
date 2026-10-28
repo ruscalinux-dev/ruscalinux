@@ -50,6 +50,7 @@ You can add your own entries in `~/.config/ruscatranslator/rag/personale.json`. 
 
 | Option | Effect |
 |---|---|
+| Text Size | Size of the text in both panes; also with Ctrl++ and Ctrl+−, Ctrl+0 returns to the system size |
 | Model | Choice among the GGUF files found, or any file |
 | Graphics Card (Vulkan) | Much faster; off by default because some drivers hang |
 | CPU Threads | As many as the physical cores is recommended |
@@ -68,6 +69,7 @@ Engine options apply when the engine restarts: a notice at the top offers **Rest
 | Esc | Stop |
 | Ctrl+I | Swap languages |
 | Ctrl+, | Preferences |
+| Ctrl++ / Ctrl+− / Ctrl+0 | Larger / smaller text / system size |
 | Ctrl+? | Keyboard shortcuts |
 | F10 | Main menu |
 | Ctrl+W / Ctrl+Q | Close the window / Quit |

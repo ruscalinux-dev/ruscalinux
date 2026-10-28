@@ -85,5 +85,11 @@
   "group_quality": "품질",
   "rag": "언어 지식 (이탈리아어 ↔ 영어)",
   "rag_sub": "대응어, 거짓 짝, 문서 용어집, 번역 메모리, 최종 교정",
-  "log_empty": "엔진이 아직 아무것도 출력하지 않았습니다."
+  "log_empty": "엔진이 아직 아무것도 출력하지 않았습니다.",
+  "group_text": "텍스트",
+  "font_size": "글자 크기",
+  "font_size_sub": "Ctrl++와 Ctrl+−로 바꾸고 Ctrl+0으로 시스템 크기로 돌아갑니다",
+  "zoom_in": "글자 크게",
+  "zoom_out": "글자 작게",
+  "zoom_reset": "기본 글자 크기"
 }

@@ -130,5 +130,11 @@
   "save_code_title": "코드를 저장할 폴더 선택",
   "code_saved": "파일 {n}개 저장됨",
   "copied": "복사됨",
-  "log_empty": "엔진이 아직 아무것도 출력하지 않았습니다."
+  "log_empty": "엔진이 아직 아무것도 출력하지 않았습니다.",
+  "group_text": "텍스트",
+  "font_size": "글자 크기",
+  "font_size_sub": "Ctrl++와 Ctrl+−로 바꾸고 Ctrl+0으로 시스템 크기로 돌아갑니다",
+  "zoom_in": "글자 크게",
+  "zoom_out": "글자 작게",
+  "zoom_reset": "기본 글자 크기"
 }

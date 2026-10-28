@@ -130,5 +130,11 @@
   "save_code_title": "Choose a Folder for the Code",
   "code_saved": "{n} files saved",
   "copied": "Copied",
-  "log_empty": "The engine has not written anything yet."
+  "log_empty": "The engine has not written anything yet.",
+  "group_text": "Text",
+  "font_size": "Text Size",
+  "font_size_sub": "Ctrl++ and Ctrl+− change it, Ctrl+0 returns to the system size",
+  "zoom_in": "Larger Text",
+  "zoom_out": "Smaller Text",
+  "zoom_reset": "Default Text Size"
 }

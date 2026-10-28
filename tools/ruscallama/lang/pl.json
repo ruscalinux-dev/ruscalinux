@@ -130,5 +130,11 @@
   "save_code_title": "Wybierz katalog na kod",
   "code_saved": "Zapisano plików: {n}",
   "copied": "Skopiowano",
-  "log_empty": "Silnik jeszcze nic nie wypisał."
+  "log_empty": "Silnik jeszcze nic nie wypisał.",
+  "group_text": "Tekst",
+  "font_size": "Rozmiar tekstu",
+  "font_size_sub": "Ctrl++ i Ctrl+− go zmieniają, Ctrl+0 przywraca rozmiar systemowy",
+  "zoom_in": "Większy tekst",
+  "zoom_out": "Mniejszy tekst",
+  "zoom_reset": "Domyślny rozmiar tekstu"
 }

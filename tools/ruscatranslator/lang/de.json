@@ -85,5 +85,11 @@
   "group_quality": "Qualität",
   "rag": "Sprachwissen (Italienisch ↔ Englisch)",
   "rag_sub": "Entsprechungen, falsche Freunde, Dokumentglossar, Übersetzungsspeicher und Schlusskorrekturen",
-  "log_empty": "Die Engine hat noch nichts ausgegeben."
+  "log_empty": "Die Engine hat noch nichts ausgegeben.",
+  "group_text": "Text",
+  "font_size": "Textgröße",
+  "font_size_sub": "Strg++ und Strg+− ändern sie, Strg+0 stellt die Systemgröße wieder her",
+  "zoom_in": "Größerer Text",
+  "zoom_out": "Kleinerer Text",
+  "zoom_reset": "Standard-Textgröße"
 }

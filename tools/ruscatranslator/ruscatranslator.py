@@ -79,7 +79,7 @@ CONTEXTS = (4096, 8192, 16384, 32768)
 DEFAULTS = {
     "model": "", "gpu": False, "threads": engine.physical_cores(),
     "context": 8192, "rag": True, "domain": "generale", "src": "auto",
-    "tgt": "en", "width": 1200, "height": 800, "maximized": False,
+    "tgt": "en", "font_size": 0, "width": 1200, "height": 800, "maximized": False,
 }
 
 STOP_LAT = {
@@ -335,8 +335,76 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
     Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
 
 
+# ── Dimensione del testo (conversazione o documenti) ─────────────────────────
+FONT_MIN, FONT_MAX = 6, 48
+
+
+def system_font_size():
+    """Dimensione del carattere di GNOME (Impostazioni → Accessibilità)."""
+    settings = Gtk.Settings.get_default()
+    name = settings.get_property("gtk-font-name") if settings else ""
+    m = re.search(r"(\d+(?:\.\d+)?)\s*$", name or "")
+    return float(m.group(1)) if m else 11.0
+
+
+class FontSizeMixin:
+    """Ctrl++ / Ctrl+− / Ctrl+0 e impostazione «Dimensione del testo». Vale
+    per i widget con la classe rusca-content; 0 = dimensione di sistema."""
+
+    def _init_font_size(self):
+        self._font_provider = Gtk.CssProvider()
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), self._font_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+        self._font_rows = []
+        for name, step in (("zoom-in", 1), ("zoom-out", -1), ("zoom-reset", 0)):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect("activate", lambda _a, _p, s=step: self.zoom(s))
+            self.add_action(action)
+        self._apply_font_size()
+
+    def font_size(self):
+        return self.cfg.get("font_size") or system_font_size()
+
+    def _apply_font_size(self):
+        size = self.font_size()
+        # libadwaita dà al codice (.monospace) una dimensione propria: la si
+        # allinea, altrimenti il codice resterebbe piccolo.
+        self._font_provider.load_from_string(
+            f".rusca-content, .rusca-content .monospace, .rusca-content.monospace "
+            f"{{ font-size: {size:g}pt; }}")
+        for row in self._font_rows:
+            if abs(row.get_value() - size) > 0.01:
+                row.set_value(size)
+
+    def zoom(self, step):
+        if step == 0:
+            self.cfg["font_size"] = 0
+        else:
+            self.cfg["font_size"] = int(min(FONT_MAX, max(FONT_MIN, round(self.font_size()) + step)))
+        save_settings(self.cfg)
+        self._apply_font_size()
+
+    def font_size_row(self):
+        """Riga per le impostazioni, sincronizzata con le scorciatoie."""
+        row = Adw.SpinRow.new_with_range(FONT_MIN, FONT_MAX, 1)
+        row.set_title(_("font_size"))
+        row.set_subtitle(_("font_size_sub"))
+        row.set_value(self.font_size())
+
+        def changed(r, _p):
+            if abs(r.get_value() - self.font_size()) > 0.01:
+                self.cfg["font_size"] = int(r.get_value())
+                save_settings(self.cfg)
+                self._apply_font_size()
+        row.connect("notify::value", changed)
+        row.connect("destroy", lambda r: r in self._font_rows and self._font_rows.remove(r))
+        self._font_rows.append(row)
+        return row
+
+
 # ── Finestra principale ──────────────────────────────────────────────────────
-class TranslatorWindow(Adw.ApplicationWindow):
+class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title=APP_NAME)
         self.cfg = load_settings()
@@ -357,6 +425,7 @@ class TranslatorWindow(Adw.ApplicationWindow):
         self.stop_event = threading.Event()
         self.needs_restart = False
         self._build_actions()
+        self._init_font_size()
         self._build_ui()
         self.cfg["model"] = pick_model(self.cfg["model"])
         self._refresh_engine_ui()
@@ -493,6 +562,7 @@ class TranslatorWindow(Adw.ApplicationWindow):
             view = Gtk.TextView(buffer=buf)
         view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         view.set_editable(editable)
+        view.add_css_class("rusca-content")
         for side in ("top", "bottom", "left", "right"):
             getattr(view, f"set_{side}_margin")(12)
         return buf, view
@@ -861,6 +931,9 @@ class TranslatorWindow(Adw.ApplicationWindow):
     # ── preferenze ────────────────────────────────────────────────────────
     def show_preferences(self):
         page = Adw.PreferencesPage()
+        text = Adw.PreferencesGroup(title=_("group_text"))
+        text.add(self.font_size_row())
+        page.add(text)
         group = Adw.PreferencesGroup(title=_("group_model"))
         self.models = engine.find_models()
         if self.cfg["model"] and self.cfg["model"] not in self.models:
@@ -966,6 +1039,8 @@ class TranslatorWindow(Adw.ApplicationWindow):
                              (_("save_as"), "<Control><Shift>s"),
                              (_("translate"), "<Control>Return"), (_("stop"), "Escape"),
                              (_("swap"), "<Control>i"), (_("preferences"), "<Control>comma"),
+                             (_("zoom_in"), "<Control>plus"), (_("zoom_out"), "<Control>minus"),
+                             (_("zoom_reset"), "<Control>0"),
                              (_("shortcuts"), "<Control>question"), (_("main_menu"), "F10"),
                              (_("sc_close"), "<Control>w"), (_("sc_quit"), "<Control>q")):
             row = Adw.ActionRow(title=title.rstrip("…"))
@@ -1024,6 +1099,9 @@ class TranslatorApp(Adw.Application):
                                ("win.save-as", ["<Control><Shift>s"]),
                                ("win.translate", ["<Control>Return"]), ("win.stop", ["Escape"]),
                                ("win.swap", ["<Control>i"]),
+                               ("win.zoom-in", ["<Control>plus", "<Control>equal", "<Control>KP_Add"]),
+                               ("win.zoom-out", ["<Control>minus", "<Control>KP_Subtract"]),
+                               ("win.zoom-reset", ["<Control>0", "<Control>KP_0"]),
                                ("win.preferences", ["<Control>comma"]),
                                ("win.shortcuts", ["<Control>question"])):
             self.set_accels_for_action(action, accels)

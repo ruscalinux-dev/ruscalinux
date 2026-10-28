@@ -84,7 +84,7 @@ DEFAULTS = {
     "context": 8192, "kv": "q8_0", "flash": "auto", "vision": True,
     "speculative": False, "reasoning": False, "effort": "low",
     "preset": "balanced", "sampling": dict(PRESETS["balanced"]), "seed": -1,
-    "system": "", "width": 1100, "height": 780, "maximized": False,
+    "system": "", "font_size": 0, "width": 1100, "height": 780, "maximized": False,
     "sidebar": True,
 }
 
@@ -281,6 +281,74 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
     Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
 
 
+# ── Dimensione del testo (conversazione o documenti) ─────────────────────────
+FONT_MIN, FONT_MAX = 6, 48
+
+
+def system_font_size():
+    """Dimensione del carattere di GNOME (Impostazioni → Accessibilità)."""
+    settings = Gtk.Settings.get_default()
+    name = settings.get_property("gtk-font-name") if settings else ""
+    m = re.search(r"(\d+(?:\.\d+)?)\s*$", name or "")
+    return float(m.group(1)) if m else 11.0
+
+
+class FontSizeMixin:
+    """Ctrl++ / Ctrl+− / Ctrl+0 e impostazione «Dimensione del testo». Vale
+    per i widget con la classe rusca-content; 0 = dimensione di sistema."""
+
+    def _init_font_size(self):
+        self._font_provider = Gtk.CssProvider()
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), self._font_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+        self._font_rows = []
+        for name, step in (("zoom-in", 1), ("zoom-out", -1), ("zoom-reset", 0)):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect("activate", lambda _a, _p, s=step: self.zoom(s))
+            self.add_action(action)
+        self._apply_font_size()
+
+    def font_size(self):
+        return self.cfg.get("font_size") or system_font_size()
+
+    def _apply_font_size(self):
+        size = self.font_size()
+        # libadwaita dà al codice (.monospace) una dimensione propria: la si
+        # allinea, altrimenti il codice resterebbe piccolo.
+        self._font_provider.load_from_string(
+            f".rusca-content, .rusca-content .monospace, .rusca-content.monospace "
+            f"{{ font-size: {size:g}pt; }}")
+        for row in self._font_rows:
+            if abs(row.get_value() - size) > 0.01:
+                row.set_value(size)
+
+    def zoom(self, step):
+        if step == 0:
+            self.cfg["font_size"] = 0
+        else:
+            self.cfg["font_size"] = int(min(FONT_MAX, max(FONT_MIN, round(self.font_size()) + step)))
+        save_settings(self.cfg)
+        self._apply_font_size()
+
+    def font_size_row(self):
+        """Riga per le impostazioni, sincronizzata con le scorciatoie."""
+        row = Adw.SpinRow.new_with_range(FONT_MIN, FONT_MAX, 1)
+        row.set_title(_("font_size"))
+        row.set_subtitle(_("font_size_sub"))
+        row.set_value(self.font_size())
+
+        def changed(r, _p):
+            if abs(r.get_value() - self.font_size()) > 0.01:
+                self.cfg["font_size"] = int(r.get_value())
+                save_settings(self.cfg)
+                self._apply_font_size()
+        row.connect("notify::value", changed)
+        row.connect("destroy", lambda r: r in self._font_rows and self._font_rows.remove(r))
+        self._font_rows.append(row)
+        return row
+
+
 # ── Un messaggio della conversazione ─────────────────────────────────────────
 class Message(Gtk.Box):
     """Durante lo streaming il testo arriva in un TextView semplice; alla fine
@@ -437,7 +505,7 @@ class Message(Gtk.Box):
 
 
 # ── Finestra principale ──────────────────────────────────────────────────────
-class RuscaLLamaWindow(Adw.ApplicationWindow):
+class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title=APP_NAME)
         self.cfg = load_settings()
@@ -462,6 +530,7 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
         self._t_first = self._t_send = None
 
         self._build_actions()
+        self._init_font_size()
         self._build_ui()
         self._scan_models()
         self._refresh_engine_ui()
@@ -527,6 +596,7 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
         self.chat_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18,
                                 margin_top=18, margin_bottom=18,
                                 margin_start=12, margin_end=12)
+        self.chat_box.add_css_class("rusca-content")
         clamp = Adw.Clamp(child=self.chat_box, maximum_size=820)
         self.chat_scroll = Gtk.ScrolledWindow(child=clamp, vexpand=True,
                                               hscrollbar_policy=Gtk.PolicyType.NEVER)
@@ -572,6 +642,7 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
                                   top_margin=8, bottom_margin=8, left_margin=10,
                                   right_margin=10, accepts_tab=False)
         self.input.update_property([Gtk.AccessibleProperty.LABEL], [_("input_label")])
+        self.input.add_css_class("rusca-content")
         keys = Gtk.EventControllerKey()
         keys.connect("key-pressed", self._on_key)
         self.input.add_controller(keys)
@@ -584,6 +655,7 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
         self.placeholder = Gtk.Label(label=_("input_placeholder"), xalign=0,
                                      can_target=False, margin_start=12)
         self.placeholder.add_css_class("dim-label")
+        self.placeholder.add_css_class("rusca-content")
         overlay = Gtk.Overlay(child=scroller, hexpand=True)
         overlay.add_overlay(self.placeholder)
         self.send_btn = Gtk.Button(icon_name="go-up-symbolic", tooltip_text=_("send"),
@@ -614,6 +686,10 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
         cfg = self.cfg
 
         # Modello
+        text = Adw.PreferencesGroup(title=_("group_text"))
+        text.add(self.font_size_row())
+        page.add(text)
+
         model_group = Adw.PreferencesGroup(title=_("group_model"))
         self.model_row = Adw.ComboRow(title=_("model"), use_subtitle=True)
         self.model_row.connect("notify::selected", self._on_model_selected)
@@ -1223,6 +1299,8 @@ class RuscaLLamaWindow(Adw.ApplicationWindow):
                              (_("stop"), "Escape"), (_("new_chat"), "<Control>n"),
                              (_("attach"), "<Control>o"), (_("save_md"), "<Control>s"),
                              (_("settings_toggle"), "F9"),
+                             (_("zoom_in"), "<Control>plus"), (_("zoom_out"), "<Control>minus"),
+                             (_("zoom_reset"), "<Control>0"),
                              (_("shortcuts"), "<Control>question"), (_("main_menu"), "F10"),
                              (_("sc_close"), "<Control>w"), (_("sc_quit"), "<Control>q")):
             row = Adw.ActionRow(title=title.rstrip("…"))
@@ -1281,6 +1359,9 @@ class RuscaLLamaApp(Adw.Application):
                                ("win.new-chat", ["<Control>n"]), ("win.attach", ["<Control>o"]),
                                ("win.save-md", ["<Control>s"]), ("win.stop", ["Escape"]),
                                ("win.toggle-sidebar", ["F9"]),
+                               ("win.zoom-in", ["<Control>plus", "<Control>equal", "<Control>KP_Add"]),
+                               ("win.zoom-out", ["<Control>minus", "<Control>KP_Subtract"]),
+                               ("win.zoom-reset", ["<Control>0", "<Control>KP_0"]),
                                ("win.shortcuts", ["<Control>question"])):
             self.set_accels_for_action(action, accels)
 

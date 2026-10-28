@@ -130,5 +130,11 @@
   "save_code_title": "Elige una carpeta para el código",
   "code_saved": "{n} archivos guardados",
   "copied": "Copiado",
-  "log_empty": "El motor aún no ha escrito nada."
+  "log_empty": "El motor aún no ha escrito nada.",
+  "group_text": "Texto",
+  "font_size": "Tamaño del texto",
+  "font_size_sub": "Ctrl++ y Ctrl+− lo cambian, Ctrl+0 vuelve al tamaño del sistema",
+  "zoom_in": "Texto más grande",
+  "zoom_out": "Texto más pequeño",
+  "zoom_reset": "Tamaño de texto predeterminado"
 }

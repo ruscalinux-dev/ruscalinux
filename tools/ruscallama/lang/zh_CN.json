@@ -130,5 +130,11 @@
   "save_code_title": "为代码选择文件夹",
   "code_saved": "已保存 {n} 个文件",
   "copied": "已复制",
-  "log_empty": "引擎尚未输出任何内容。"
+  "log_empty": "引擎尚未输出任何内容。",
+  "group_text": "文字",
+  "font_size": "文字大小",
+  "font_size_sub": "Ctrl++ 和 Ctrl+− 可调整，Ctrl+0 恢复系统大小",
+  "zoom_in": "放大文字",
+  "zoom_out": "缩小文字",
+  "zoom_reset": "默认文字大小"
 }

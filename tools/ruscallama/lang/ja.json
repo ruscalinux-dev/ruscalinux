@@ -130,5 +130,11 @@
   "save_code_title": "コードの保存先フォルダーを選択",
   "code_saved": "{n} 個のファイルを保存しました",
   "copied": "コピーしました",
-  "log_empty": "エンジンはまだ何も出力していません。"
+  "log_empty": "エンジンはまだ何も出力していません。",
+  "group_text": "テキスト",
+  "font_size": "文字サイズ",
+  "font_size_sub": "Ctrl++ と Ctrl+− で変更、Ctrl+0 でシステムのサイズに戻ります",
+  "zoom_in": "文字を大きく",
+  "zoom_out": "文字を小さく",
+  "zoom_reset": "既定の文字サイズ"
 }

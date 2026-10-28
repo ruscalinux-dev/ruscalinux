@@ -209,6 +209,7 @@ Regole:
 | Ctrl+S / Ctrl+Shift+S | Salva / Salva come (dove applicabile) |
 | Ctrl+F | Cerca (dove applicabile) |
 | Ctrl+Z / Ctrl+Shift+Z | Annulla / Ripeti (dove applicabile) |
+| Ctrl++ / Ctrl+− / Ctrl+0 | Testo più grande / più piccolo / dimensione di sistema (nei tool che mostrano testi lunghi: conversazioni, documenti) |
 
 Tutte le funzioni devono essere raggiungibili da tastiera, con ordine di tabulazione logico e focus sempre visibile.
 

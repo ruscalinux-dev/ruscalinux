@@ -85,5 +85,11 @@
   "group_quality": "Kalite",
   "rag": "Dil Bilgisi (İtalyanca ↔ İngilizce)",
   "rag_sub": "Karşılıklar, yalancı eşdeğerler, belge sözlüğü, çeviri belleği ve son düzeltmeler",
-  "log_empty": "Motor henüz bir şey yazmadı."
+  "log_empty": "Motor henüz bir şey yazmadı.",
+  "group_text": "Metin",
+  "font_size": "Metin Boyutu",
+  "font_size_sub": "Ctrl++ ve Ctrl+− değiştirir, Ctrl+0 sistem boyutuna döndürür",
+  "zoom_in": "Daha Büyük Metin",
+  "zoom_out": "Daha Küçük Metin",
+  "zoom_reset": "Varsayılan Metin Boyutu"
 }

@@ -50,6 +50,7 @@ Puoi aggiungere voci tue in `~/.config/ruscatranslator/rag/personale.json`. Il f
 
 | Opzione | Effetto |
 |---|---|
+| Dimensione del testo | Dimensione del testo nei due riquadri; anche con Ctrl++ e Ctrl+−, Ctrl+0 torna a quella di sistema |
 | Modello | Scelta tra i GGUF trovati, o un file qualunque |
 | Scheda grafica (Vulkan) | Molto più veloce; spenta per impostazione predefinita perché alcuni driver si bloccano |
 | Thread della CPU | Consigliati tanti quanti i core fisici |
@@ -68,6 +69,7 @@ Le opzioni del motore valgono al riavvio: un avviso in alto offre **Riavvia il m
 | Esc | Ferma |
 | Ctrl+I | Scambia le lingue |
 | Ctrl+, | Preferenze |
+| Ctrl++ / Ctrl+− / Ctrl+0 | Testo più grande / più piccolo / dimensione di sistema |
 | Ctrl+? | Scorciatoie da tastiera |
 | F10 | Menu principale |
 | Ctrl+W / Ctrl+Q | Chiudi la finestra / Esci |

@@ -39,10 +39,11 @@ Il motore parte da solo al primo messaggio e si ferma alla chiusura della finest
 
 ## 4. Impostazioni del modello
 
-Il pannello laterale (F9) ha tre gruppi.
+Il pannello laterale (F9) ha quattro gruppi.
 
 | Gruppo | Opzione | Effetto |
 |---|---|---|
+| Testo | Dimensione del testo | Dimensione della conversazione e del messaggio; anche con Ctrl++ e Ctrl+−, Ctrl+0 torna a quella di sistema |
 | Modello | Modello | Scelta tra i GGUF trovati |
 | Risposte | Stile | *Preciso*, *Equilibrato*, *Per ragionare*, *Creativo* o *Personalizzato* |
 | Risposte | Ragionamento | Il modello pensa prima di rispondere; vale subito, senza riavvio |
@@ -77,6 +78,7 @@ Dal menu principale: **Salva la conversazione in Markdown…** (Ctrl+S) o **in H
 | Ctrl+O | Allega file |
 | Ctrl+S | Salva la conversazione in Markdown |
 | F9 | Impostazioni del modello |
+| Ctrl++ / Ctrl+− / Ctrl+0 | Testo più grande / più piccolo / dimensione di sistema |
 | Ctrl+? | Scorciatoie da tastiera |
 | F10 | Menu principale |
 | Ctrl+W / Ctrl+Q | Chiudi la finestra / Esci |

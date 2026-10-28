@@ -39,10 +39,11 @@ The engine starts on its own with the first message and stops when the window cl
 
 ## 4. Model settings
 
-The side panel (F9) has three groups.
+The side panel (F9) has four groups.
 
 | Group | Option | Effect |
 |---|---|---|
+| Text | Text Size | Size of the conversation and the message; also with Ctrl++ and Ctrl+−, Ctrl+0 returns to the system size |
 | Model | Model | Choice among the GGUF files found |
 | Answers | Style | *Precise*, *Balanced*, *For reasoning*, *Creative* or *Custom* |
 | Answers | Reasoning | The model thinks before answering; applies at once, no restart |
@@ -77,6 +78,7 @@ From the main menu: **Save Conversation as Markdown…** (Ctrl+S) or **as HTML�
 | Ctrl+O | Attach files |
 | Ctrl+S | Save the conversation as Markdown |
 | F9 | Model settings |
+| Ctrl++ / Ctrl+− / Ctrl+0 | Larger / smaller text / system size |
 | Ctrl+? | Keyboard shortcuts |
 | F10 | Main menu |
 | Ctrl+W / Ctrl+Q | Close the window / Quit |

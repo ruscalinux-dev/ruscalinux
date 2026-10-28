@@ -85,5 +85,11 @@
   "group_quality": "质量",
   "rag": "语言知识（意大利语 ↔ 英语）",
   "rag_sub": "对应词、假朋友、文档术语表、翻译记忆和最终校正",
-  "log_empty": "引擎尚未输出任何内容。"
+  "log_empty": "引擎尚未输出任何内容。",
+  "group_text": "文字",
+  "font_size": "文字大小",
+  "font_size_sub": "Ctrl++ 和 Ctrl+− 可调整，Ctrl+0 恢复系统大小",
+  "zoom_in": "放大文字",
+  "zoom_out": "缩小文字",
+  "zoom_reset": "默认文字大小"
 }

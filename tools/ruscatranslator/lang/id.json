@@ -85,5 +85,11 @@
   "group_quality": "Kualitas",
   "rag": "Pengetahuan Bahasa (Italia ↔ Inggris)",
   "rag_sub": "Padanan, kata yang menyesatkan, glosarium dokumen, memori terjemahan, dan koreksi akhir",
-  "log_empty": "Mesin belum menulis apa pun."
+  "log_empty": "Mesin belum menulis apa pun.",
+  "group_text": "Teks",
+  "font_size": "Ukuran Teks",
+  "font_size_sub": "Ctrl++ dan Ctrl+− mengubahnya, Ctrl+0 kembali ke ukuran sistem",
+  "zoom_in": "Teks Lebih Besar",
+  "zoom_out": "Teks Lebih Kecil",
+  "zoom_reset": "Ukuran Teks Bawaan"
 }

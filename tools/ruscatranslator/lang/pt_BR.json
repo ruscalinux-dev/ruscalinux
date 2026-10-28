@@ -85,5 +85,11 @@
   "group_quality": "Qualidade",
   "rag": "Conhecimento linguístico (italiano ↔ inglês)",
   "rag_sub": "Equivalentes, falsos cognatos, glossário do documento, memória de tradução e correções finais",
-  "log_empty": "O motor ainda não escreveu nada."
+  "log_empty": "O motor ainda não escreveu nada.",
+  "group_text": "Texto",
+  "font_size": "Tamanho do texto",
+  "font_size_sub": "Ctrl++ e Ctrl+− mudam o tamanho, Ctrl+0 volta ao do sistema",
+  "zoom_in": "Texto maior",
+  "zoom_out": "Texto menor",
+  "zoom_reset": "Tamanho de texto padrão"
 }

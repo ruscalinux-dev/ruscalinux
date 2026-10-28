@@ -54,6 +54,18 @@ Si trova nel repository in `docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`. In caso di 
 | RuscaCleaner | Privacy e pulizia del desktop GNOME | Utility di sistema | `org.ruscalinux.RuscaCleaner` | `ruscacleaner` | No |
 | RuscaHub | Gestione AppImages | Gestore applicazioni | `org.ruscalinux.RuscaHub` | `ruscahub` | No |
 | RuscaMark | Editing Markdown | Editor di testo | `org.ruscalinux.RuscaMark` | `ruscamark` | Sì, se c’è il controllo ortografico |
+| RuscaLLama | Chat con modelli linguistici locali | Assistente IA | `org.ruscalinux.RuscaLLama` | `ruscallama` | No |
+| RuscaTranslator | Traduzione di documenti Markdown, con RAG ottimizzato per italiano ↔ inglese | Traduttore | `org.ruscalinux.RuscaTranslator` | `ruscatranslator` | No |
+| ruscallama-engine | Motore che esegue i modelli per RuscaLLama e RuscaTranslator: **llama.cpp, software esterno** | Componente di sistema, senza interfaccia | — | `ruscallama-engine` | — |
+
+### 1.1 Gli strumenti di intelligenza artificiale
+
+RuscaLLama e RuscaTranslator usano modelli linguistici in formato GGUF che girano sul computer dell’utente, tramite **ruscallama-engine**.
+
+- **ruscallama-engine è llama.cpp** (<https://github.com/ggml-org/llama.cpp>), software esterno con licenza MIT, copyright The ggml authors. RuscaLinux lo compila dal sorgente senza modificarne il codice, con il backend Vulkan (NVIDIA, AMD, Intel, con ripiego sulla CPU) e **senza libcurl**: il motore non sa scaricare nulla. La versione è fissata in `make-deb.sh` e verificata con un’impronta SHA-256 (sezione 6).
+- Il pacchetto del motore non ha interfaccia, quindi non ha traduzioni, icona né finestra Informazioni: lo dichiarano le finestre Informazioni di RuscaLLama e RuscaTranslator, nel gruppo “Componenti esterni”.
+- I modelli non fanno parte dei pacchetti: l’utente li copia in `~/.local/share/ruscallama/models/` o l’amministratore in `/usr/share/ruscallama/models/`. Ogni modello ha la propria licenza, che l’utente deve rispettare.
+- Il modulo `rusca_engine.py`, che avvia e interroga il motore, è identico nei due programmi, come `style.css` (si modifica una volta e si copia).
 
 Gli identificatori di ogni tool devono coincidere tra loro (vedi sezione 5.2).
 
@@ -70,7 +82,7 @@ Fino alla versione 1.99.1 RuscaMark usava l’App ID `org.ruscalinux.ruscamark`.
 | Toolkit grafico | GTK 4 (>= 4.18) |
 | Libreria GNOME | libadwaita (>= 1.7) |
 | Distro base | Debian Stable |
-| Formato pacchetti | deb, `Architecture: all` |
+| Formato pacchetti | deb, `Architecture: all` (`amd64` per ruscallama-engine, che è compilato) |
 | Versione tool | 1.99.2 |
 
 Regole tecniche:
@@ -551,9 +563,17 @@ Regole:
 
 1. Non usare licenze incompatibili con GPL-3.0.
 2. Ogni componente esterno (ad esempio codice vendor) conserva la propria licenza originale.
-3. Ogni componente esterno incluso va indicato con nome, versione, licenza e percorso nel progetto, sia in un file `THIRD-PARTY.md` del tool sia nella finestra “Informazioni” (sezione 3.10).
+3. Ogni componente esterno incluso va indicato con nome, versione, licenza e percorso nel progetto, sia nella documentazione del tool sia nella finestra “Informazioni” (sezione 3.10, gruppo “Componenti esterni”).
 4. Rispettare legalmente tutte le licenze dei componenti usati.
 5. Il nome RuscaLinux, il logo e l’emblema non sono coperti dalla GPL: vedi `TRADEMARK.md` del repository.
+
+Componenti esterni in uso:
+
+| Componente | Versione | Licenza | Dove | Usato da |
+|---|---|---|---|---|
+| llama.cpp (con ggml e le librerie che include: nlohmann/json e cpp-httplib MIT, xxHash BSD-2-Clause, stb, miniaudio, sha1 e sha256 di pubblico dominio) | 0.6.0, fissata in `tools/ruscallama-engine/make-deb.sh` | MIT | Compilato nel pacchetto `ruscallama-engine`, in `/usr/lib/ruscallama-engine/` | RuscaLLama, RuscaTranslator |
+
+Il file `copyright` di `ruscallama-engine` riporta tutte queste licenze; solo lo script di costruzione e il profilo AppArmor sono di RuscaLinux (GPL-3.0).
 
 ---
 
@@ -575,6 +595,16 @@ Nomi:
 | Nome del file | `ruscafoo-ruscalinux_<versione>_all.deb` |
 
 Il suffisso `ruscalinux` nel nome del file indica che il pacchetto appartiene alla distribuzione RuscaLinux. L’architettura è `all` perché i tool sono in Python puro e non contengono codice compilato.
+
+**Eccezione: ruscallama-engine.** È codice compilato, quindi:
+
+1. architettura `amd64`; file `ruscallama-engine-ruscalinux_<versione>_amd64.deb`;
+2. versione del pacchetto uguale a quella di RuscaLinux; la versione di llama.cpp è scritta nella descrizione e in `/usr/share/doc/ruscallama-engine/README.md.gz`;
+3. sorgente scaricato da GitHub solo durante la costruzione, verificato con l’impronta in `checksums/`; si aggiorna a una release pubblicata da almeno due settimane e provata con i due programmi;
+4. binari e librerie private in `/usr/lib/ruscallama-engine/` (non in `/opt`, che Debian riserva ad altro), con RUNPATH su quella cartella, senza simboli di debug e con i flag di sicurezza di `dpkg-buildflags`;
+5. dipendenze calcolate con `dpkg-shlibdeps`;
+6. compilazione tenuta in cache (`~/.cache/ruscalinux/ruscallama-engine/`): le build successive rifanno solo il pacchetto;
+7. dipendenze di costruzione: `build-essential cmake pkg-config dpkg-dev wget libvulkan-dev glslc spirv-headers`.
 
 Esempio di output:
 
@@ -721,11 +751,25 @@ Recommends: hunspell-en-gb
 
 Regole tecniche:
 
-1. Nessun modulo di rete nel codice (`urllib`, `http`, `socket`, `requests`, `Gio.SocketClient` e simili).
+1. Nessun modulo di rete nel codice (`urllib`, `http`, `socket`, `requests`, `Gio.SocketClient` e simili). **Unica eccezione:** RuscaLLama e RuscaTranslator parlano con il proprio motore tramite `http.client` e `socket`, solo verso `127.0.0.1`, attraverso `rusca_engine.py` (vedi sotto).
 2. Nessuna esecuzione di comandi tramite shell (`shell=True`, `os.system`). Se serve un programma esterno, usare `subprocess` con lista di argomenti, percorsi assoluti e nessun input dell’utente non validato.
 3. Nessun privilegio di amministratore, salvo necessità reale documentata; in quel caso usare `pkexec` con una policy polkit dedicata e limitata.
 4. Preferire lo spostamento nel cestino all’eliminazione definitiva.
 5. Mai cancellare o modificare file fuori dalla cartella dell’utente senza richiesta esplicita.
+
+Regole aggiuntive per gli strumenti di intelligenza artificiale:
+
+| Regola | Come è applicata |
+|---|---|
+| Il motore ascolta solo in locale | `llama-server` sempre con `--host 127.0.0.1`, su una porta libera scelta a ogni avvio |
+| Gli altri utenti del computer non lo usano | Chiave casuale a ogni avvio, in `$XDG_RUNTIME_DIR/ruscallama/` con permessi 0600, passata con `--api-key-file`; ogni richiesta la presenta |
+| Nessun download | Motore compilato senza libcurl; i programmi non scaricano modelli |
+| Niente interfaccia web del motore | `--no-webui` |
+| Processi rimasti accesi | Fermati solo se il processo è davvero `llama-server` ed è dell’utente (controllo su `/proc`) |
+| Confinamento | Profilo AppArmor per `llama-server`, in modalità complain: nega `.ssh`, `.gnupg`, `.config`, profili di Firefox e Thunderbird |
+| Conversazioni | Restano in memoria; si salvano solo su richiesta |
+| Dati di RuscaTranslator | Voci personali in `~/.config/ruscatranslator/`, memoria di traduzione e glossari in `~/.local/share/ruscatranslator/` |
+| Avviso all’utente | I manuali ricordano che le risposte e le traduzioni automatiche vanno verificate |
 
 Dichiarazione:
 
@@ -782,10 +826,10 @@ Un tool è pronto quando:
 11. Ha identificatori coerenti tra loro (sezioni 1 e 5.2).
 12. Ha file `.desktop` e metainfo validi, con `StartupWMClass` uguale all’App ID.
 13. Ha icona SVG e icona simbolica.
-14. Ha `make-deb.sh` che produce un solo `ruscafoo-ruscalinux_<versione>_all.deb` e `SHA256SUMS` in `build-deb/`.
+14. Ha `make-deb.sh` che produce un solo `ruscafoo-ruscalinux_<versione>_all.deb` (o `_amd64.deb` per ruscallama-engine) e `SHA256SUMS` in `build-deb/`.
 15. Ha la versione uguale a `VERSION` di `release.conf`.
 16. È licenziato GPL-3.0, con componenti esterni dichiarati.
-17. Non usa rete, telemetria o comandi pericolosi.
+17. Non usa rete, telemetria o comandi pericolosi (per RuscaLLama e RuscaTranslator: rete solo verso 127.0.0.1, sezione 11).
 
 ---
 
@@ -868,6 +912,28 @@ Editor Markdown.
 
 Il controllo ortografico, se presente, usa solo dizionari locali (incluso `en_GB` tramite `hunspell-en-gb`) e non invia mai il testo online.
 
+## 💬 RuscaLLama
+
+Chat con modelli linguistici che girano su questo computer.
+
+1. Copiare un modello GGUF in `~/.local/share/ruscallama/models/` (dal pannello delle impostazioni: “Apri la cartella dei modelli”).
+2. Aprire RuscaLLama e scegliere il modello nel pannello laterale (F9).
+3. Scrivere un messaggio e premere Invio: il motore parte da solo.
+4. Copiare o salvare le risposte dal menu di ogni risposta; salvare la conversazione con Ctrl+S.
+
+## 🌐 RuscaTranslator
+
+Traduzione di documenti Markdown tra le 15 lingue ufficiali (sezione 9).
+
+1. Aprire un documento (Ctrl+O) o trascinarlo nel riquadro “Originale”.
+2. Scegliere lingua di partenza (o “Rileva la lingua”), lingua d’arrivo e tipo di testo.
+3. Premere “Traduci” (Ctrl+Invio).
+4. Rileggere la traduzione nel riquadro di destra e salvarla (Ctrl+S).
+
+Tra italiano e inglese il programma usa una base di conoscenza linguistica, un glossario del documento e la memoria delle traduzioni salvate.
+
+Entrambi i programmi usano **ruscallama-engine**, cioè llama.cpp, software esterno con licenza MIT. Tutto resta sul computer.
+
 ## 🧯 Risoluzione dei problemi
 
 Se un tool non si avvia:
@@ -908,6 +974,9 @@ Tutti i dati elaborati dai RuscaLinux OS Tools rimangono in locale. Nessun dato 
 | RuscaCleaner | GNOME desktop privacy and cleaning |
 | RuscaHub | AppImage management |
 | RuscaMark | Markdown editing |
+| RuscaLLama | Chat with local language models |
+| RuscaTranslator | Translation of Markdown documents, with a RAG optimized for Italian ↔ English |
+| ruscallama-engine | Engine that runs the models: llama.cpp, an external component (MIT) |
 
 ## 🚀 Requirements
 
@@ -985,6 +1054,28 @@ Markdown editor.
 5. Export the document if the feature is available.
 
 Spell checking, if present, uses only local dictionaries (including `en_GB` through `hunspell-en-gb`) and never sends text online.
+
+## 💬 RuscaLLama
+
+Chat with language models that run on this computer.
+
+1. Copy a GGUF model into `~/.local/share/ruscallama/models/` (from the settings panel: "Open the Models Folder").
+2. Open RuscaLLama and choose the model in the side panel (F9).
+3. Write a message and press Enter: the engine starts on its own.
+4. Copy or save answers from each answer's menu; save the conversation with Ctrl+S.
+
+## 🌐 RuscaTranslator
+
+Translation of Markdown documents between the 15 official languages.
+
+1. Open a document (Ctrl+O) or drag it onto the "Original" pane.
+2. Choose the source language (or "Detect language"), the target language and the text type.
+3. Press "Translate" (Ctrl+Enter).
+4. Review the translation in the right pane and save it (Ctrl+S).
+
+Between Italian and English the program uses a linguistic knowledge base, a document glossary and the memory of saved translations.
+
+Both programs use **ruscallama-engine**, that is llama.cpp, an external component under the MIT license. Everything stays on the computer.
 
 ## 🌍 Language support
 

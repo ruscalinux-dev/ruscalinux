@@ -705,11 +705,14 @@ def run_gui(dry_run: bool) -> int:
     gi.require_version("Adw", "1")
     from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango
 
-    def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon):
+    def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon,
+                          components=()):
         """Finestra «Informazioni» comune ai RuscaLinux OS Tools: una sola
         pagina, con descrizione e nota di sviluppo sempre visibili (in
         Adw.AboutDialog la descrizione finisce in una sottopagina).
-        `tr` restituisce il testo tradotto di una chiave di lang/."""
+        `tr` restituisce il testo tradotto di una chiave di lang/.
+        `components`: componenti esterni (nome, licenza, indirizzo), mostrati in
+        un gruppo «Componenti esterni» (specifiche, sezioni 3.10 e 6)."""
         def open_uri(_row, uri):
             def done(launcher, result):
                 try:
@@ -740,6 +743,15 @@ def run_gui(dry_run: bool) -> int:
             row.connect("activated", open_uri, uri)
             links.add(row)
         box.append(links)
+
+        if components:
+            ext = Adw.PreferencesGroup(title=tr("about_components"), margin_top=12)
+            for name, licence, uri in components:
+                row = Adw.ActionRow(title=name, subtitle=licence, activatable=True)
+                row.add_suffix(Gtk.Image(icon_name="adw-external-link-symbolic"))
+                row.connect("activated", open_uri, uri)
+                ext.add(row)
+            box.append(ext)
 
         # La nota di sviluppo è obbligatoria e sempre visibile (specifiche, sez. 12).
         note = Adw.PreferencesGroup(title=tr("dev_note_title"),

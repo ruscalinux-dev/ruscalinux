@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- RuscaTranslator — due fumetti: lo stesso testo in due lingue.
+       Palette RuscaLinux: prugna #2d0a1d → #8a2b5f, crema #fff7f0, rosa #f8d7e6 -->
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0.00" stop-color="#2d0a1d"/><stop offset="0.55" stop-color="#5c1a40"/><stop offset="1.00" stop-color="#8a2b5f"/></linearGradient></defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <path d="M28 24h44a8 8 0 0 1 8 8v28a8 8 0 0 1-8 8H48l-14 12V68h-6a8 8 0 0 1-8-8V32a8 8 0 0 1 8-8z"
+        fill="#f8d7e6"/>
+  <g stroke="#7a2357" stroke-width="5" stroke-linecap="round">
+    <path d="M32 38h28M32 50h20"/>
+  </g>
+  <path d="M100 52H56a8 8 0 0 0-8 8v28a8 8 0 0 0 8 8h24l14 12V96h6a8 8 0 0 0 8-8V60a8 8 0 0 0-8-8z"
+        fill="#fff7f0" stroke="#5c1a40" stroke-width="3"/>
+  <g stroke="#7a2357" stroke-width="5" stroke-linecap="round">
+    <path d="M60 68h32M60 80h20"/>
+  </g>
+</svg>

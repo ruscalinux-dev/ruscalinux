@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- RuscaTranslator, icona simbolica: due fumetti. Un solo colore. -->
+  <g fill="#2e3436">
+    <path d="M2.5 1h6A1.5 1.5 0 0 1 10 2.5V6H7.5A2.5 2.5 0 0 0 5 8.5v.5L3 10.5V9h-.5A1.5 1.5 0 0 1 1 7.5v-5A1.5 1.5 0 0 1 2.5 1z"/>
+    <path d="M7.5 7h6A1.5 1.5 0 0 1 15 8.5v4a1.5 1.5 0 0 1-1.5 1.5H13v1.5L11 14H7.5A1.5 1.5 0 0 1 6 12.5v-4A1.5 1.5 0 0 1 7.5 7z"/>
+  </g>
+</svg>

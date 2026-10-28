@@ -1,0 +1,82 @@
+# ------------------------------------------------------------------------
+# RuscaLinux — profilo AppArmor per il motore di inferenza (llama-server).
+#
+# Consegnato in modalita' COMPLAIN: registra le violazioni nel journal,
+# non blocca niente. E' deliberato: un profilo non provato che blocca il
+# motore e' peggio di nessun profilo.
+#
+# Per vedere cosa avrebbe bloccato, dopo qualche sessione d'uso:
+#     sudo journalctl -b | grep 'apparmor=.*llama-server'
+#
+# Per passare a enforce dopo averlo provato:
+#     sudo rm /etc/apparmor.d/force-complain/usr.lib.ruscallama-engine.llama-server
+#     sudo apparmor_parser -r /etc/apparmor.d/usr.lib.ruscallama-engine.llama-server
+# ------------------------------------------------------------------------
+
+abi <abi/4.0>,
+
+include <tunables/global>
+
+profile ruscallama-engine /usr/lib/ruscallama-engine/llama-server {
+  include <abstractions/base>
+
+  # Il motore e' l'unico processo che apre i modelli GGUF, cioe' file
+  # spesso presi da internet. Puo' leggere i .gguf nella home e nelle
+  # cartelle dei modelli; non puo' scrivere da nessuna parte.
+  owner @{HOME}/**/*.gguf r,
+  owner @{HOME}/.local/share/ruscallama/models/ r,
+  owner @{HOME}/.local/share/ruscallama/models/** r,
+  /usr/share/ruscallama/models/ r,
+  /usr/share/ruscallama/models/** r,
+
+  # Chiave di accesso al server, scritta dal programma in XDG_RUNTIME_DIR
+  # (permessi 0600) e letta una volta all'avvio.
+  owner @{run}/user/@{uid}/ruscallama/*.key r,
+
+  # I propri binari e le proprie librerie.
+  /usr/lib/ruscallama-engine/llama-server mr,
+  /usr/lib/ruscallama-engine/*.so* mr,
+
+  # Rete: socket TCP per ascoltare su 127.0.0.1. AppArmor 4.0 non sa
+  # limitare l'indirizzo: e' il programma a usare solo 127.0.0.1, e il
+  # motore e' compilato senza libcurl, quindi non scarica nulla.
+  network inet stream,
+  network inet6 stream,
+  deny network inet dgram,
+  deny network inet6 dgram,
+
+  # Accelerazione grafica: senza queste il backend Vulkan non trova la
+  # scheda e ripiega sulla CPU, in silenzio e molto piu' lentamente.
+  /dev/dri/ r,
+  /dev/dri/** rw,
+  /dev/nvidia* rw,
+  /dev/nvidiactl rw,
+  /dev/nvidia-uvm* rw,
+  /sys/devices/** r,
+  /sys/class/drm/ r,
+  /sys/class/drm/** r,
+  /etc/vulkan/** r,
+  /usr/share/vulkan/** r,
+  /usr/share/libdrm/** r,
+  include if exists <abstractions/vulkan>
+  include if exists <abstractions/mesa>
+
+  # Informazioni sulla macchina, usate per decidere quanti thread usare.
+  @{PROC}/cpuinfo r,
+  @{PROC}/meminfo r,
+  @{PROC}/sys/kernel/mm/transparent_hugepage/* r,
+  owner @{PROC}/@{pid}/** r,
+  /sys/devices/system/cpu/** r,
+
+  # Niente di tutto questo serve al motore, e sono le cose che un GGUF
+  # malevolo cercherebbe per prime. Un .gguf tenuto in queste cartelle
+  # non e' leggibile quando il profilo e' in enforce.
+  deny @{HOME}/.ssh/** rwx,
+  deny @{HOME}/.gnupg/** rwx,
+  deny @{HOME}/.mozilla/** rwx,
+  deny @{HOME}/.thunderbird/** rwx,
+  deny @{HOME}/.config/** rwx,
+  deny /etc/shadow r,
+
+  include if exists <local/ruscallama-engine>
+}

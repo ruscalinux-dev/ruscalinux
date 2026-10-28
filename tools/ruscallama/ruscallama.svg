@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- RuscaLLama — fumetto di dialogo con scintilla: chat con un modello locale.
+       Palette RuscaLinux: prugna #2d0a1d → #8a2b5f, crema #fff7f0, rosa #f8d7e6 -->
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0.00" stop-color="#2d0a1d"/><stop offset="0.55" stop-color="#5c1a40"/><stop offset="1.00" stop-color="#8a2b5f"/></linearGradient></defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <path d="M30 30h68a10 10 0 0 1 10 10v40a10 10 0 0 1-10 10H58l-20 16v-16h-8a10 10 0 0 1-10-10V40a10 10 0 0 1 10-10z"
+        fill="#fff7f0"/>
+  <path d="M64 41c2.4 9.4 6.6 13.6 16 16-9.4 2.4-13.6 6.6-16 16-2.4-9.4-6.6-13.6-16-16 9.4-2.4 13.6-6.6 16-16z"
+        fill="#7a2357"/>
+  <circle cx="84" cy="44" r="3.5" fill="#8a2b5f"/>
+  <circle cx="44" cy="74" r="2.5" fill="#8a2b5f"/>
+</svg>

@@ -1,0 +1,1837 @@
+[
+ {
+  "tipo": "falso_amico",
+  "it": "attuale",
+  "en": "present-day / topical / at issue",
+  "rx_it": "\\battual\\w*",
+  "warn": "'current' solo in senso temporale; per 'rilevante' usa topical/relevant; ≠ actual (reale)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "eventualmente",
+  "en": "if necessary / possibly",
+  "warn": "≠ eventually (alla fine)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "eventuale",
+  "en": "possible / if any",
+  "warn": "≠ eventual"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "pretendere",
+  "en": "to demand / to claim",
+  "rx_it": "pretend\\w*",
+  "warn": "≠ to pretend (fingere)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "libreria",
+  "en": "bookshop / bookstore",
+  "warn": "≠ library (biblioteca)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "camera",
+  "en": "room",
+  "warn": "≠ camera (macchina fotografica)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "fabbrica",
+  "en": "factory",
+  "warn": "≠ fabric (tessuto/trama)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "fattoria",
+  "en": "farm",
+  "warn": "≠ factory"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "educato",
+  "en": "polite / well-mannered",
+  "warn": "≠ educated (istruito)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "confidenza",
+  "en": "familiarity / trust",
+  "warn": "in confidenza = in confidence; ≠ confidence (sicurezza)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "sensibile",
+  "en": "considerable / marked",
+  "warn": "un sensibile aumento = a marked increase, non 'sensitive'"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "consistente",
+  "en": "substantial / sizeable",
+  "warn": "≠ consistent (coerente)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "delusione",
+  "en": "disappointment",
+  "warn": "≠ delusion (illusione)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "comprensivo",
+  "en": "including / inclusive of",
+  "warn": "≠ comprehensive (esaustivo)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "esaustivo",
+  "en": "exhaustive / comprehensive"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "sostenere",
+  "en": "to maintain / to argue",
+  "rx_it": "sostien\\w*|sostene\\w*|sostenere",
+  "nota": "in saggistica: sostiene che = argues/maintains that"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "rilevare",
+  "en": "to note / to point out",
+  "rx_it": "rileva\\w*",
+  "nota": "va rilevato = it should be noted"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "riguardare",
+  "en": "to concern",
+  "rx_it": "riguard\\w*",
+  "warn": "≠ to regard (considerare)"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "comportare",
+  "en": "to entail / to involve",
+  "rx_it": "comport\\w*",
+  "warn": "≠ to behave"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "deputato a",
+  "en": "entrusted with / responsible for",
+  "warn": "≠ deputy"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "dirimente",
+  "en": "decisive / crucial"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "eventually",
+  "en": "alla fine / infine",
+  "rx_en": "\\beventually\\b",
+  "warn": "EN eventually ≠ IT eventualmente"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "in realtà",
+  "en": "actually",
+  "rx_en": "\\bactually\\b",
+  "warn": "EN actually ≠ IT attualmente"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "istruito",
+  "en": "educated",
+  "rx_en": "\\beducated\\b"
+ },
+ {
+  "tipo": "falso_amico",
+  "it": "biblioteca",
+  "en": "library",
+  "rx_en": "\\blibrary\\b"
+ },
+ {
+  "tipo": "idioma",
+  "it": "non fare il muso lungo",
+  "en": "don't pull a long face",
+  "rx_it": "non\\s+fare\\s+(il|quel)\\s+muso\\s+lungo|non\\s+fare\\s+quella\\s+faccia\\s+lunga",
+  "warn": "GRAVE: preservare SEMPRE la negazione: 'don't pull a long face'; 'pull a long face' da solo ribalta il senso"
+ },
+ {
+  "tipo": "idioma",
+  "it": "avere un diavolo per capello",
+  "en": "be in a foul mood",
+  "rx_it": "diavolo\\s+per\\s+capell[oi]",
+  "rx_en": "foul\\s+mood"
+ },
+ {
+  "tipo": "idioma",
+  "it": "svegliarsi con la luna storta",
+  "en": "wake up on the wrong side of the bed",
+  "rx_it": "luna\\s+(storta|di\\s+traverso)",
+  "rx_en": "wrong\\s+side\\s+of\\s+the\\s+bed"
+ },
+ {
+  "tipo": "idioma",
+  "it": "andare a rotoli",
+  "en": "go down the drain",
+  "rx_it": "(andato|andare|va)\\s+a\\s+rotoli",
+  "rx_en": "(went|go|goes)\\s+down\\s+the\\s+drain"
+ },
+ {
+  "tipo": "idioma",
+  "it": "fare il muso lungo",
+  "en": "pull a long face",
+  "rx_it": "muso\\s+lungo",
+  "rx_en": "(pull|pulled|wear)\\s+a\\s+long\\s+face",
+  "nota": "se nella sorgente c'è la negazione, vedi la voce 'non fare il muso lungo'"
+ },
+ {
+  "tipo": "idioma",
+  "it": "gettare la spugna",
+  "en": "throw in the towel",
+  "rx_it": "(gettato|gettare|getta)\\s+la\\s+spugna",
+  "rx_en": "(thrown|throw|threw)\\s+in\\s+the\\s+towel"
+ },
+ {
+  "tipo": "idioma",
+  "it": "dire la sua",
+  "en": "have one's say / say one's piece",
+  "rx_it": "dire\\s+la\\s+sua",
+  "rx_en": "(have|had)\\s+(her|his|their)\\s+say|say\\s+(her|his)\\s+piece"
+ },
+ {
+  "tipo": "idioma",
+  "it": "pescare nelle tasche",
+  "en": "fish in one's pockets (preserve the pun!)",
+  "rx_it": "pesc(ando|are|a)\\s+(nelle|in|nelle\\s+sue)\\s+tasc",
+  "rx_en": "fish(ing)?\\s+in\\s+(his|her|their)\\s+pockets"
+ },
+ {
+  "tipo": "idioma",
+  "it": "fra il dire e il fare",
+  "en": "between saying and doing / 'twixt cup and lip",
+  "rx_it": "fra\\s+il\\s+dire\\s+e\\s+il\\s+fare",
+  "rx_en": "'twixt\\s+cup\\s+and\\s+lip"
+ },
+ {
+  "tipo": "idioma",
+  "it": "se fosse il caso di",
+  "en": "whether it is/was worth …-ing (opportunità, non tempo)",
+  "rx_it": "se\\s+fosse\\s+il\\s+caso\\s+di",
+  "rx_en": "whether\\s+it\\s+(is|was)\\s+worth"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "peraltro",
+  "en": "moreover / however",
+  "nota": "polisemico: additivo o avversativo secondo contesto"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "nondimeno",
+  "en": "nevertheless"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "cionondostante",
+  "en": "nonetheless"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "eppure",
+  "en": "and yet"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "anzi",
+  "en": "on the contrary / indeed",
+  "nota": "correttivo vs rafforzativo: decidere dal contesto"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "ossia",
+  "en": "that is (to say)"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "ovvero",
+  "en": "or / that is",
+  "warn": "nel giuridico = or; in prosa antica = namely"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "infatti",
+  "en": "in fact / indeed",
+  "warn": "spesso confermativo, non contrastivo"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "in effetti",
+  "en": "indeed / in effect"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "del resto",
+  "en": "besides / after all"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "d'altronde",
+  "en": "on the other hand / besides"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "per contro",
+  "en": "by contrast"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "viceversa",
+  "en": "conversely"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "altresì",
+  "en": "likewise / also"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "parimenti",
+  "en": "likewise"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "segnatamente",
+  "en": "notably / in particular"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "anzitutto",
+  "en": "first and foremost"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "in primo luogo",
+  "en": "in the first place"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "in sede di",
+  "en": "in the context of / when dealing with"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "alla luce di",
+  "en": "in light of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sotto il profilo di",
+  "en": "from the standpoint of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "quanto a",
+  "en": "as for / as regards"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "in merito a",
+  "en": "with regard to"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "giova ricordare",
+  "en": "it is worth recalling"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "va detto",
+  "en": "it must be said"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "si badi",
+  "en": "note well"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "ebbene",
+  "en": "well then / now"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "tant'è",
+  "en": "be that as it may / so much so"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "non a caso",
+  "en": "significantly / not by chance"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "semmai",
+  "en": "if anything"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "piuttosto",
+  "en": "rather",
+  "warn": "'piuttosto che' disgiuntivo è non standard: rendere con or / rather than"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "benché",
+  "en": "although",
+  "rx_it": "benché|sebbene|quantunque"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "nonostante",
+  "en": "despite",
+  "rx_it": "nonostante|malgrado"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "a discapito di",
+  "en": "at the expense of",
+  "rx_it": "a (discapito|scapito) di"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "lungi da",
+  "en": "far from"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "in seno a",
+  "en": "within (an institution)"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "nel quadro di",
+  "en": "within the framework of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sul versante di",
+  "en": "with regard to / on the side of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "dal canto suo",
+  "en": "for his part / for her part",
+  "rx_it": "da[lml] canto (suo|loro)|per parte (sua|loro)"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "a sua volta",
+  "en": "in turn"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "pertanto",
+  "en": "therefore"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sicché",
+  "en": "so that / with the result that",
+  "rx_it": "sicché|cosicché|talché"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "all'insegna di",
+  "en": "under the banner of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sotto l'egida di",
+  "en": "under the aegis of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "nel solco di",
+  "en": "in the wake of (a tradition)"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sulla scia di",
+  "en": "in the wake of"
+ },
+ {
+  "tipo": "connettivo",
+  "it": "sullo sfondo di",
+  "en": "against the background of"
+ },
+ {
+  "tipo": "hedging",
+  "it": "sembrare",
+  "en": "to seem / to appear",
+  "rx_it": "sembra\\w*|parrebbe|sembrerebbe"
+ },
+ {
+  "tipo": "hedging",
+  "it": "risultare",
+  "en": "to prove to be / to emerge as",
+  "rx_it": "risult\\w*"
+ },
+ {
+  "tipo": "hedging",
+  "it": "tendere a",
+  "en": "to tend to",
+  "rx_it": "tend\\w* a"
+ },
+ {
+  "tipo": "hedging",
+  "it": "di norma",
+  "en": "as a rule"
+ },
+ {
+  "tipo": "hedging",
+  "it": "in linea di massima",
+  "en": "by and large"
+ },
+ {
+  "tipo": "hedging",
+  "it": "per lo più",
+  "en": "for the most part"
+ },
+ {
+  "tipo": "hedging",
+  "it": "non di rado",
+  "en": "not infrequently"
+ },
+ {
+  "tipo": "hedging",
+  "it": "sovente",
+  "en": "often"
+ },
+ {
+  "tipo": "hedging",
+  "it": "talora",
+  "en": "at times"
+ },
+ {
+  "tipo": "hedging",
+  "it": "pressoché",
+  "en": "virtually / almost"
+ },
+ {
+  "tipo": "hedging",
+  "it": "all'incirca",
+  "en": "approximately"
+ },
+ {
+  "tipo": "hedging",
+  "it": "in certa misura",
+  "en": "to a certain extent",
+  "rx_it": "in (certa|qualche) misura"
+ },
+ {
+  "tipo": "hedging",
+  "it": "in larga misura",
+  "en": "largely",
+  "rx_it": "in (larga|gran) (misura|parte)"
+ },
+ {
+  "tipo": "hedging",
+  "it": "per certi versi",
+  "en": "in certain respects"
+ },
+ {
+  "tipo": "hedging",
+  "it": "verosimilmente",
+  "en": "in all likelihood"
+ },
+ {
+  "tipo": "hedging",
+  "it": "presumibilmente",
+  "en": "presumably"
+ },
+ {
+  "tipo": "hedging",
+  "it": "con ogni probabilità",
+  "en": "in all probability"
+ },
+ {
+  "tipo": "hedging",
+  "it": "è lecito supporre",
+  "en": "it is legitimate to suppose",
+  "rx_it": "(è|sia) lecito (supporre|ipotizzare)"
+ },
+ {
+  "tipo": "hedging",
+  "it": "lasciar supporre",
+  "en": "to suggest / to lead one to suppose",
+  "rx_it": "lascia(?:no)? supporre"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Soprintendenza",
+  "en": "Superintendency",
+  "nota": "prima occorrenza: 'the Superintendency (Soprintendenza, the local heritage office)'"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Ministero della cultura",
+  "en": "Ministry of Culture (MiC)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Gazzetta Ufficiale",
+  "en": "Official Journal of the Italian Republic"
+ },
+ {
+  "tipo": "culturema",
+  "it": "decreto legislativo",
+  "en": "legislative decree"
+ },
+ {
+  "tipo": "culturema",
+  "it": "decreto legge",
+  "en": "decree-law"
+ },
+ {
+  "tipo": "culturema",
+  "it": "regio decreto",
+  "en": "royal decree"
+ },
+ {
+  "tipo": "culturema",
+  "it": "legge quadro",
+  "en": "framework law"
+ },
+ {
+  "tipo": "culturema",
+  "it": "codice dei beni culturali",
+  "en": "Code of Cultural Heritage (2004)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "vincolo monumentale",
+  "en": "listing / monument protection order"
+ },
+ {
+  "tipo": "culturema",
+  "it": "demanio",
+  "en": "state property / public domain"
+ },
+ {
+  "tipo": "culturema",
+  "it": "ente locale",
+  "en": "local authority"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Comune",
+  "en": "municipality",
+  "warn": "≠ commune (salvo senso storico medievale)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "giunta comunale",
+  "en": "municipal executive"
+ },
+ {
+  "tipo": "culturema",
+  "it": "assessore",
+  "en": "councillor with portfolio (assessore)",
+  "nota": "prima occorrenza con glossa"
+ },
+ {
+  "tipo": "culturema",
+  "it": "dirigente",
+  "en": "head of department (public admin.)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "funzionario",
+  "en": "civil servant / official"
+ },
+ {
+  "tipo": "culturema",
+  "it": "albo professionale",
+  "en": "professional register"
+ },
+ {
+  "tipo": "culturema",
+  "it": "ordine professionale",
+  "en": "professional body / order"
+ },
+ {
+  "tipo": "culturema",
+  "it": "concorso pubblico",
+  "en": "competitive public examination"
+ },
+ {
+  "tipo": "culturema",
+  "it": "bando",
+  "en": "call / public notice"
+ },
+ {
+  "tipo": "culturema",
+  "it": "graduatoria",
+  "en": "ranking list / merit list"
+ },
+ {
+  "tipo": "culturema",
+  "it": "cattedra",
+  "en": "chair / professorship (univ.); teaching post (scuola)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "libera docenza",
+  "en": "habilitation (historical, cf. Privatdozent)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "laurea",
+  "en": "degree (laurea, five-year, master's equivalent)",
+  "nota": "post-Bologna specificare: bachelor's / master's"
+ },
+ {
+  "tipo": "culturema",
+  "it": "tesi di laurea",
+  "en": "dissertation / master's thesis"
+ },
+ {
+  "tipo": "culturema",
+  "it": "relatore",
+  "en": "supervisor / advisor"
+ },
+ {
+  "tipo": "culturema",
+  "it": "esame di maturità",
+  "en": "secondary-school leaving examination"
+ },
+ {
+  "tipo": "culturema",
+  "it": "liceo",
+  "en": "secondary school (liceo classico = classical secondary school)",
+  "nota": "prima occorrenza con glossa"
+ },
+ {
+  "tipo": "culturema",
+  "it": "oratorio",
+  "en": "parish youth centre"
+ },
+ {
+  "tipo": "culturema",
+  "it": "concordato",
+  "en": "concordat (Church–State agreement)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "festa patronale",
+  "en": "patron saint's feast"
+ },
+ {
+  "tipo": "culturema",
+  "it": "sagra",
+  "en": "local food festival / village fair"
+ },
+ {
+  "tipo": "culturema",
+  "it": "pro loco",
+  "en": "local tourist association (pro loco)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "rione",
+  "en": "urban district / ward (historical quarter)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "contrada",
+  "en": "district (Siena) / rural hamlet"
+ },
+ {
+  "tipo": "culturema",
+  "it": "borgo",
+  "en": "historic village / hamlet"
+ },
+ {
+  "tipo": "culturema",
+  "it": "frazione",
+  "en": "hamlet (administrative)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "podere",
+  "en": "small farmholding"
+ },
+ {
+  "tipo": "culturema",
+  "it": "masseria",
+  "en": "fortified farmhouse (Apulia)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "mezzadria",
+  "en": "sharecropping (mezzadria)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "bracciante",
+  "en": "day labourer"
+ },
+ {
+  "tipo": "culturema",
+  "it": "miracolo economico",
+  "en": "economic miracle / boom"
+ },
+ {
+  "tipo": "culturema",
+  "it": "anni di piombo",
+  "en": "Years of Lead"
+ },
+ {
+  "tipo": "culturema",
+  "it": "questione meridionale",
+  "en": "Southern Question"
+ },
+ {
+  "tipo": "culturema",
+  "it": "trasformismo",
+  "en": "trasformismo (clientelist politics)",
+  "nota": "mantenere il termine con glossa"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Ventennio",
+  "en": "the Ventennio (the twenty years of Fascist rule)",
+  "nota": "corsivo + glossa alla prima occorrenza"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Resistenza",
+  "en": "the (Italian) Resistance"
+ },
+ {
+  "tipo": "culturema",
+  "it": "Cassazione",
+  "en": "Court of Cassation (Supreme Court)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "nulla osta",
+  "en": "clearance / no-objection certificate"
+ },
+ {
+  "tipo": "culturema",
+  "it": "condono",
+  "en": "amnesty (condono edilizio = building amnesty)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "abusivismo edilizio",
+  "en": "unauthorized building"
+ },
+ {
+  "tipo": "culturema",
+  "it": "previdenza sociale",
+  "en": "social security"
+ },
+ {
+  "tipo": "culturema",
+  "it": "TFR",
+  "en": "severance pay (TFR)"
+ },
+ {
+  "tipo": "culturema",
+  "it": "vertenza",
+  "en": "labour dispute"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "storiografia",
+  "en": "historiography"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "fonte",
+  "en": "source (documentary source)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "schedatura",
+  "en": "cataloguing / record-by-record survey"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "catalogo ragionato",
+  "en": "catalogue raisonné"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "monografia",
+  "en": "monograph"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "curatela",
+  "en": "edited volume / editorship"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "atti (di convegno)",
+  "en": "proceedings"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "fascicolo",
+  "en": "issue (of a journal)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "annata",
+  "en": "volume (year of a journal)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "saggio",
+  "en": "essay"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "contributo",
+  "en": "paper / contribution"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "recensione",
+  "en": "review"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "prolusione",
+  "en": "inaugural lecture"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "lectio magistralis",
+  "en": "keynote lecture"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "esegesi",
+  "en": "exegesis"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "ermeneutica",
+  "en": "hermeneutics"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "epistemologia",
+  "en": "epistemology"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "paradigma",
+  "en": "paradigm"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "confutare",
+  "en": "to refute",
+  "rx_it": "confut\\w*"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "corroborare",
+  "en": "to corroborate"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "inferenza",
+  "en": "inference"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "aporia",
+  "en": "aporia"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "antinomia",
+  "en": "antinomy"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "dicotomia",
+  "en": "dichotomy"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "dialettica",
+  "en": "dialectics / dialectic"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "prassi",
+  "en": "praxis"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "alienazione",
+  "en": "alienation"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "reificazione",
+  "en": "reification"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "egemonia",
+  "en": "hegemony"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "blocco storico",
+  "en": "historical bloc"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "intellettuale organico",
+  "en": "organic intellectual"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "subalterno",
+  "en": "subaltern"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "secolarizzazione",
+  "en": "secularization"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "disincanto",
+  "en": "disenchantment (Weber)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "teleologia",
+  "en": "teleology"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "eziologia",
+  "en": "aetiology / causation"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "tassonomia",
+  "en": "taxonomy"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "lemma",
+  "en": "entry / lemma"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "voce (di dizionario)",
+  "en": "entry"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "rimando",
+  "en": "cross-reference"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "indice analitico",
+  "en": "index"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "bibliografia ragionata",
+  "en": "critical bibliography"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "didascalia",
+  "en": "caption"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "tavole (fuori testo)",
+  "en": "plates"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "cronologia",
+  "en": "chronology / timeline"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "stemma codicum",
+  "en": "stemma (codicum)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "tradizione manoscritta",
+  "en": "manuscript tradition"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "testimone (di un testo)",
+  "en": "witness"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "autografo",
+  "en": "autograph / holograph"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "edizione critica",
+  "en": "critical edition"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "apparato critico",
+  "en": "critical apparatus"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "lezione (testuale)",
+  "en": "reading"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "variante",
+  "en": "variant"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "lacuna",
+  "en": "lacuna / gap"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "congettura",
+  "en": "conjecture"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "emendazione",
+  "en": "emendation"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "espunzione",
+  "en": "expunction"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "interpolazione",
+  "en": "interpolation"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "collazione",
+  "en": "collation"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "restauro conservativo",
+  "en": "conservative restoration"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "reintegrazione",
+  "en": "reintegration (of losses)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "anastilosi",
+  "en": "anastylosis"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "reversibilità",
+  "en": "reversibility"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "compatibilità",
+  "en": "compatibility"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "distinguibilità",
+  "en": "distinguishability"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "committenza",
+  "en": "patronage / commissioning"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "bottega",
+  "en": "workshop"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "attribuzione",
+  "en": "attribution"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "scuola di",
+  "en": "school of"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "maniera di",
+  "en": "manner of"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "ambito di",
+  "en": "circle of / ambit of"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "seguito di",
+  "en": "follower of"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "natura morta",
+  "en": "still life"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "veduta",
+  "en": "view / veduta"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "capriccio",
+  "en": "capriccio"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "chiaroscuro",
+  "en": "chiaroscuro"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "sfumato",
+  "en": "sfumato"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "non finito",
+  "en": "non finito"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "sinopia",
+  "en": "sinopia"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "giornata (di affresco)",
+  "en": "giornata (day's work in fresco)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "acquaforte",
+  "en": "etching"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "bulino",
+  "en": "burin / engraving"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "xilografia",
+  "en": "woodcut"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "litografia",
+  "en": "lithograph"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "tiratura",
+  "en": "edition / print run"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "filigrana",
+  "en": "watermark (paper); filigree (metal)"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "frontespizio",
+  "en": "title page"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "colophon",
+  "en": "colophon"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "edizione princeps",
+  "en": "editio princeps / first edition"
+ },
+ {
+  "tipo": "terminologia",
+  "it": "stampa anastatica",
+  "en": "anastatic reprint / facsimile reprint"
+ },
+ {
+  "tipo": "metafora",
+  "it": "tessere un discorso",
+  "en": "to weave an argument",
+  "rx_it": "tess(?:ere|e|uto|uta) un discorso"
+ },
+ {
+  "tipo": "metafora",
+  "it": "dipanare",
+  "en": "to unravel / to unfold",
+  "rx_it": "dipan\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "snodarsi",
+  "en": "to unfold",
+  "rx_it": "snod\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "articolarsi",
+  "en": "to be articulated / structured",
+  "rx_it": "articol\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "sostanziarsi in",
+  "en": "to be embodied in",
+  "rx_it": "sostanzi\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "informare di sé",
+  "en": "to pervade / to imbue"
+ },
+ {
+  "tipo": "metafora",
+  "it": "sottendere",
+  "en": "to underlie",
+  "rx_it": "sottend\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "tradire (un'influenza)",
+  "en": "to betray (an influence)",
+  "rx_it": "tradisc\\w*|tradire"
+ },
+ {
+  "tipo": "metafora",
+  "it": "lasciar trapelare",
+  "en": "to let slip / to hint at"
+ },
+ {
+  "tipo": "metafora",
+  "it": "affiorare",
+  "en": "to surface",
+  "rx_it": "affior\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "sedimentarsi",
+  "en": "to become entrenched",
+  "rx_it": "sediment\\w*"
+ },
+ {
+  "tipo": "metafora",
+  "it": "stratificazione",
+  "en": "layering / stratification"
+ },
+ {
+  "tipo": "metafora",
+  "it": "incrostazione",
+  "en": "accretion / encrustation"
+ },
+ {
+  "tipo": "metafora",
+  "it": "vernice (figurato)",
+  "en": "veneer"
+ },
+ {
+  "tipo": "metafora",
+  "it": "in filigrana",
+  "en": "in filigree / between the lines / implicitly"
+ },
+ {
+  "tipo": "metafora",
+  "it": "in controluce",
+  "en": "against the grain / against the light",
+  "nota": "leggere in controluce = to read against the grain"
+ },
+ {
+  "tipo": "metafora",
+  "it": "sottotraccia",
+  "en": "beneath the surface / under the radar"
+ },
+ {
+  "tipo": "metafora",
+  "it": "in nuce",
+  "en": "in a nutshell / in nuce"
+ },
+ {
+  "tipo": "metafora",
+  "it": "in fieri",
+  "en": "in the making / in progress"
+ },
+ {
+  "tipo": "metafora",
+  "it": "retroterra",
+  "en": "background / hinterland (cultural)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "sostrato",
+  "en": "substratum"
+ },
+ {
+  "tipo": "metafora",
+  "it": "humus",
+  "en": "humus / breeding ground"
+ },
+ {
+  "tipo": "metafora",
+  "it": "crogiolo",
+  "en": "crucible / melting pot"
+ },
+ {
+  "tipo": "metafora",
+  "it": "fucina",
+  "en": "hotbed / forge"
+ },
+ {
+  "tipo": "metafora",
+  "it": "cantiere aperto",
+  "en": "open-ended workshop / work in progress"
+ },
+ {
+  "tipo": "metafora",
+  "it": "ordito e trama",
+  "en": "warp and weft / fabric"
+ },
+ {
+  "tipo": "metafora",
+  "it": "cifra stilistica",
+  "en": "stylistic hallmark / signature"
+ },
+ {
+  "tipo": "metafora",
+  "it": "taglio (di un saggio)",
+  "en": "angle / approach"
+ },
+ {
+  "tipo": "metafora",
+  "it": "lente (leggere con la lente di)",
+  "en": "lens (to read through the lens of)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "chiave di lettura",
+  "en": "interpretive key / framework"
+ },
+ {
+  "tipo": "metafora",
+  "it": "griglia",
+  "en": "grid / framework"
+ },
+ {
+  "tipo": "metafora",
+  "it": "pietra miliare",
+  "en": "milestone / landmark"
+ },
+ {
+  "tipo": "metafora",
+  "it": "crocevia",
+  "en": "crossroads"
+ },
+ {
+  "tipo": "metafora",
+  "it": "spartiacque",
+  "en": "watershed / turning point"
+ },
+ {
+  "tipo": "metafora",
+  "it": "cesura",
+  "en": "break / watershed"
+ },
+ {
+  "tipo": "metafora",
+  "it": "tornante",
+  "en": "turning point / hairpin (of history)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "congiuntura",
+  "en": "juncture / moment"
+ },
+ {
+  "tipo": "metafora",
+  "it": "temperie",
+  "en": "climate / atmosphere (historical)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "alveo",
+  "en": "channel / framework (within the channel of)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "linfa",
+  "en": "lifeblood"
+ },
+ {
+  "tipo": "metafora",
+  "it": "lievito",
+  "en": "leaven"
+ },
+ {
+  "tipo": "metafora",
+  "it": "respiro (di respiro europeo)",
+  "en": "breadth / scope (of European breadth)"
+ },
+ {
+  "tipo": "metafora",
+  "it": "orizzonte d'attesa",
+  "en": "horizon of expectations (Jauss)"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "«»",
+  "en": "double quotation marks \"…\"",
+  "rx_it": "[«»]",
+  "warn": "in EN mai caporali: il post-fix li converte automaticamente in virgolette doppie"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "a cura di",
+  "en": "edited by"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "cfr.",
+  "en": "cf.",
+  "rx_it": "\\bcfr\\."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "ivi",
+  "en": "ibid., p. X (same work, different page)",
+  "warn": "distinguere: ivi = stesso luogo altra pagina; ibidem = stessa pagina"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "ibidem",
+  "en": "ibid."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "op. cit.",
+  "en": "op. cit."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "segg.",
+  "en": "ff.",
+  "rx_it": "\\bsegg?\\."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "N.d.A.",
+  "en": "Author's note"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "N.d.T.",
+  "en": "Translator's note"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "N.d.R.",
+  "en": "Editor's note"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "s.d.",
+  "en": "n.d. (no date)"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "s.l.",
+  "en": "n.p. (no place)"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "trad. it.",
+  "en": "Italian translation / trans. into Italian",
+  "nota": "in bibliografie EN: indicare la lingua della traduzione"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "nostra traduzione",
+  "en": "my translation / author's translation"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "il Cinquecento",
+  "en": "the sixteenth century / the Cinquecento",
+  "rx_it": "[iI]l (Due|Trecento|Quattro|Cinque|Sei|Sette|Otto|Nove)cento",
+  "nota": "in storia: secolo in lettere minuscole; in storia dell'arte italiana si può mantenere il termine"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "gli anni Ottanta",
+  "en": "the 1980s",
+  "rx_it": "anni (Venti|Trenta|Quaranta|Cinquanta|Sessanta|Settanta|Ottanta|Novanta)",
+  "warn": "≠ 'the eighties' se significa 1980s: usare the 1980s"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "1.234,56",
+  "en": "1,234.56",
+  "rx_it": "\\d{1,3}\\.\\d{3},\\d",
+  "warn": "invertire punti e virgole decimali"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "3 marzo 2024",
+  "en": "3 March 2024 (UK) / March 3, 2024 (US)",
+  "rx_it": "\\d{1,2} (gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)",
+  "nota": "mesi minuscoli in EN; scegliere uno stile e tenerlo"
+ },
+ {
+  "tipo": "convenzione",
+  "it": "pag.",
+  "en": "p.",
+  "rx_it": "\\bpagg?\\."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "cap.",
+  "en": "ch.",
+  "rx_it": "\\bcapp?\\."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "vol.",
+  "en": "vol."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "f. / c. (carta)",
+  "en": "fol.",
+  "rx_it": "\\b[fc]\\."
+ },
+ {
+  "tipo": "convenzione",
+  "it": "r / v (recto-verso)",
+  "en": "recto / verso",
+  "rx_it": "\\b[rv]\\b"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "sic",
+  "en": "sic (keep)",
+  "nota": "non tradurre mai"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "passim",
+  "en": "passim (keep)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "supra",
+  "en": "above / supra"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "infra",
+  "en": "below / infra"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "ex post",
+  "en": "ex post (keep)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "a posteriori",
+  "en": "a posteriori (keep)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "mutatis mutandis",
+  "en": "mutatis mutandis (keep)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "ceteris paribus",
+  "en": "ceteris paribus (keep)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "condicio sine qua non",
+  "en": "condicio sine qua non / sine qua non condition"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "vulgata",
+  "en": "received view / conventional wisdom (vulgata)"
+ },
+ {
+  "tipo": "latinismo",
+  "it": "lectio difficilior",
+  "en": "lectio difficilior (keep)"
+ },
+ {
+  "tipo": "letteratura",
+  "it": "naufragar / naufragio",
+  "en": "shipwreck / to be shipwrecked (Leopardi, L'Infinito)",
+  "rx_it": "\\bnaufrag\\w*",
+  "rx_en": "\\bshipwreck\\w*",
+  "warn": "in poesia l'immagine è il naufragio: shipwreck, non sinking/drowning/drifting"
+ },
+ {
+  "tipo": "regola",
+  "it": "smart working",
+  "en": "remote work / working from home / WFH",
+  "rx_it": "\\bsmart\\s+working\\b",
+  "rx_en": "\\bremote\\s+work\\b|\\bworking\\s+from\\s+home\\b|\\bWFH\\b",
+  "warn": "'smart working' è un italianismo inesistente in EN nativo: tradurre SEMPRE (il post-fix lo corregge comunque)"
+ },
+ {
+  "tipo": "regola",
+  "it": "3 corrente / 3 c.m.",
+  "en": "the 3rd of this month",
+  "rx_it": "\\b\\d{1,2}\\s*(corrente|c\\.m\\.|del\\s+corrente\\s+mese)",
+  "rx_en": "the\\s+\\d{1,2}(st|nd|rd|th)\\s+of\\s+this\\s+month",
+  "warn": "non inventare mai il nome del mese se assente nella sorgente"
+ },
+ {
+  "tipo": "stile",
+  "it": "si ritiene che",
+  "en": "it is held that / scholars hold that",
+  "rx_it": "si (ritiene|reputa|considera|pensa) che",
+  "nota": "evitare l'abuso di 'it is believed that'"
+ },
+ {
+  "tipo": "stile",
+  "it": "che relativo restrittivo",
+  "en": "that (no commas)",
+  "nota": "restrittivo = that senza virgole; esplicativo = which con virgole"
+ },
+ {
+  "tipo": "stile",
+  "it": "nominalizzazione pesante",
+  "en": "prefer verbal construction",
+  "nota": "'la realizzazione di X da parte di Y' → 'Y realized X' quando possibile"
+ },
+ {
+  "tipo": "stile",
+  "it": "soggetto sottinteso",
+  "en": "restore explicit subject",
+  "nota": "l'EN richiede soggetto esplicito: ripristinare pronomi che l'IT omette"
+ },
+ {
+  "tipo": "stile",
+  "it": "doppia negazione retorica",
+  "en": "prefer positive unless rhetorical",
+  "rx_it": "non (?:ignoto|improbabile|irrilevante|insignificante)",
+  "nota": "'non ignoto' → 'well known' salvo effetto retorico voluto"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "\\bsmart\\s+working\\b",
+  "fix_en": "remote work",
+  "nota": "italianismo aziendale: EN nativo usa remote work"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "«\"",
+  "fix_en": "\"",
+  "nota": "caporale orfano prima di virgoletta: rimuovere"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "\"»",
+  "fix_en": "\"",
+  "nota": "caporale orfano dopo virgoletta: rimuovere"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "«",
+  "fix_en": "\"",
+  "nota": "in EN i caporali non esistono: aprire con virgoletta doppia"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "»",
+  "fix_en": "\"",
+  "nota": "in EN i caporali non esistono: chiudere con virgoletta doppia"
+ },
+ {
+  "tipo": "postfix",
+  "rx_en": "\\bWho knows\\.",
+  "fix_en": "Dunno.",
+  "nota": "registro giovanile: 'Boh.' = 'Dunno.'",
+  "usi": [
+   "dialoghi"
+  ]
+ },
+ {
+  "tipo": "postfix",
+  "rx_it": "\\bTu desideri\\s*!",
+  "fix_it": "Magari!",
+  "nota": "gemella pragmatica: 'You wish!' non è un calco letterale, è 'Magari!'"
+ },
+ {
+  "tipo": "postfix",
+  "rx_it": "\\bIo desidero\\s*!",
+  "fix_it": "Magari!",
+  "nota": "variante in prima persona dello stesso calco desiderativo"
+ },
+ {
+  "tipo": "postfix",
+  "rx_it": "\\bDr\\.(?= [A-ZÀ-ÿ])",
+  "fix_it": "Dott.",
+  "nota": "EN→IT: i titoli tornano alla forma italiana (Dr. Rossi → Dott. Rossi); Prof./Eng. già corretti"
+ },
+ {
+  "tipo": "postfix",
+  "rx_it": "\"([^\"\\n]{1,300})\"",
+  "fix_it": "«\\1»",
+  "nota": "Tipografia EN→IT: convenzione editoriale italiana, i dialoghi e le citazioni vanno in caporali"
+ }
+]

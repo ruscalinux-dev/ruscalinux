@@ -27,6 +27,11 @@
   About window and keyboard shortcuts, and RuscaHub asks before deleting an
   AppImage and moves it to the trash. RuscaMark's app ID is now
   `org.ruscalinux.RuscaMark`: if you pinned it to the dash, pin it again.
+- **Local AI tools.** RuscaLLama (chat) and RuscaTranslator (translation of
+  Markdown documents, with Italian ↔ English linguistic knowledge) run
+  language models on your own computer through ruscallama-engine, a build of
+  llama.cpp. Nothing is sent over the internet; models are not included:
+  copy a GGUF file into `~/.local/share/ruscallama/models/`.
 - **SMPlayer** replaces VLC as the video player.
 - **Python virtual environments** work out of the box: `python3 -m venv`.
 - New boot splash.

@@ -200,16 +200,16 @@ def _contrasto(a, b):
 
 
 def test_theme_families():
-    print("i tre temi: Ametista, Classico, Semplice")
-    check("tre temi, non uno di piu'", len(pw_model.THEMES) == 3)
-    check("nell'ordine Ametista, Classico, Semplice",
-          pw_model.THEMES == ("ametista", "classico", "semplice"))
+    print("i due temi: Ametista, Classico")
+    check("due temi, non uno di piu'", len(pw_model.THEMES) == 2)
+    check("nell'ordine Ametista, Classico",
+          pw_model.THEMES == ("ametista", "classico"))
     check("il predefinito e' l'Ametista di RuscaLinux",
           pw_model.DEFAULT_THEME == pw_model.THEME_AMETISTA)
 
     css = {(f, d): build_css(dark=d, theme=f)
            for f in pw_model.THEMES for d in (False, True)}
-    check("sei fogli di stile, tutti diversi", len(set(css.values())) == 6)
+    check("quattro fogli di stile, tutti diversi", len(set(css.values())) == 4)
 
     # --- il criterio comune: il contrasto GIUSTO -------------------------
     for fam in pw_model.THEMES:
@@ -245,17 +245,15 @@ def test_theme_families():
         r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
         return max(r, g, b) - min(r, g, b)
 
-    for dark in (False, True):
-        se = pw_model.theme_palette(pw_model.THEME_SEMPLICE, dark)
-        neutri = [se[k] for k in ("editor_bg", "editor_fg", "sel_bg", "sel_fg")]
-        check("Semplice %s: solo grigi, nessuna tinta"
-              % ("scuro" if dark else "chiaro"),
-              all(tinta(c) <= 12 for c in neutri))
     cl = pw_model.theme_palette(pw_model.THEME_CLASSICO, False)
-    check("Classico: pagina avorio, non bianca",
-          cl["editor_bg"] == pw_model.CLASSICO_HUES["paper"])
-    check("Classico: il colore resta sulla selezione",
-          tinta(cl["sel_bg"]) > 12)
+    check("Classico: pagina bianca nitida (non bianco pieno) e neutra",
+          cl["editor_bg"] == pw_model.CLASSICO_HUES["paper"]
+          and tinta(cl["editor_bg"]) <= 4)
+    check("Classico: selezione e titoli blu",
+          tinta(cl["sel_bg"]) > 12 and int(cl["head"][5:7], 16) > int(cl["head"][1:3], 16))
+    cl_scuro = pw_model.theme_palette(pw_model.THEME_CLASSICO, True)
+    check("Classico scuro: pagina carbone neutra, non nera",
+          tinta(cl_scuro["editor_bg"]) <= 4 and cl_scuro["editor_bg"].upper() != "#000000")
 
     # la tavolozza: stesse chiavi ovunque
     palettes = [pw_model.theme_palette(f, d)
@@ -271,26 +269,27 @@ def test_theme_families():
     # nomi: tradotti in tutte le 15 lingue, tre e diversi fra loro
     check("nomi italiani",
           [pw_model.theme_label(t) for t in pw_model.THEMES]
-          == ["Ametista", "Classico", "Semplice"])
+          == ["Ametista", "Classico"])
     for code in sorted(pw_i18n.available_languages()):
         tr = pw_i18n.Translator(code)
         nomi = [pw_model.theme_label(t, translate=lambda k, r: tr.t(k))
                 for t in pw_model.THEMES]
-        check(f"{code}: tre nomi tradotti e diversi",
-              len(set(nomi)) == 3
+        check(f"{code}: due nomi tradotti e diversi",
+              len(set(nomi)) == 2
               and all(not n.startswith("theme_") for n in nomi))
 
     pallini = [pw_model.theme_dot_color(t) for t in pw_model.THEMES]
     check("ogni tema ha il suo pallino, tutti diversi",
-          all(pallini) and len(set(pallini)) == 3)
+          all(pallini) and len(set(pallini)) == 2)
 
     # i codici delle versioni precedenti portano al tema piu' vicino
     for vecchio, atteso in (("rusca", "ametista"), ("rubino", "ametista"),
                             ("morganite", "ametista"),
                             ("standard", "classico"), ("giada", "classico"),
                             ("ambra", "classico"), ("velluto", "classico"),
-                            ("zaffiro", "semplice"),
-                            ("lapislazzuli", "semplice")):
+                            ("zaffiro", "classico"),
+                            ("lapislazzuli", "classico"),
+                            ("semplice", "classico")):
         check(f"il vecchio tema {vecchio!r} diventa {atteso!r}",
               pw_model.resolve_theme(vecchio) == atteso)
     check("niente piu' temi letti da disco",

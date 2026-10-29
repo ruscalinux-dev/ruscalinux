@@ -21,7 +21,12 @@ repository (`tools/ruscawriter`) and follows its specifications.
   Appearance, and at the bottom the Markdown guide, keyboard shortcuts, About
 - **Changed** — text size and spell-check language moved to the bottom bar
 - **Changed** — bars, menus and dialogs follow the common RuscaLinux theme; the
-  three themes now colour only the writing page, the preview and the notes
+  page themes now colour only the writing page, the preview and the notes
+- **Changed** — two page themes instead of three: **Amethyst** and **Classic**.
+  Classic is now the look of a professional writing studio: a crisp white
+  page, near-black ink, cool greys and blue headings, code and selection; in
+  dark mode a charcoal page with a muted blue. Whoever used **Simple** is
+  moved to Classic
 - **Changed** — Amethyst uses the official RuscaLinux palette; Markdown marks,
   once almost invisible (about 1.2:1), are now at least 4.5:1, headings and
   code at least 7:1, in all six theme combinations
@@ -53,7 +58,7 @@ repository (`tools/ruscawriter`) and follows its specifications.
   About now read the same file as the desktop, so the two can no longer differ
 - **Fixed** — the links in About were GTK blue; they now take the theme's colour
 - **Changed** — three themes instead of six: **Amethyst** (the RuscaLinux
-  colours, light pink to dark plum), **Classic** (inspired by Scrivener: warm
+  colours, light pink to dark plum), **Classic** (warm
   grey, ivory page, graphite ink) and **Simple** (neutral greys only, the same
   for every kind of colour vision). Each has a light and a dark version
 - **Changed** — every piece of interface text is now at 7:1 contrast or more

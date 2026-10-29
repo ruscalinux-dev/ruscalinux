@@ -123,15 +123,14 @@ Dal sottomenu Visualizza si sceglie anche il carattere di scrittura (Caratteri�
 
 **Aspetto.** Il sottomenu Aspetto offre tre scelte. *Automatico* segue la modalità chiara o scura di GNOME (Impostazioni → Aspetto) e cambia insieme al sistema, anche mentre scrivi. *Chiaro* e *Scuro* fissano la scelta. Ctrl+Maiusc+D passa dall'uno all'altro. Barre, menu e dialoghi seguono il tema comune dei RuscaLinux OS Tools.
 
-**Temi della pagina.** Nello stesso sottomenu si sceglie il colore della pagina di scrittura, dell'anteprima e delle note. Sono tre, ciascuno in versione chiara e scura:
+**Temi della pagina.** Nello stesso sottomenu si sceglie il colore della pagina di scrittura, dell'anteprima e delle note. Sono due, ciascuno in versione chiara e scura:
 
 | Tema | Carattere |
 |---|---|
 | Ametista | I colori ufficiali di RuscaLinux: pagina bianca con un soffio di rosa, titoli e codice prugna; nello scuro pagina prugna e titoli rosa. È il predefinito. |
-| Classico | Ispirato a Scrivener: pagina avorio, inchiostro grafite, titoli e selezione azzurro ardesia. |
-| Semplice | Solo grigi neutri, senza tinte: si legge allo stesso modo con qualunque daltonismo, ed è il tema con il contrasto più generoso. |
+| Classico | Lo stile di uno studio di scrittura professionale: pagina bianca nitida, inchiostro quasi nero, grigi freddi e titoli, codice e selezione in blu; nello scuro pagina carbone con testo grigio chiaro e blu smorzato. |
 
-In tutti e tre il testo da scrivere sta intorno a 11:1, titoli, codice e note ad almeno 7:1 e i segni del Markdown (`**`, `#`, `` ` ``) ad almeno 4,5:1: smorzati, ma sempre leggibili.
+In entrambi il testo da scrivere sta intorno a 11:1, titoli, codice e note ad almeno 7:1 e i segni del Markdown (`**`, `#`, `` ` ``) ad almeno 4,5:1: smorzati, ma sempre leggibili.
 
 ---
 

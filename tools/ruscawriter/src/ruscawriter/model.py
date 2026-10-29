@@ -2519,41 +2519,38 @@ def write_pdf(path, chapters, title="",
         f.write(out)
 
 
-# ---- Colori: i tre temi ------------------------------------------------------
-# EN: RuscaWriter has exactly THREE themes, each with a light and a dark
-#     version (six combinations in all):
+# ---- Colori: i due temi -----------------------------------------------------
+# EN: RuscaWriter has TWO page themes, each with a light and a dark version
+#     (four combinations). They colour only the writing page, the preview and
+#     the notes: bars, menus and dialogs follow the common RuscaLinux theme.
 #
-#       "ametista" — the RuscaLinux identity: light pink to dark plum.
-#                    The default theme.
-#       "classico" — inspired by Scrivener: warm grey interface, ivory page,
-#                    graphite ink, a quiet slate-blue selection.
-#       "semplice" — for everyone: pure neutral greys, no tint at all, every
-#                    distinction carried by lightness alone (it reads the same
-#                    with any kind of colour blindness), all interface text at
-#                    7:1 or more (WCAG AAA).
+#       "ametista" — the RuscaLinux identity: the official plum and pink
+#                    palette. The default theme.
+#       "classico" — the look of a professional writing studio: a crisp white
+#                    page, near-black ink, cool neutral greys and clear blue
+#                    accents; in dark mode a charcoal page with a muted blue.
 #
-#     The criterion is the same for all three: the RIGHT contrast, not the
+#     The criterion is the same for both: the RIGHT contrast, not the
 #     maximum. Pure black on pure white (21:1) glares; white on black makes
-#     letters bloom. Body text sits around 11:1 on its page, the interface
-#     never below 7:1, and colour stays on small surfaces (selection, rules,
-#     buttons), never spread over large areas.
-# IT: RuscaWriter ha esattamente TRE temi, ciascuno in versione chiara e
-#     scura (sei combinazioni in tutto):
+#     letters bloom. Body text sits around 11:1 on its page, headings and
+#     code at 7:1 or more, Markdown marks at 4.5:1 or more.
+# IT: RuscaWriter ha DUE temi della pagina, ciascuno in versione chiara e
+#     scura (quattro combinazioni). Colorano solo la pagina di scrittura,
+#     l'anteprima e le note: barre, menu e dialoghi seguono il tema comune
+#     di RuscaLinux.
 #
-#       "ametista" — l'identita' di RuscaLinux: dal rosa chiaro al prugna
-#                    scuro. E' il tema predefinito.
-#       "classico" — ispirato a Scrivener: interfaccia grigio caldo, pagina
-#                    avorio, inchiostro grafite, selezione azzurro ardesia.
-#       "semplice" — adatto a tutti: grigi neutri puri, nessuna tinta, ogni
-#                    distinzione affidata alla sola luminosita' (si legge allo
-#                    stesso modo con qualunque daltonismo), tutte le scritte
-#                    dell'interfaccia almeno a 7:1 (WCAG AAA).
+#       "ametista" — l'identita' di RuscaLinux: la palette ufficiale prugna e
+#                    rosa. E' il tema predefinito.
+#       "classico" — l'aspetto di uno studio di scrittura professionale:
+#                    pagina bianca nitida, inchiostro quasi nero, grigi
+#                    freddi neutri e accenti blu decisi; nello scuro pagina
+#                    carbone e blu smorzato.
 #
-#     Il criterio e' lo stesso per tutti e tre: il contrasto GIUSTO, non il
+#     Il criterio e' lo stesso per entrambi: il contrasto GIUSTO, non il
 #     massimo. Nero pieno su bianco pieno (21:1) abbaglia; bianco su nero fa
 #     sbavare le lettere. Il corpo del testo sta intorno a 11:1 sulla sua
-#     pagina, l'interfaccia mai sotto 7:1, e il colore resta sulle superfici
-#     piccole (selezione, filetti, pulsanti), mai steso su grandi aree.
+#     pagina, titoli e codice ad almeno 7:1, i segni del Markdown ad almeno
+#     4,5:1.
 #
 # NB: "PLUM" qui e' il COLORE prugna ("plum" in inglese), il tema cromatico
 # storico dell'applicazione: non un residuo del vecchio nome del programma.
@@ -2616,87 +2613,41 @@ AMETISTA_HUES = {
     "night_on_chrome": "#FFF7F0",
 }
 
-# --- "Classico": ispirato a Scrivener ----------------------------------------
-# EN: the look of a writer's desk: warm grey bars and binder, an ivory page,
-#     graphite ink, and the light slate-blue selection of the Mac programs
-#     Scrivener grew up with. Blue is the hue the eye focuses worst, so it is
-#     kept pale and confined to the selection; everything else is neutral.
-#     The dark version is Scrivener's charcoal, not black.
-# IT: l'aspetto di una scrivania da scrittore: fasce e raccoglitore grigio
-#     caldo, pagina avorio, inchiostro grafite, e la selezione azzurro
-#     ardesia tenue dei programmi Mac in cui Scrivener e' nato. Il blu e' la
-#     tinta che l'occhio mette a fuoco peggio: per questo resta chiaro e
-#     confinato alla selezione, e tutto il resto e' neutro. La versione scura
-#     e' il carbone di Scrivener, non il nero.
+# --- "Classico": studio di scrittura -----------------------------------------
+# EN: a crisp white page, near-black ink, cool neutral greys for the panels
+#     and a clear blue for headings, code and selection, like the writing
+#     programs of the Mac world. Dark: a charcoal page (not black) with soft
+#     light-grey text and a muted blue selection.
+# IT: pagina bianca nitida, inchiostro quasi nero, grigi freddi neutri per i
+#     pannelli e un blu deciso per titoli, codice e selezione, come i
+#     programmi di scrittura del mondo Mac. Scuro: pagina carbone (non nera)
+#     con testo grigio chiaro e selezione blu smorzato.
 CLASSICO_HUES = {
-    "paper":        "#FBF9F4",   # avorio
-    "panel":        "#EEEBE5",   # grigio caldo del raccoglitore
-    "ink":          "#262422",   # grafite calda
-    "night":        "#1F1F1F",   # carbone
-    "night_panel":  "#2A2A2A",
-    "night_ink":    "#202020",
-    "parchment":    "#DCD8D1",   # carta di giornale sul carbone
-    "accent":       "#4F6D94",   # ardesia: pulsanti e pallino
-    "dark":         "#344B69",
-    "light":        "#DCE5F0",
-    "glow":         "#A7BFDD",   # ardesia luminosa sul fondo scuro
-    "code":         "#3D5878",
-    "wrap_light":   "#EEF2F7",
-    "wrap_dark":    "#26303C",
-    "text":         "#33445A",   # titoli: grafite azzurrata, non blu pieno
-    "sel":          "#C4D6EC", "on_sel":       "#1C2531",
-    "night_sel":    "#3B5272", "night_on_sel": "#EEF2F7",
-    "window_top":   "#E4E1DB",
-    "chrome_a":     "#ECE9E4", "chrome_b":     "#E0DCD5",
-    "menubar_a":    "#F2F0EC", "menubar_b":    "#E6E3DE",
-    "on_chrome":    "#2A2826",
-    "night_chrome_a":  "#333333", "night_chrome_b":  "#262626",
-    "night_menubar_a": "#2E2E2E", "night_menubar_b": "#242424",
-    "night_on_chrome": "#E0DCD6",
-}
-
-# --- "Semplice": adatto a tutti ----------------------------------------------
-# EN: no hue at all. Every role is told apart by lightness only, so the theme
-#     works the same for every kind of colour vision, on cheap and expensive
-#     screens alike, in a bright room or a dark one. The selection is a
-#     visible grey band with near-black text; the accent is a graphite slate.
-#     It is also the theme with the most generous contrast: interface text at
-#     7:1 or more, body text at 12:1 (still far from the glare of 21:1).
-# IT: nessuna tinta. Ogni ruolo si distingue per la sola luminosita', cosi'
-#     il tema funziona allo stesso modo per ogni tipo di visione dei colori,
-#     su schermi economici e costosi, in una stanza luminosa o buia. La
-#     selezione e' una fascia grigia ben visibile con testo quasi nero;
-#     l'accento e' un'ardesia grafite. E' anche il tema con il contrasto piu'
-#     generoso: interfaccia ad almeno 7:1, corpo del testo a 12:1 (lontano
-#     comunque dall'abbaglio di 21:1).
-SEMPLICE_HUES = {
-    "paper":        "#FAFAFA",
-    "panel":        "#F0F0F0",
-    "ink":          "#1C1C1C",
-    "night":        "#1C1C1C",
-    "night_panel":  "#262626",
-    "night_ink":    "#1E1E1E",
-    "parchment":    "#E2E2E2",
-    "accent":       "#4A4F57",   # ardesia grafite
-    "dark":         "#2E3238",
-    "light":        "#E6E7E9",
-    "glow":         "#D0D3D8",
-    "code":         "#3E4248",
-    "wrap_light":   "#EEEEEE",
-    "wrap_dark":    "#2E2E2E",
-    "text":         "#2B2D30",
-    "sel":          "#C8CCD2", "on_sel":       "#141414",
-    "night_sel":    "#4A4E55", "night_on_sel": "#F5F5F5",
-    "window_top":   "#EBEBEB",
-    "chrome_a":     "#F2F2F2", "chrome_b":     "#E7E7E7",
-    "menubar_a":    "#F4F4F4", "menubar_b":    "#E9E9E9",
-    "on_chrome":    "#1C1C1C",
-    "night_chrome_a":  "#2F2F2F", "night_chrome_b":  "#262626",
-    "night_menubar_a": "#2C2C2C", "night_menubar_b": "#242424",
-    "night_on_chrome": "#E8E8E8",
-    # contrasti un gradino piu' alti degli altri due temi
-    "light_contrast": 12.0,
-    "dark_contrast":  12.0,
+    "paper":        "#FDFDFC",   # bianco carta, appena sotto il bianco pieno
+    "panel":        "#F2F3F5",   # grigio freddo del raccoglitore
+    "ink":          "#1D1D1F",   # quasi nero
+    "night":        "#1E1E1E",   # carbone
+    "night_panel":  "#2A2A2C",
+    "night_ink":    "#1E1E1E",   # la pagina scura (poi schiarita)
+    "parchment":    "#E6E6E6",   # testo grigio chiaro sul carbone
+    "accent":       "#2F6FBA",   # blu deciso: pulsanti e pallino
+    "dark":         "#1F4F8A",
+    "light":        "#DCE8F7",
+    "glow":         "#8FB8EC",   # blu luminoso per titoli e codice nello scuro
+    "code":         "#1F4F8A",
+    "wrap_light":   "#EEF4FC",
+    "wrap_dark":    "#24303F",
+    "text":         "#1F4E79",   # titoli: blu profondo
+    "sel":          "#B7D4FB", "on_sel":       "#101418",
+    "night_sel":    "#2C4D77", "night_on_sel": "#F5F8FC",
+    # cornici (usate solo dalla tavolozza: la finestra segue il tema comune)
+    "window_top":   "#ECEDEF",
+    "chrome_a":     "#F2F3F5", "chrome_b":     "#E6E8EB",
+    "menubar_a":    "#F6F7F8", "menubar_b":    "#ECEDEF",
+    "on_chrome":    "#1D1D1F",
+    "night_chrome_a":  "#323234", "night_chrome_b":  "#28282A",
+    "night_menubar_a": "#2E2E30", "night_menubar_b": "#262628",
+    "night_on_chrome": "#E6E6E6",
 }
 
 
@@ -2705,51 +2656,48 @@ SEMPLICE_HUES = {
 # ripiega sul predefinito.
 THEME_AMETISTA = "ametista"
 THEME_CLASSICO = "classico"
-THEME_SEMPLICE = "semplice"
-BUILTIN_THEMES = (THEME_AMETISTA, THEME_CLASSICO, THEME_SEMPLICE)
+BUILTIN_THEMES = (THEME_AMETISTA, THEME_CLASSICO)
 THEMES = BUILTIN_THEMES
 DEFAULT_THEME = THEME_AMETISTA
 # nomi storici, tenuti perche' il codice esterno continui a funzionare
 THEME_RUSCA, THEME_STANDARD = THEME_AMETISTA, THEME_CLASSICO
 
 # EN/IT: themes that no longer exist. Whoever had one saved lands on the
-# closest of the three, not on the default without explanation.
+# closest of the two, not on the default without explanation.
 # / temi che non esistono piu'. Chi ne aveva uno salvato atterra sul piu'
-# vicino dei tre, non sul predefinito senza spiegazione.
+# vicino dei due, non sul predefinito senza spiegazione.
 THEME_ALIASES = {
     "rusca":         THEME_AMETISTA,
     "rubino":        THEME_AMETISTA,   # rosso profondo -> la famiglia calda
     "morganite":     THEME_AMETISTA,   # rosa chiarissimo -> il rosa
-    "standard":      THEME_CLASSICO,   # il vecchio "ispirato a Scrivener"
+    "standard":      THEME_CLASSICO,
     "standard_blue": THEME_CLASSICO,
     "standard_red":  THEME_CLASSICO,
     "giada":         THEME_CLASSICO,
     "ambra":         THEME_CLASSICO,
     "velluto":       THEME_CLASSICO,
-    "zaffiro":       THEME_SEMPLICE,
-    "lapislazzuli":  THEME_SEMPLICE,
+    "zaffiro":       THEME_CLASSICO,
+    "lapislazzuli":  THEME_CLASSICO,
+    "semplice":      THEME_CLASSICO,   # tolto nella 1.99.2: neutro -> Classico
 }
 
 THEME_HUES = {
     THEME_AMETISTA: AMETISTA_HUES,
     THEME_CLASSICO: CLASSICO_HUES,
-    THEME_SEMPLICE: SEMPLICE_HUES,
 }
 STANDARD_HUES = THEME_HUES      # nome storico
 
 THEME_LABEL_KEYS = {
     THEME_AMETISTA: "theme_ametista",
     THEME_CLASSICO: "theme_classico",
-    THEME_SEMPLICE: "theme_semplice",
 }
 
 # EN/IT: a coloured dot beside each name in the menu, painted with the
 # theme's own colour. / un pallino colorato accanto a ogni nome nel menu,
 # dipinto con il colore del tema.
 THEME_DOT_COLORS = {
-    THEME_AMETISTA: "#9C4F9A",   # viola ametista
-    THEME_CLASSICO: "#4F6D94",   # ardesia
-    THEME_SEMPLICE: "#80858C",   # grigio neutro
+    THEME_AMETISTA: "#7A2357",   # prugna RuscaLinux
+    THEME_CLASSICO: "#2F6FBA",   # blu
 }
 THEME_DOT = "\u25CF"             # ● pallino pieno
 
@@ -2773,7 +2721,6 @@ def theme_dot_color(theme):
 THEME_EMOJI = {
     THEME_AMETISTA: "\U0001F7E3",   # 🟣
     THEME_CLASSICO: "\U0001F535",   # 🔵
-    THEME_SEMPLICE: "\u26AA",       # ⚪
 }
 
 
@@ -2790,7 +2737,6 @@ def theme_dot(theme):
 THEME_LABEL_FALLBACK = {
     THEME_AMETISTA: "Ametista",
     THEME_CLASSICO: "Classico",
-    THEME_SEMPLICE: "Semplice",
 }
 
 
@@ -3108,7 +3054,7 @@ def build_css(dark=False, theme=DEFAULT_THEME):
 
     Barre, menu, pulsanti e dialoghi sono quelli di libadwaita, colorati dal
     tema comune dei RuscaLinux OS Tools (style.css): il tema di RuscaWriter
-    (Ametista, Classico, Semplice) colora solo la carta su cui si scrive.
+    (Ametista, Classico) colora solo la carta su cui si scrive.
     """
     p = theme_palette(theme, dark)
     return f"""

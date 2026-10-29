@@ -19,7 +19,7 @@
 """
 EN: GUI tests for the page set-up dialog, the three themes and the
     appearance (automatic / light / dark). They open the real window.
-IT: Test dell'interfaccia per il dialogo di impostazione pagina, i tre temi e
+IT: Test dell'interfaccia per il dialogo di impostazione pagina, i due temi e
     l'aspetto (automatico / chiaro / scuro). Aprono la finestra vera.
 
 Serve GTK 4 e uno schermo. Senza schermo si usa Xvfb:
@@ -89,7 +89,7 @@ def run_checks(win):
     print("\n== Temi ==")
     check("un tema vecchio salvato (giada) diventa Classico",
           win.theme_family == rw_model.THEME_CLASSICO)
-    check("tre temi nel menu", len(rw_model.THEMES) == 3)
+    check("due temi nel menu", len(rw_model.THEMES) == 2)
     for code in rw_model.THEMES:
         win.on_theme_family(code)
         check(f"{code}: tema applicato e ricordato",

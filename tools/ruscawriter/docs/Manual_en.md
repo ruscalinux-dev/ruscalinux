@@ -123,15 +123,14 @@ The View submenu also holds the writing font (Fonts…).
 
 **Appearance.** The Appearance submenu offers three choices. *Automatic* follows GNOME's light or dark mode (Settings → Appearance) and changes with the system, even while you write. *Light* and *Dark* fix the choice. Ctrl+Shift+D switches between the two. Bars, menus and dialogs follow the common theme of the RuscaLinux OS Tools.
 
-**Page themes.** The same submenu sets the colours of the writing page, the preview and the notes. There are three, each in a light and a dark version:
+**Page themes.** The same submenu sets the colours of the writing page, the preview and the notes. There are two, each in a light and a dark version:
 
 | Theme | Character |
 |---|---|
 | Ametista | The official RuscaLinux colours: a white page with a breath of pink, plum headings and code; in dark mode a plum page with pink headings. The default. |
-| Classico | Inspired by Scrivener: ivory page, graphite ink, slate-blue headings and selection. |
-| Semplice | Neutral greys only, no hue: it reads the same with any colour blindness and has the most generous contrast. |
+| Classico | The style of a professional writing studio: a crisp white page, near-black ink, cool greys, and blue headings, code and selection; in dark mode a charcoal page with light-grey text and a muted blue. |
 
-In all three the writing text is around 11:1, headings, code and notes at least 7:1, and Markdown marks (`**`, `#`, `` ` ``) at least 4.5:1: subdued, but always readable.
+In both the writing text is around 11:1, headings, code and notes at least 7:1, and Markdown marks (`**`, `#`, `` ` ``) at least 4.5:1: subdued, but always readable.
 
 ---
 

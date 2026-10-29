@@ -142,10 +142,10 @@ from .model import (
     system_font_families, font_files_for_family,
     HAVE_PYPHEN, hyphenation_available,
 )
-# EN/IT: the three themes (Ametista, Classico, Semplice), each in a light and
+# EN/IT: the two themes (Ametista, Classico), each in a light and
 # a dark version. All colours come from theme_palette(): the interface never
 # writes a colour of its own.
-# I tre temi (Ametista, Classico, Semplice), ciascuno in versione chiara e
+# I due temi (Ametista, Classico), ciascuno in versione chiara e
 # scura. Tutti i colori arrivano da theme_palette(): l'interfaccia non scrive
 # mai un colore per conto suo.
 from .model import (
@@ -780,7 +780,7 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._style_manager = Adw.StyleManager.get_default()
         self._apply_color_scheme()
         self.dark_mode = self._style_manager.get_dark()
-        # Tema dell'interfaccia: Ametista, Classico o Semplice. E'
+        # Tema della pagina: Ametista o Classico. E'
         # indipendente da chiaro/scuro: ogni tema ha entrambe le versioni.
         # resolve_theme traduce anche i codici dei temi vecchi (Giada, Ambra,
         # Zaffiro...), cosi' chi ne aveva uno si ritrova sul piu' vicino dei
@@ -1181,7 +1181,7 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._update_tag_colors()
 
     def on_theme_family(self, code):
-        """Cambia tema (Ametista / Classico / Semplice) senza toccare la
+        """Cambia tema (Ametista / Classico) senza toccare la
         preferenza chiaro-scuro, che resta com'era."""
         if (code not in pw_model.THEMES
                 or code == getattr(self, "theme_family", None)):

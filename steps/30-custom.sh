@@ -98,10 +98,16 @@ EOF
 # ---------------------------------------------------------------------------
 # APPLICAZIONI PREDEFINITE
 #
-# Va in /usr/share/applications/mimeapps.list, che nella precedenza XDG e' lo
-# slot delle scelte fatte dalla distribuzione: ~/.config/mimeapps.list la
-# sovrascrive, quindi la scelta dell'utente vince sempre e il pannello
-# Impostazioni continua a funzionare.
+# Va in /etc/xdg/gnome-mimeapps.list (e, uguale, in /etc/xdg/mimeapps.list
+# per le sessioni non GNOME). Non basta /usr/share/applications/mimeapps.list:
+# nella stessa cartella vince /usr/share/applications/gnome-mimeapps.list di
+# gnome-session-common, che sceglie Loupe per le immagini e Totem per i
+# video. /etc/xdg viene prima di /usr/share e non appartiene a nessun
+# pacchetto; ~/.config/mimeapps.list vince ancora, quindi la scelta
+# dell'utente nel pannello Impostazioni resta libera.
+#
+# Immagini: Eye of GNOME (eog), nascosto nel menu ma predefinito per aprire
+# le immagini. Video: SMPlayer.
 #
 # I sei tipi che il pannello "Applicazioni predefinite" di GNOME interroga per
 # decidere cosa mostrare in ciascuna riga sono, nell'ordine: x-scheme-handler/http,
@@ -109,8 +115,8 @@ EOF
 # image/jpeg. Se mancassero quelli, le associazioni funzionerebbero comunque ma
 # il pannello mostrerebbe righe vuote: sono i primi di ogni gruppo qui sotto.
 # ---------------------------------------------------------------------------
-mkdir -p .work/config/includes.chroot_after_packages/usr/share/applications
-cat <<'MIMEAPPS' > .work/config/includes.chroot_after_packages/usr/share/applications/mimeapps.list
+mkdir -p .work/config/includes.chroot_after_packages/etc/xdg
+cat <<'MIMEAPPS' > .work/config/includes.chroot_after_packages/etc/xdg/gnome-mimeapps.list
 [Default Applications]
 # Web — Firefox ESR
 x-scheme-handler/http=firefox-esr.desktop
@@ -159,6 +165,16 @@ video/x-flv=smplayer.desktop
 video/ogg=smplayer.desktop
 video/3gpp=smplayer.desktop
 video/3gpp2=smplayer.desktop
+video/x-theora+ogg=smplayer.desktop
+video/vnd.avi=smplayer.desktop
+video/x-avi=smplayer.desktop
+video/dv=smplayer.desktop
+video/mp2t=smplayer.desktop
+video/x-mpeg2=smplayer.desktop
+video/x-m4v=smplayer.desktop
+video/x-ms-asf=smplayer.desktop
+video/x-ogm=smplayer.desktop
+application/vnd.rn-realmedia=smplayer.desktop
 
 # Fotografie — Eye of GNOME
 image/jpeg=org.gnome.eog.desktop
@@ -170,7 +186,12 @@ image/webp=org.gnome.eog.desktop
 image/avif=org.gnome.eog.desktop
 image/x-icon=org.gnome.eog.desktop
 image/svg+xml=org.gnome.eog.desktop
+image/heic=org.gnome.eog.desktop
+image/x-portable-pixmap=org.gnome.eog.desktop
+image/x-tga=org.gnome.eog.desktop
 MIMEAPPS
+cp .work/config/includes.chroot_after_packages/etc/xdg/gnome-mimeapps.list \
+   .work/config/includes.chroot_after_packages/etc/xdg/mimeapps.list
 
 # ---------------------------------------------------------------------------
 # GNOME INITIAL SETUP — MODALITÀ LIVE (v@VERSION@, rev. 5 — systemd user unit)
@@ -528,16 +549,18 @@ chmod +x .work/config/hooks/normal/9992-remove-skel-face.hook.chroot
 # ---------------------------------------------------------------------------
 # APPLICAZIONI NASCOSTE NEL MENU DI GNOME (v@VERSION@)
 # ---------------------------------------------------------------------------
-# Totem (Video) e la Guida di riferimento Debian restano installati, perche'
-# altri pacchetti ne dipendono, ma non compaiono nella griglia delle
-# applicazioni ne' nella ricerca.
+# Totem (Video), Eye of GNOME (eog) e la Guida di riferimento Debian restano
+# installati ma non compaiono nella griglia delle applicazioni ne' nella
+# ricerca. eog resta il visualizzatore predefinito delle immagini (vedi
+# APPLICAZIONI PREDEFINITE): si apre facendo doppio clic su un'immagine.
 #
 # Non si modificano i file .desktop in /usr/share/applications: il prossimo
 # aggiornamento del pacchetto li riscriverebbe. Se ne mette invece una copia
 # con NoDisplay=true in /usr/local/share/applications, che nella precedenza
 # XDG viene prima di /usr/share e sopravvive agli aggiornamenti. La copia
-# conserva Exec e MimeType: "Apri con" continua a funzionare, e i video si
-# aprono comunque con SMPlayer (vedi mimeapps.list sopra).
+# conserva Exec e MimeType: "Apri con" continua a funzionare e eog resta
+# utilizzabile come visualizzatore predefinito (NoDisplay nasconde l'icona,
+# non l'associazione ai tipi di file).
 #
 # I file si trovano con dpkg -L, non per nome: cosi' funziona anche se
 # Debian li rinomina, e comprende tutte le lingue della guida
@@ -548,7 +571,7 @@ cat <<'EOF' > .work/config/hooks/normal/9994-hide-apps.hook.chroot
 set -e
 DEST=/usr/local/share/applications
 mkdir -p "$DEST"
-for PKG in totem $(dpkg-query -W -f '${Package}\n' 'debian-reference*' 2>/dev/null); do
+for PKG in totem eog $(dpkg-query -W -f '${Package}\n' 'debian-reference*' 2>/dev/null); do
     dpkg -L "$PKG" 2>/dev/null | grep '^/usr/share/applications/.*\.desktop$' |
     while read -r F; do
         [ -f "$F" ] || continue

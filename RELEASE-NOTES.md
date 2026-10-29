@@ -27,6 +27,10 @@
   About window and keyboard shortcuts, and RuscaHub asks before deleting an
   AppImage and moves it to the trash. RuscaMark's app ID is now
   `org.ruscalinux.RuscaMark`: if you pinned it to the dash, pin it again.
+- **RuscaWriter joins the in-house tools.** The book-writing program
+  (chapters, notes, Markdown, typesetting and export to PDF, EPUB, ODT,
+  DOCX…) now has the same GNOME look as the other tools, page themes with
+  verified contrast, and opens `.rwr` projects with a double click.
 - **Local AI tools.** RuscaLLama (chat) and RuscaTranslator (translation of
   Markdown documents, with Italian ↔ English linguistic knowledge) run
   language models on your own computer through ruscallama-engine, a build of

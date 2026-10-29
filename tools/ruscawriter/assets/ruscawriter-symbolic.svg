@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- RuscaWriter, icona simbolica: pennino sulla riga. Un solo colore. -->
+  <g fill="#2e3436">
+    <path fill-rule="evenodd" d="M4.5 1h7v4c0 2.6-1.8 5-3.5 7.5C6.3 10 4.5 7.6 4.5 5zM8 5.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-.45 2.6v3.2h.9V7.8z"/>
+    <rect x="2" y="14" width="12" height="1.5" rx=".75"/>
+  </g>
+</svg>

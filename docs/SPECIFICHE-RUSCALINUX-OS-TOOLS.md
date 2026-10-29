@@ -54,6 +54,7 @@ Si trova nel repository in `docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`. In caso di 
 | RuscaCleaner | Privacy e pulizia del desktop GNOME | Utility di sistema | `org.ruscalinux.RuscaCleaner` | `ruscacleaner` | No |
 | RuscaHub | Gestione AppImages | Gestore applicazioni | `org.ruscalinux.RuscaHub` | `ruscahub` | No |
 | RuscaMark | Editing Markdown | Editor di testo | `org.ruscalinux.RuscaMark` | `ruscamark` | Sì, se c’è il controllo ortografico |
+| RuscaWriter | Scrittura e impaginazione di libri | Word processor | `org.ruscalinux.RuscaWriter` | `ruscawriter` | Sì, sempre |
 | RuscaLLama | Chat con modelli linguistici locali | Assistente IA | `org.ruscalinux.RuscaLLama` | `ruscallama` | No |
 | RuscaTranslator | Traduzione di documenti Markdown, con RAG ottimizzato per italiano ↔ inglese | Traduttore | `org.ruscalinux.RuscaTranslator` | `ruscatranslator` | No |
 | ruscallama-engine | Motore che esegue i modelli per RuscaLLama e RuscaTranslator: **llama.cpp, software esterno** | Componente di sistema, senza interfaccia | — | `ruscallama-engine` | — |
@@ -572,6 +573,7 @@ Componenti esterni in uso:
 
 | Componente | Versione | Licenza | Dove | Usato da |
 |---|---|---|---|---|
+| EB Garamond e Courier Prime (caratteri tipografici) | inclusi nei sorgenti | SIL Open Font License 1.1 | `tools/ruscawriter/assets/`, installati in `/usr/share/ruscawriter/assets/` con il testo della licenza | RuscaWriter |
 | llama.cpp (con ggml e le librerie che include: nlohmann/json e cpp-httplib MIT, xxHash BSD-2-Clause, stb, miniaudio, sha1 e sha256 di pubblico dominio) | 0.6.0, fissata in `tools/ruscallama-engine/make-deb.sh` | MIT | Compilato nel pacchetto `ruscallama-engine`, in `/usr/lib/ruscallama-engine/` | RuscaLLama, RuscaTranslator |
 
 Il file `copyright` di `ruscallama-engine` riporta tutte queste licenze; solo lo script di costruzione e il profilo AppArmor sono di RuscaLinux (GPL-3.0).
@@ -720,20 +722,21 @@ Tedesco, russo e francese possono essere fino al 40% più lunghi dell’inglese:
 ## 🇬🇧 10. SUPPORTO INGLESE BRITANNICO
 
 1. Non creare `en_GB.json` per l’interfaccia: si usa `en.json` come inglese generico.
-2. `en_GB` serve solo per il dizionario ortografico dei tool che controllano l’ortografia.
+2. `en_GB` serve solo per dizionari ortografici e sillabazione nei programmi di scrittura.
 
 | Tool | Supporto en_GB |
 |---|---|
+| RuscaWriter | Sì, sempre (ortografia e sillabazione del PDF) |
 | RuscaMark | Sì, se è presente il controllo ortografico |
-| RuscaCleaner | No |
-| RuscaHub | No |
+| RuscaCleaner, RuscaHub, RuscaLLama, RuscaTranslator | No |
 
-Pacchetto: `hunspell-en-gb`.
+Pacchetti: `hunspell-en-gb` (ortografia) e `hyphen-en-gb` (sillabazione, particolarmente consigliato per RuscaWriter, che lo usa con `python3-pyphen`).
 
 Nei deb interessati:
 
 ```text
-Recommends: hunspell-en-gb
+Recommends: hunspell-en-gb               (RuscaMark)
+Recommends: hunspell-en-gb, hyphen-en-gb (RuscaWriter)
 ```
 
 ---
@@ -913,6 +916,17 @@ Editor Markdown.
 
 Il controllo ortografico, se presente, usa solo dizionari locali (incluso `en_GB` tramite `hunspell-en-gb`) e non invia mai il testo online.
 
+## ✍️ RuscaWriter
+
+Scrittura e impaginazione di libri.
+
+1. Aprire RuscaWriter e scegliere «Crea nuovo» o «Apri esistente» (i progetti sono file `.rwr`).
+2. Aggiungere i capitoli con **+** e scrivere in Markdown; a destra le note di ogni capitolo.
+3. Impostare formato e margini dal menu principale → Impostazione pagina.
+4. Esportare dal menu principale → Esporta: PDF, EPUB, AZW3, ODT, DOCX, HTML, Markdown o testo.
+
+Controllo ortografico e sillabazione usano solo dizionari locali (incluso l’inglese britannico tramite `hunspell-en-gb` e `hyphen-en-gb`). Il testo non viene mai inviato online.
+
 ## 💬 RuscaLLama
 
 Chat con modelli linguistici che girano su questo computer.
@@ -975,6 +989,7 @@ Tutti i dati elaborati dai RuscaLinux OS Tools rimangono in locale. Nessun dato 
 | RuscaCleaner | GNOME desktop privacy and cleaning |
 | RuscaHub | AppImage management |
 | RuscaMark | Markdown editing |
+| RuscaWriter | Writing and typesetting books |
 | RuscaLLama | Chat with local language models |
 | RuscaTranslator | Translation of Markdown documents, with a RAG optimized for Italian ↔ English |
 | ruscallama-engine | Engine that runs the models: llama.cpp, an external component (MIT) |
@@ -1055,6 +1070,17 @@ Markdown editor.
 5. Export the document if the feature is available.
 
 Spell checking, if present, uses only local dictionaries (including `en_GB` through `hunspell-en-gb`) and never sends text online.
+
+## ✍️ RuscaWriter
+
+Writing and typesetting books.
+
+1. Open RuscaWriter and choose "Create new" or "Open existing" (projects are `.rwr` files).
+2. Add chapters with **+** and write in Markdown; each chapter's notes are on the right.
+3. Set format and margins from the main menu → Page setup.
+4. Export from the main menu → Export: PDF, EPUB, AZW3, ODT, DOCX, HTML, Markdown or text.
+
+Spell checking and hyphenation use only local dictionaries (including British English through `hunspell-en-gb` and `hyphen-en-gb`). Text is never sent online.
 
 ## 💬 RuscaLLama
 

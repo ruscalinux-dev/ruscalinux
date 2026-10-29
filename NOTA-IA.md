@@ -4,7 +4,7 @@
 
 **Nota di sviluppo:** Progettazione, specifiche e verifica dell’autore; codice scritto con l’assistenza di strumenti di intelligenza artificiale.
 
-RuscaLinux e i RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark, RuscaLLama, RuscaTranslator) sono progettati e mantenuti da Nunzio Curcuruto. Il motore ruscallama-engine è llama.cpp, software esterno di altri autori: la nota non lo riguarda.
+RuscaLinux e i RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark, RuscaWriter, RuscaLLama, RuscaTranslator) sono progettati e mantenuti da Nunzio Curcuruto. Il motore ruscallama-engine (llama.cpp) e i caratteri inclusi in RuscaWriter (EB Garamond, Courier Prime) sono di altri autori: la nota non li riguarda.
 
 Il lavoro è diviso così:
 
@@ -21,7 +21,7 @@ Per domande: info@ruscalinux.org
 
 **Development note:** Design, specifications and testing by the author; code written with the assistance of AI tools.
 
-RuscaLinux and the RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark, RuscaLLama, RuscaTranslator) are designed and maintained by Nunzio Curcuruto. The ruscallama-engine engine is llama.cpp, external software by other authors: this note does not cover it.
+RuscaLinux and the RuscaLinux OS Tools (RuscaCleaner, RuscaHub, RuscaMark, RuscaWriter, RuscaLLama, RuscaTranslator) are designed and maintained by Nunzio Curcuruto. The ruscallama-engine engine (llama.cpp) and the fonts bundled with RuscaWriter (EB Garamond, Courier Prime) are by other authors: this note does not cover them.
 
 The work is divided as follows:
 

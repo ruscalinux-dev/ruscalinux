@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- RuscaWriter — pennino di stilografica sulla riga di scrittura.
+       Palette RuscaLinux, come le altre icone dei RuscaLinux OS Tools:
+       prugna #2d0a1d -> #8a2b5f, crema #fff7f0, rosa chiaro #f8d7e6. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0.00" stop-color="#2d0a1d"/>
+      <stop offset="0.55" stop-color="#5c1a40"/>
+      <stop offset="1.00" stop-color="#8a2b5f"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <path d="M44 30h40v22c0 18-12 34-20 50-8-16-20-32-20-50z" fill="#fff7f0"/>
+  <rect x="44" y="30" width="40" height="9" fill="#f8d7e6"/>
+  <path d="M64 61v39" stroke="#5c1a40" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="64" cy="58" r="5.5" fill="#5c1a40"/>
+  <path d="M30 109h68" stroke="#f8d7e6" stroke-width="5" stroke-linecap="round"/>
+</svg>

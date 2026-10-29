@@ -74,6 +74,24 @@ linux-image-amd64
 linux-headers-amd64
 git
 python3-venv
+python3-tk
+
+# Costruire RuscaLinux da RuscaLinux (build.sh, make-debs.sh, test.sh).
+# live-build, squashfs-tools, sudo, git e build-essential (con dpkg-dev)
+# sono gia' sopra.
+unzip
+python3-fonttools
+lintian
+qemu-utils
+ovmf
+
+# Compilare ruscallama-engine (llama.cpp con il backend Vulkan):
+# vedi tools/ruscallama-engine/README.md
+cmake
+wget
+libvulkan-dev
+glslc
+spirv-headers
 
 # ===========================================================================
 # LIBS SUPPORT

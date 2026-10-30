@@ -1493,8 +1493,8 @@ rm -f /usr/lib/live/config/2000-ruscalinux-gis
 # di trixie stampa il percorso dopo il nome, separato da una tabulazione:
 # il nome e' il primo campo. Le altre
 # voci (per esempio Windows) restano, dopo. Se GRUB e' stato copiato anche
-# in EFI/BOOT (preseed force-efi-extra-removable) ma senza il suo grub.cfg,
-# gli si mette accanto quello di RuscaLinux.
+# in EFI/BOOT (preseed force-efi-extra-removable), gli si mette accanto il
+# grub.cfg di questa installazione.
 if [ -d /sys/firmware/efi ] && command -v efibootmgr > /dev/null; then
     NUM=$(efibootmgr 2> /dev/null \
         | awk -F '\t' 'tolower($1) ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f][*]? ruscalinux[ ]*$/ { print substr($1, 5, 4); exit }')
@@ -1506,11 +1506,14 @@ if [ -d /sys/firmware/efi ] && command -v efibootmgr > /dev/null; then
     else
         echo ">>> UEFI: voce ruscalinux non trovata, ordine di avvio invariato"
     fi
+    # Sempre sovrascritto: la partizione EFI puo' sopravvivere a una
+    # reinstallazione, e un grub.cfg vecchio cercherebbe il disco
+    # dell'installazione precedente (GRUB si fermerebbe alla riga di comando).
     for dir in /boot/efi/EFI/ruscalinux /boot/efi/EFI/debian; do
-        if [ -f "$dir/grub.cfg" ] && [ -f /boot/efi/EFI/BOOT/grubx64.efi ] \
-           && [ ! -f /boot/efi/EFI/BOOT/grub.cfg ]; then
-            cp "$dir/grub.cfg" /boot/efi/EFI/BOOT/grub.cfg
+        if [ -f "$dir/grub.cfg" ] && [ -f /boot/efi/EFI/BOOT/grubx64.efi ]; then
+            cp -f "$dir/grub.cfg" /boot/efi/EFI/BOOT/grub.cfg
             echo ">>> UEFI: grub.cfg copiato in EFI/BOOT"
+            break
         fi
     done
 fi

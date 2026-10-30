@@ -688,7 +688,8 @@ chmod +x "$INC/usr/lib/ruscalinux/grub.d/25_ruscalinux_free_drivers"
 # Per questo uno script, avviato all'accesso, aggiunge nvidia-settings
 # all'elenco DOPO che GNOME l'ha creato, una volta sola per utente e solo con
 # il driver NVIDIA attivo: se l'utente sposta il pannello, resta dove l'ha
-# messo.
+# messo. Subito dopo si azzerano le posizioni delle icone, perche' GNOME le
+# ha gia' salvate con il pannello nella griglia principale.
 
 cat <<'EOF' > "$INC/usr/lib/ruscalinux/nvidia-settings-in-sistema"
 #!/bin/sh
@@ -733,6 +734,13 @@ case "$APPS" in
     "@as []")  gsettings set "$SISTEMA" apps "['$APP']" ;;
     *)         gsettings set "$SISTEMA" apps "${APPS%]}, '$APP']" ;;
 esac
+
+# GNOME ha gia' salvato le posizioni delle icone con il pannello nella
+# griglia principale: spostandolo nella cartella resterebbe un buco, e le
+# icone non scorrono da una pagina all'altra. Azzerando le posizioni GNOME
+# ridispone tutto in ordine alfabetico. Succede solo qui, una volta, al primo
+# accesso dell'utente: non c'e' ancora una disposizione personale da perdere.
+gsettings reset org.gnome.shell app-picker-layout
 
 segna_fatto
 EOF

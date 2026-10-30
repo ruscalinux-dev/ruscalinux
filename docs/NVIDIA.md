@@ -119,6 +119,15 @@ creato. Lo fa una volta sola per utente (il segno è in
 `~/.config/ruscalinux/`): se l'utente sposta il pannello, resta dove l'ha
 messo.
 
+Perché la griglia non resti con un posto vuoto, ogni nuovo utente nasce con
+il pannello nascosto anche nella propria cartella
+(`/etc/skel/.local/share/applications/nvidia-settings.desktop`): GNOME
+dispone la griglia senza il pannello. Lo script lo mette nella cartella
+Sistema e solo dopo toglie quel file, così il pannello compare direttamente
+nella cartella. Qualche secondo dopo, come ulteriore sicurezza, azzera le
+posizioni salvate delle icone (`org.gnome.shell app-picker-layout`) e GNOME
+le ridispone in ordine alfabetico.
+
 Il pannello è nascosto da un file con lo stesso nome in
 `/usr/local/share/applications/` (`Hidden=true`), che ha la precedenza su
 quello del pacchetto. Il servizio `ruscalinux-driver-mode` lo toglie o lo

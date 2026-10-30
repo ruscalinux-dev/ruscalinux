@@ -330,6 +330,16 @@ mkdir -p /usr/local/share/applications
 printf '[Desktop Entry]\nType=Application\nName=NVIDIA Settings\nHidden=true\n' \
     > /usr/local/share/applications/nvidia-settings.desktop
 
+# Ogni nuovo utente (anche quello della sessione live e quello creato al
+# primo avvio) nasce con il pannello nascosto anche nella propria cartella:
+# cosi' GNOME dispone la griglia senza il pannello. Al primo accesso con il
+# driver NVIDIA, nvidia-settings-in-sistema lo mette nella cartella Sistema e
+# poi toglie questo file: il pannello compare direttamente nella cartella,
+# senza lasciare un posto vuoto nella griglia.
+mkdir -p /etc/skel/.local/share/applications
+printf '[Desktop Entry]\n# RuscaLinux: nascosto finche non e nella cartella Sistema\nType=Application\nName=NVIDIA Settings\nHidden=true\n' \
+    > /etc/skel/.local/share/applications/nvidia-settings.desktop
+
 # Il servizio si scrive qui e non in includes.chroot_after_packages, cosi'
 # esiste di sicuro quando lo si attiva. Lo script che lancia arriva dagli
 # include (passo 4).
@@ -630,6 +640,7 @@ rm -f /etc/modprobe.d/ruscalinux-nvidia.conf \
       /etc/systemd/system/ruscalinux-driver-mode.service \
       /etc/xdg/autostart/ruscalinux-nvidia-settings-in-sistema.desktop \
       /usr/local/share/applications/nvidia-settings.desktop \
+      /etc/skel/.local/share/applications/nvidia-settings.desktop \
       /usr/share/keyrings/ruscalinux-nvidia-archive.gpg \
       /usr/lib/ruscalinux/driver-mode \
       /usr/lib/ruscalinux/nvidia-settings-in-sistema
@@ -688,8 +699,8 @@ chmod +x "$INC/usr/lib/ruscalinux/grub.d/25_ruscalinux_free_drivers"
 # Per questo uno script, avviato all'accesso, aggiunge nvidia-settings
 # all'elenco DOPO che GNOME l'ha creato, una volta sola per utente e solo con
 # il driver NVIDIA attivo: se l'utente sposta il pannello, resta dove l'ha
-# messo. Subito dopo si azzerano le posizioni delle icone, perche' GNOME le
-# ha gia' salvate con il pannello nella griglia principale.
+# messo. Il pannello resta nascosto (file da /etc/skel) finche' non e' nella
+# cartella, cosi' non occupa mai un posto nella griglia principale.
 
 cat <<'EOF' > "$INC/usr/lib/ruscalinux/nvidia-settings-in-sistema"
 #!/bin/sh
@@ -701,12 +712,21 @@ APP=nvidia-settings.desktop
 CARTELLE=org.gnome.desktop.app-folders
 SISTEMA=org.gnome.desktop.app-folders.folder:/org/gnome/desktop/app-folders/folders/System/
 FATTO="${XDG_CONFIG_HOME:-$HOME/.config}/ruscalinux/nvidia-settings-in-sistema.fatto"
+NASCOSTO="${XDG_DATA_HOME:-$HOME/.local/share}/applications/$APP"
 
 [ -e "$FATTO" ] && exit 0
 grep -qw 'rusca.driver=nvidia' /proc/cmdline || exit 0   # driver liberi: niente pannello
 [ "$(id -u)" -ge 1000 ] || exit 0                         # utenti di sistema (GDM, g-i-s)
 [ -f "/usr/share/applications/$APP" ] || exit 0
 command -v gsettings > /dev/null || exit 0
+
+# Toglie il file con cui l'utente e' nato (da /etc/skel), solo se e' il
+# nostro: un file messo dall'utente stesso resta.
+mostra_pannello() {
+    if grep -q 'RuscaLinux: nascosto' "$NASCOSTO" 2> /dev/null; then
+        rm -f "$NASCOSTO"
+    fi
+}
 
 segna_fatto() {
     mkdir -p "$(dirname "$FATTO")"
@@ -725,7 +745,7 @@ done
 # Se l'utente ha eliminato la cartella Sistema, la sua scelta si rispetta.
 case "$(gsettings get "$CARTELLE" folder-children)" in
     *"'System'"*) ;;
-    *) segna_fatto; exit 0 ;;
+    *) mostra_pannello; segna_fatto; exit 0 ;;
 esac
 
 APPS=$(gsettings get "$SISTEMA" apps)
@@ -735,11 +755,17 @@ case "$APPS" in
     *)         gsettings set "$SISTEMA" apps "${APPS%]}, '$APP']" ;;
 esac
 
-# GNOME ha gia' salvato le posizioni delle icone con il pannello nella
-# griglia principale: spostandolo nella cartella resterebbe un buco, e le
-# icone non scorrono da una pagina all'altra. Azzerando le posizioni GNOME
-# ridispone tutto in ordine alfabetico. Succede solo qui, una volta, al primo
-# accesso dell'utente: non c'e' ancora una disposizione personale da perdere.
+# Il pannello e' gia' nella cartella: ora lo si rende visibile. GNOME vede
+# comparire un'applicazione che appartiene a una cartella e non le assegna
+# un posto nella griglia, quindi non resta nessun buco.
+sleep 2
+mostra_pannello
+
+# Ulteriore sicurezza, qualche secondo dopo, quando GNOME ha applicato tutto:
+# si azzerano le posizioni salvate e GNOME ridispone le icone in ordine
+# alfabetico. Succede solo qui, una volta, al primo accesso dell'utente: non
+# c'e' ancora una disposizione personale da perdere.
+sleep 5
 gsettings reset org.gnome.shell app-picker-layout
 
 segna_fatto

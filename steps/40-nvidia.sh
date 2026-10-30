@@ -124,6 +124,10 @@ scrivi_mok_pub > /var/lib/dkms/mok.pub
 
 apt-get update
 
+# Pacchetti presenti prima del driver: a fine hook si ricava l'elenco esatto
+# di quelli installati qui (vedi "Elenco dei pacchetti NVIDIA").
+dpkg-query -W -f='${Package}\n' | sort -u > /tmp/ruscalinux-pacchetti-prima
+
 # DKMS cerca il programma sign-file in un percorso che dipende dall'ID di
 # os-release (qui "ruscalinux", non "debian") e dalla versione del kernel: su
 # trixie non lo trova e salta la firma senza avvisare. Glielo indichiamo.
@@ -154,6 +158,20 @@ else
     echo "            il pannello non andra' nella cartella Sistema." >&2
     ls /usr/share/applications/ | grep -i nvidia >&2 || true
 fi
+
+# --- Elenco dei pacchetti NVIDIA ---
+# Serve due volte:
+#  - live-build mette i pacchetti installati dagli hook nell'elenco di quelli
+#    "solo per la sessione live" (live/filesystem.packages-remove), che
+#    l'installer rimuove dal sistema su disco: l'hook binario del passo 3 li
+#    toglie da quell'elenco;
+#  - con i driver liberi, nvidia-postinstall rimuove esattamente questi.
+mkdir -p /usr/share/ruscalinux/nvidia
+dpkg-query -W -f='${Package}\n' | sort -u > /tmp/ruscalinux-pacchetti-dopo
+comm -13 /tmp/ruscalinux-pacchetti-prima /tmp/ruscalinux-pacchetti-dopo \
+    > /usr/share/ruscalinux/nvidia/packages
+rm -f /tmp/ruscalinux-pacchetti-prima /tmp/ruscalinux-pacchetti-dopo
+echo "Pacchetti NVIDIA installati dall'hook: $(wc -l < /usr/share/ruscalinux/nvidia/packages)"
 
 # --- Moduli compilati e firmati per OGNI kernel della ISO ---
 # Nel chroot "uname -r" e' il kernel della macchina che costruisce, non
@@ -464,6 +482,28 @@ for cfg in $(find isolinux -name '*.cfg' 2> /dev/null | sort); do
     fi
 done
 
+# --- Pacchetti NVIDIA da tenere sul sistema installato ---
+# L'installer rimuove dal sistema su disco i pacchetti elencati in
+# live/*packages-remove. live-build ci mette anche quelli installati dagli
+# hook, quindi il driver: lo si toglie dall'elenco. Sara' nvidia-postinstall
+# a rimuoverlo, se si installa con i driver liberi.
+ELENCO=../chroot/usr/share/ruscalinux/nvidia/packages
+if [ -f "$ELENCO" ]; then
+    for rimuovi in live/*packages-remove; do
+        [ -f "$rimuovi" ] || continue
+        prima=$(wc -w < "$rimuovi")
+        awk -v elenco="$ELENCO" '
+            BEGIN { while ((getline p < elenco) > 0) tieni[p] = 1 }
+            { for (i = 1; i <= NF; i++) { b = $i; sub(/:.*/, "", b); if (!(b in tieni)) print $i } }
+        ' "$rimuovi" > "$rimuovi.nuovo"
+        mv "$rimuovi.nuovo" "$rimuovi"
+        dopo=$(wc -w < "$rimuovi")
+        echo "Pacchetti NVIDIA tolti da $rimuovi: $((prima - dopo))"
+    done
+else
+    echo "ATTENZIONE: manca $ELENCO: l'installer rimuoverebbe il driver NVIDIA." >&2
+fi
+
 [ "$LIVE" -eq 1 ] || echo "ATTENZIONE: voce live NVIDIA non aggiunta al menu GRUB." >&2
 [ "$INSTALLER" -eq 1 ] || echo "ATTENZIONE: voce installer NVIDIA non aggiunta al menu GRUB." >&2
 EOF
@@ -536,8 +576,18 @@ for unita in nvidia-suspend nvidia-resume nvidia-hibernate \
     rm -rf "/etc/systemd/system/$unita.service.d"
 done
 
-PACCHETTI=$(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' 2> /dev/null \
-    | awk '$1 ~ /^i/ && $2 ~ /^(nvidia-|libnvidia-|libxnvctrl|xserver-xorg-video-nvidia|libcuda|libnvcuvid|libnvoptix|firmware-nvidia)/ { print $2 }')
+# Si rimuovono esattamente i pacchetti installati dall'hook della ISO
+# (/usr/share/ruscalinux/nvidia/packages), tra quelli ancora presenti.
+# Il firmware Debian di nouveau (firmware-nvidia-graphics), che l'installer
+# aggiunge da solo quando trova una scheda NVIDIA, resta.
+INSTALLATI=$(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' 2> /dev/null \
+    | awk '$1 ~ /^i/ { print $2 }')
+if [ -f /usr/share/ruscalinux/nvidia/packages ]; then
+    PACCHETTI=$(echo "$INSTALLATI" | grep -xF -f /usr/share/ruscalinux/nvidia/packages || true)
+else
+    PACCHETTI=$(echo "$INSTALLATI" \
+        | grep -E '^(nvidia-|libnvidia-|libxnvctrl|xserver-xorg-video-nvidia|libcuda|libnvcuvid|libnvoptix)' || true)
+fi
 if [ -n "$PACCHETTI" ]; then
     # Il sistema e' offline: apt rimuove soltanto, non scarica niente.
     # shellcheck disable=SC2086

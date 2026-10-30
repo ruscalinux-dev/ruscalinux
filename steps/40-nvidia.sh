@@ -124,9 +124,10 @@ scrivi_mok_pub > /var/lib/dkms/mok.pub
 
 apt-get update
 
-# Pacchetti presenti prima del driver: a fine hook si ricava l'elenco esatto
-# di quelli installati qui (vedi "Elenco dei pacchetti NVIDIA").
-dpkg-query -W -f='${Package}\n' | sort -u > /tmp/ruscalinux-pacchetti-prima
+# Pacchetti presenti prima del driver, con la versione: a fine hook si
+# ricavano quelli installati o aggiornati qui (vedi "Elenco dei pacchetti
+# NVIDIA").
+dpkg-query -W -f='${Package} ${Version}\n' | sort -u > /tmp/ruscalinux-pacchetti-prima
 
 # DKMS cerca il programma sign-file in un percorso che dipende dall'ID di
 # os-release (qui "ruscalinux", non "debian") e dalla versione del kernel: su
@@ -149,6 +150,16 @@ fi
 apt-get install --assume-yes "nvidia-driver-pinning-$PIN"
 apt-get install --assume-yes nvidia-driver nvidia-kernel-open-dkms nvidia-settings
 
+# nvidia-smi non e' tra le dipendenze ne' tra le raccomandazioni del driver:
+# si chiede a parte. Se il repository lo chiamasse diversamente, la build
+# continua e lo segnala.
+if apt-get install --assume-yes nvidia-smi; then
+    echo "nvidia-smi: installato"
+else
+    echo "ATTENZIONE: pacchetto nvidia-smi non installato. Candidati:" >&2
+    apt-cache search --names-only 'nvidia.*smi' >&2 || true
+fi
+
 # Il pannello deve avere un file .desktop: lo script che lo mette nella
 # cartella Sistema lo cerca con questo nome.
 if [ -f /usr/share/applications/nvidia-settings.desktop ]; then
@@ -166,12 +177,27 @@ fi
 #    l'installer rimuove dal sistema su disco: l'hook binario del passo 3 li
 #    toglie da quell'elenco;
 #  - con i driver liberi, nvidia-postinstall rimuove esattamente questi.
+#
+# Si confrontano nome E versione, perche' live-build fa lo stesso: un
+# pacchetto gia' presente ma aggiornato dal repository NVIDIA (per esempio
+# libxnvctrl0, da cui dipende nvidia-settings) finisce anche lui tra quelli
+# "solo live". Ne escono due elenchi:
+#   packages           pacchetti NUOVI: si rimuovono con i driver liberi;
+#   packages-upgraded  pacchetti AGGIORNATI: c'erano gia', restano sempre.
 mkdir -p /usr/share/ruscalinux/nvidia
-dpkg-query -W -f='${Package}\n' | sort -u > /tmp/ruscalinux-pacchetti-dopo
+dpkg-query -W -f='${Package} ${Version}\n' | sort -u > /tmp/ruscalinux-pacchetti-dopo
 comm -13 /tmp/ruscalinux-pacchetti-prima /tmp/ruscalinux-pacchetti-dopo \
+    | awk '{ print $1 }' | sort -u > /tmp/ruscalinux-pacchetti-cambiati
+awk '{ print $1 }' /tmp/ruscalinux-pacchetti-prima | sort -u > /tmp/ruscalinux-nomi-prima
+comm -23 /tmp/ruscalinux-pacchetti-cambiati /tmp/ruscalinux-nomi-prima \
     > /usr/share/ruscalinux/nvidia/packages
-rm -f /tmp/ruscalinux-pacchetti-prima /tmp/ruscalinux-pacchetti-dopo
+comm -12 /tmp/ruscalinux-pacchetti-cambiati /tmp/ruscalinux-nomi-prima \
+    > /usr/share/ruscalinux/nvidia/packages-upgraded
+rm -f /tmp/ruscalinux-pacchetti-prima /tmp/ruscalinux-pacchetti-dopo \
+      /tmp/ruscalinux-pacchetti-cambiati /tmp/ruscalinux-nomi-prima
 echo "Pacchetti NVIDIA installati dall'hook: $(wc -l < /usr/share/ruscalinux/nvidia/packages)"
+echo "Pacchetti aggiornati dall'hook: $(wc -l < /usr/share/ruscalinux/nvidia/packages-upgraded)" \
+     "($(tr '\n' ' ' < /usr/share/ruscalinux/nvidia/packages-upgraded))"
 
 # --- Moduli compilati e firmati per OGNI kernel della ISO ---
 # Nel chroot "uname -r" e' il kernel della macchina che costruisce, non
@@ -488,12 +514,17 @@ done
 # hook, quindi il driver: lo si toglie dall'elenco. Sara' nvidia-postinstall
 # a rimuoverlo, se si installa con i driver liberi.
 ELENCO=../chroot/usr/share/ruscalinux/nvidia/packages
+AGGIORNATI=../chroot/usr/share/ruscalinux/nvidia/packages-upgraded
+[ -f "$AGGIORNATI" ] || AGGIORNATI=/dev/null
 if [ -f "$ELENCO" ]; then
     for rimuovi in live/*packages-remove; do
         [ -f "$rimuovi" ] || continue
         prima=$(wc -w < "$rimuovi")
-        awk -v elenco="$ELENCO" '
-            BEGIN { while ((getline p < elenco) > 0) tieni[p] = 1 }
+        awk -v elenco="$ELENCO" -v aggiornati="$AGGIORNATI" '
+            BEGIN {
+                while ((getline p < elenco) > 0) tieni[p] = 1
+                while ((getline p < aggiornati) > 0) tieni[p] = 1
+            }
             { for (i = 1; i <= NF; i++) { b = $i; sub(/:.*/, "", b); if (!(b in tieni)) print $i } }
         ' "$rimuovi" > "$rimuovi.nuovo"
         mv "$rimuovi.nuovo" "$rimuovi"

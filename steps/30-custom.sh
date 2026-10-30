@@ -1489,13 +1489,15 @@ fi
 # live-config non gira mai, il file sarebbe solo un residuo inerte.
 rm -f /usr/lib/live/config/2000-ruscalinux-gis
 
-# UEFI: RuscaLinux per prima nell'ordine di avvio del firmware. Le altre
+# UEFI: RuscaLinux per prima nell'ordine di avvio del firmware. efibootmgr
+# di trixie stampa il percorso dopo il nome, separato da una tabulazione:
+# il nome e' il primo campo. Le altre
 # voci (per esempio Windows) restano, dopo. Se GRUB e' stato copiato anche
 # in EFI/BOOT (preseed force-efi-extra-removable) ma senza il suo grub.cfg,
 # gli si mette accanto quello di RuscaLinux.
 if [ -d /sys/firmware/efi ] && command -v efibootmgr > /dev/null; then
     NUM=$(efibootmgr 2> /dev/null \
-        | awk 'tolower($0) ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f]\*? ruscalinux$/ { print substr($1, 5, 4); exit }')
+        | awk -F '\t' 'tolower($1) ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f][*]? ruscalinux[ ]*$/ { print substr($1, 5, 4); exit }')
     if [ -n "$NUM" ]; then
         ORDINE=$(efibootmgr 2> /dev/null | sed -n 's/^BootOrder: //p')
         RESTO=$(echo "$ORDINE" | tr ',' '\n' | grep -vix "$NUM" | paste -sd, -)

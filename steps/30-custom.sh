@@ -1276,6 +1276,10 @@ d-i pkgsel/include string
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 d-i grub-installer/bootdev string default
+# UEFI: GRUB anche nel percorso di riserva EFI/BOOT/BOOTX64.EFI. Alcuni
+# firmware (per esempio Acer) rimettono in cima una voce vecchia che punta a
+# EFI/Boot, come "Linpus lite": cosi' anche quella avvia RuscaLinux.
+d-i grub-installer/force-efi-extra-removable boolean true
 
 # --- Branding installer ---
 d-i debian-installer/title string RuscaLinux @VERSION@ 
@@ -1484,6 +1488,30 @@ fi
 # Rimuovi lo script live-config di g-i-s: sul sistema installato
 # live-config non gira mai, il file sarebbe solo un residuo inerte.
 rm -f /usr/lib/live/config/2000-ruscalinux-gis
+
+# UEFI: RuscaLinux per prima nell'ordine di avvio del firmware. Le altre
+# voci (per esempio Windows) restano, dopo. Se GRUB e' stato copiato anche
+# in EFI/BOOT (preseed force-efi-extra-removable) ma senza il suo grub.cfg,
+# gli si mette accanto quello di RuscaLinux.
+if [ -d /sys/firmware/efi ] && command -v efibootmgr > /dev/null; then
+    NUM=$(efibootmgr 2> /dev/null \
+        | awk 'tolower($0) ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f]\*? ruscalinux$/ { print substr($1, 5, 4); exit }')
+    if [ -n "$NUM" ]; then
+        ORDINE=$(efibootmgr 2> /dev/null | sed -n 's/^BootOrder: //p')
+        RESTO=$(echo "$ORDINE" | tr ',' '\n' | grep -vix "$NUM" | paste -sd, -)
+        efibootmgr -o "$NUM${RESTO:+,$RESTO}" > /dev/null 2>&1 || true
+        echo ">>> UEFI: voce Boot$NUM (ruscalinux) prima nell'ordine di avvio"
+    else
+        echo ">>> UEFI: voce ruscalinux non trovata, ordine di avvio invariato"
+    fi
+    for dir in /boot/efi/EFI/ruscalinux /boot/efi/EFI/debian; do
+        if [ -f "$dir/grub.cfg" ] && [ -f /boot/efi/EFI/BOOT/grubx64.efi ] \
+           && [ ! -f /boot/efi/EFI/BOOT/grub.cfg ]; then
+            cp "$dir/grub.cfg" /boot/efi/EFI/BOOT/grub.cfg
+            echo ">>> UEFI: grub.cfg copiato in EFI/BOOT"
+        fi
+    done
+fi
 
 # Driver: liberi oppure NVIDIA, secondo la voce scelta nel menu
 # dell'installer (il late_command lascia /tmp/ruscalinux-driver-nvidia).

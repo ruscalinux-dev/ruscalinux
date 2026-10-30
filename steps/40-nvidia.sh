@@ -150,14 +150,30 @@ fi
 apt-get install --assume-yes "nvidia-driver-pinning-$PIN"
 apt-get install --assume-yes nvidia-driver nvidia-kernel-open-dkms nvidia-settings
 
-# nvidia-smi non e' tra le dipendenze ne' tra le raccomandazioni del driver:
-# si chiede a parte. Se il repository lo chiamasse diversamente, la build
-# continua e lo segnala.
-if apt-get install --assume-yes nvidia-smi; then
-    echo "nvidia-smi: installato"
+# Componente CUDA del driver (nvidia-driver-cuda): contiene nvidia-smi e
+# cio' che serve ai programmi CUDA/OpenCL. Non e' il CUDA Toolkit. Dal ramo
+# 590 il pacchetto "nvidia-smi" e' vuoto (transizione) ed e' in conflitto
+# con nvidia-driver-cuda: non va chiesto a parte. Si toglie con
+# NVIDIA_CUDA="no" in release.conf; la build stampa quanto pesa.
+if [ "@NVIDIA_CUDA@" = "si" ]; then
+    dpkg-query -W -f='${Package}\n' | sort -u > /tmp/ruscalinux-prima-cuda
+    if apt-get install --assume-yes nvidia-driver-cuda; then
+        dpkg-query -W -f='${Package}\n' | sort -u \
+            | comm -13 /tmp/ruscalinux-prima-cuda - > /tmp/ruscalinux-cuda
+        MB=$(xargs -r dpkg-query -W -f='${Installed-Size}\n' < /tmp/ruscalinux-cuda \
+            | awk '{ s += $1 } END { printf "%.0f", s / 1024 }')
+        echo "Componente CUDA: $(wc -l < /tmp/ruscalinux-cuda) pacchetti, circa $MB MB installati"
+        if [ -x /usr/bin/nvidia-smi ]; then
+            echo "nvidia-smi: installato"
+        else
+            echo "ATTENZIONE: nvidia-driver-cuda installato ma /usr/bin/nvidia-smi manca" >&2
+        fi
+    else
+        echo "ATTENZIONE: nvidia-driver-cuda non installato: niente nvidia-smi" >&2
+    fi
+    rm -f /tmp/ruscalinux-prima-cuda /tmp/ruscalinux-cuda
 else
-    echo "ATTENZIONE: pacchetto nvidia-smi non installato. Candidati:" >&2
-    apt-cache search --names-only 'nvidia.*smi' >&2 || true
+    echo "Componente CUDA: esclusa (NVIDIA_CUDA in release.conf)"
 fi
 
 # Il pannello deve avere un file .desktop: lo script che lo mette nella

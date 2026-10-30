@@ -103,6 +103,19 @@ Le versioni disponibili si vedono nell'indice del repository
 llama.cpp: si sceglie una versione pubblicata da almeno due settimane e
 provata su hardware vero.
 
+## Componente CUDA e nvidia-smi
+
+Il driver per il desktop non comprende `nvidia-smi`. Dal ramo 590 il
+pacchetto `nvidia-smi` del repository NVIDIA è vuoto (pacchetto di
+transizione): il programma sta in `nvidia-driver-cuda`, la componente CUDA
+del driver, che contiene anche ciò che serve ai programmi CUDA e OpenCL
+(Blender, DaVinci Resolve…). Non è il CUDA Toolkit per sviluppatori.
+
+La ISO la include per default. Con `NVIDIA_CUDA="no"` in `release.conf` la si
+esclude e la ISO diventa più piccola; la build stampa quanto pesa
+(“Componente CUDA: … pacchetti, circa … MB installati”). RuscaLLama e
+RuscaTranslator non ne hanno bisogno: usano Vulkan.
+
 ## Il pannello NVIDIA
 
 Con il driver NVIDIA, `nvidia-settings` compare nella cartella **Sistema**

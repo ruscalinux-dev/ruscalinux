@@ -155,6 +155,7 @@ mkdir .gen
 for file in steps/*.sh; do
     sed -e "s|@VERSION@|$VERSION|g" \
         -e "s|@NVIDIA_PIN@|$NVIDIA_PIN|g" \
+        -e "s|@NVIDIA_CUDA@|${NVIDIA_CUDA:-si}|g" \
         -e "s|@NVIDIA_REPO@|$NVIDIA_REPO|g" \
         -e "s|@SUITE@|$SUITE|g" \
         -e "s|@ARCH@|$ARCH|g" \

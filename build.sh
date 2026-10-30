@@ -49,6 +49,48 @@ for comando in dpkg-deb python3; do
     fi
 done
 
+# Driver NVIDIA (steps/40-nvidia.sh, docs/NVIDIA.md): openssl crea la chiave
+# di firma dei moduli, unsquashfs controlla che la chiave privata non sia
+# finita nella ISO.
+for coppia in openssl:openssl base64:coreutils unsquashfs:squashfs-tools; do
+    comando=${coppia%%:*}
+    pacchetto=${coppia#*:}
+    if ! command -v "$comando" > /dev/null; then
+        echo "ERRORE: manca $comando.  Installalo con:  sudo apt install $pacchetto"
+        exit 1
+    fi
+done
+
+# Chiave del repository NVIDIA, verificata con l'impronta registrata in git.
+if [ ! -f local/nvidia/cuda-archive-keyring.gpg ] || [ ! -f local/nvidia/SHA256SUMS ]; then
+    echo "ERRORE: manca la chiave del repository NVIDIA in local/nvidia/."
+    echo "        Le istruzioni per scaricarla una volta sola sono in docs/NVIDIA.md."
+    exit 1
+fi
+if ! ( cd local/nvidia && sha256sum --quiet -c SHA256SUMS ); then
+    echo "ERRORE: la chiave in local/nvidia/ non corrisponde all'impronta registrata."
+    exit 1
+fi
+
+# Chiave di firma dei moduli NVIDIA (Secure Boot). La chiave privata NON sta
+# nel repository e NON finisce nella ISO: serve solo durante la build. Va
+# conservata, con una copia di riserva: con una chiave nuova, chi ha gia'
+# registrato la vecchia in Secure Boot dovrebbe registrarla di nuovo.
+RUSCALINUX_MOK_DIR="${RUSCALINUX_MOK_DIR:-$HOME/.local/share/ruscalinux/mok}"
+if [ ! -f "$RUSCALINUX_MOK_DIR/mok.key" ] || [ ! -f "$RUSCALINUX_MOK_DIR/mok.pub" ]; then
+    echo "    Creo la chiave di firma dei moduli in $RUSCALINUX_MOK_DIR"
+    mkdir -p "$RUSCALINUX_MOK_DIR"
+    chmod 700 "$RUSCALINUX_MOK_DIR"
+    openssl req -new -x509 -newkey rsa:2048 -nodes -days 36500 \
+        -subj "/CN=RuscaLinux module signing key/" \
+        -keyout "$RUSCALINUX_MOK_DIR/mok.key" \
+        -outform DER -out "$RUSCALINUX_MOK_DIR/mok.pub" 2> /dev/null
+    chmod 600 "$RUSCALINUX_MOK_DIR/mok.key"
+    echo "    FAI UNA COPIA DI RISERVA di $RUSCALINUX_MOK_DIR: e' la chiave"
+    echo "    che gli utenti registrano in Secure Boot."
+fi
+export RUSCALINUX_MOK_DIR
+
 if [ "$(id -u)" = "0" ]; then
     echo "ERRORE: non lanciare questo script come root. Usa il tuo utente:"
     echo "        lo script chiama sudo da solo dove serve."
@@ -112,6 +154,8 @@ mkdir .gen
 
 for file in steps/*.sh; do
     sed -e "s|@VERSION@|$VERSION|g" \
+        -e "s|@NVIDIA_PIN@|$NVIDIA_PIN|g" \
+        -e "s|@NVIDIA_REPO@|$NVIDIA_REPO|g" \
         -e "s|@SUITE@|$SUITE|g" \
         -e "s|@ARCH@|$ARCH|g" \
         -e "s|@MIRROR@|$MIRROR|g" \
@@ -129,6 +173,7 @@ sudo rm -rf .work
 sh .gen/10-config.sh
 sh .gen/20-packages.sh
 sh .gen/30-custom.sh
+sh .gen/40-nvidia.sh
 
 if [ "$SOLO_CONFIG" = "si" ]; then
     echo
@@ -153,6 +198,16 @@ if [ ! -f ".work/$ISO" ]; then
     echo "ERRORE: la ISO non e' stata prodotta. Guarda i messaggi qui sopra."
     exit 1
 fi
+
+# La chiave privata di firma dei moduli NVIDIA non deve essere nella ISO.
+# L'hook la cancella; qui si controlla.
+if sudo unsquashfs -l .work/binary/live/filesystem.squashfs \
+        | grep -E 'mok\.key|nvidia-driver\.hook' > /dev/null; then
+    echo "ERRORE: nella ISO c'e' la chiave privata di firma. ISO eliminata."
+    rm -f ".work/$ISO"
+    exit 1
+fi
+echo "    Controllo chiave privata: assente dalla ISO"
 
 cd .work
 sha256sum "$ISO" > SHA256SUMS

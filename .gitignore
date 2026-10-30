@@ -24,6 +24,8 @@
 *.iso
 
 SHA256SUMS
+# ...tranne l'impronta della chiave del repository NVIDIA, che va in git
+!/local/nvidia/SHA256SUMS
 
 # generated website (built by site/build.py, uploaded by release.sh)
 /site/public/
@@ -34,3 +36,4 @@ Thumbs.db
 *~
 *.swp
 /RELEASE-NOTES-*.md
+/build*.log

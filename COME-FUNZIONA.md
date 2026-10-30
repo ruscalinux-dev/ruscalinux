@@ -28,6 +28,17 @@ nome della ISO, nell'etichetta del volume, in `/etc/os-release`, in
 `/etc/issue`, nel titolo dell'installer e nella sua immagine: sono i diciassette
 punti dove prima andava scritto a mano.
 
+## Il driver NVIDIA
+
+La ISO contiene anche il driver dal repository ufficiale NVIDIA, ma si avvia
+e si installa con i driver liberi. Il driver NVIDIA si sceglie nel menu di
+avvio, con le voci “… with NVIDIA driver”. Se ne occupa
+`steps/40-nvidia.sh`, che gira dopo gli altri tre passi.
+
+Prima della prima build serve la chiave del repository NVIDIA in
+`local/nvidia/`, e c'è una chiave di firma da conservare con cura: tutto è
+spiegato in [`docs/NVIDIA.md`](docs/NVIDIA.md).
+
 ## Cosa serve sulla macchina
 
 ```sh

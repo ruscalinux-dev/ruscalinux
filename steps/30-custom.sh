@@ -1286,6 +1286,7 @@ d-i debian-installer/title string RuscaLinux @VERSION@
 d-i preseed/late_command string \
     cp /cdrom/ruscalinux-postinstall.sh /target/tmp/ruscalinux-postinstall.sh ; \
     chmod +x /target/tmp/ruscalinux-postinstall.sh ; \
+    if grep -qw rusca.driver=nvidia /proc/cmdline ; then touch /target/tmp/ruscalinux-driver-nvidia ; fi ; \
     in-target /tmp/ruscalinux-postinstall.sh || true
 
 # --- Fine installazione ---
@@ -1483,6 +1484,13 @@ fi
 # Rimuovi lo script live-config di g-i-s: sul sistema installato
 # live-config non gira mai, il file sarebbe solo un residuo inerte.
 rm -f /usr/lib/live/config/2000-ruscalinux-gis
+
+# Driver: liberi oppure NVIDIA, secondo la voce scelta nel menu
+# dell'installer (il late_command lascia /tmp/ruscalinux-driver-nvidia).
+# Gira per ultimo perche' aggiunge una voce a GRUB e rilancia update-grub.
+if [ -x /usr/lib/ruscalinux/nvidia-postinstall ]; then
+    /usr/lib/ruscalinux/nvidia-postinstall || true
+fi
 
 echo ">>> Post-installazione ruscalinux  completata."
 POSTINSTALL

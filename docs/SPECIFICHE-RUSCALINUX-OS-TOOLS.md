@@ -216,9 +216,11 @@ Tutte le funzioni devono essere raggiungibili da tastiera, con ordine di tabulaz
 
 ### 3.10 Finestra “Informazioni”
 
-Tutti i tool usano la stessa finestra “Informazioni”, costruita dalla funzione comune `show_about_dialog()` (identica nei tool, come `style.css`). È un `Adw.Dialog` a **pagina unica**: niente sottopagine, tutto si vede subito.
+Tutti i tool usano la stessa finestra “Informazioni”, costruita dalla funzione comune `show_about_dialog()` (identica nei tool, come `style.css`). È un `Adw.Dialog` con una pagina principale, in cui descrizione e collegamenti si vedono subito, e una seconda pagina per la nota di sviluppo, che si apre dalla sua riga (`Adw.NavigationView`, con il pulsante indietro nella barra in alto).
 
-Si usa al posto di `Adw.AboutDialog` perché in quest’ultimo descrizione e nota di sviluppo finiscono nella sottopagina “Dettagli”, dove l’utente non le vede.
+Si usa al posto di `Adw.AboutDialog` perché in quest’ultimo la descrizione finisce nella sottopagina “Dettagli”, dove l’utente non la vede.
+
+La nota di sviluppo è una riga dell’elenco, come la licenza, e non un blocco di testo sempre visibile: resta a un clic, ma la finestra parla prima di tutto del programma. Nella sua pagina il testo ha il colore pieno (non `dim-label`, che sul fondo chiaro scende a circa 4:1, sotto il minimo della sezione 3.11).
 
 Contenuto, dall’alto in basso:
 
@@ -231,7 +233,7 @@ Contenuto, dall’alto in basso:
 | Riga “Sito web” | www.ruscalinux.org |
 | Riga “Supporto” | info@ruscalinux.org |
 | Riga “Licenza” | GNU GPL 3.0 (apre il testo della licenza) |
-| Gruppo “Nota di sviluppo” | Nota IA (sezione 12), tradotta, sempre visibile |
+| Riga “Nota di sviluppo” | Ultima riga dell’elenco, con la freccia `go-next-symbolic`: apre la pagina con la nota IA (sezione 12), tradotta |
 | Riga finale | © 2026 Nunzio Curcuruto, classi `caption` e `dim-label` |
 
 Chiavi di traduzione usate: `about_website`, `about_support`, `about_license`, `dev_note_title`, `ai_note`, più la descrizione del tool.
@@ -805,7 +807,7 @@ La nota compare in tre posti, e solo in questi:
 
 | Posto | Forma |
 |---|---|
-| Programma | Gruppo “Nota di sviluppo” nella finestra “Informazioni” (sezione 3.10), nella lingua dell’interfaccia, presa dalla chiave `ai_note` |
+| Programma | Riga “Nota di sviluppo” nella finestra “Informazioni” (sezione 3.10), che apre la nota nella lingua dell’interfaccia, presa dalla chiave `ai_note` |
 | Pacchetto deb | Campo `Comment` del file `/usr/share/doc/<pacchetto>/copyright`, testo inglese seguito da “See NOTA-IA.md in the RuscaLinux repository.” |
 | Repository | File `NOTA-IA.md` nella radice del repository, in italiano e inglese, con il testo della nota, la divisione del lavoro e il rimando a queste specifiche |
 
@@ -825,7 +827,7 @@ Un tool è pronto quando:
 6. Usa il gradiente solo dove ammesso dalla sezione 4.3.
 7. Funziona a 360 × 294 px e da sola tastiera.
 8. Mostra stati vuoti con `Adw.StatusPage` e conferme con `Adw.AlertDialog`.
-9. Ha la finestra “Informazioni” comune (sezione 3.10), con la nota IA visibile senza aprire sottopagine; la nota compare solo nei tre posti della sezione 12.2.
+9. Ha la finestra “Informazioni” comune (sezione 3.10), con la riga “Nota di sviluppo” che apre la nota IA; la nota compare solo nei tre posti della sezione 12.2.
 10. Ha le 15 traduzioni, con fallback inglese e senza crash su chiavi mancanti; funziona in arabo (RTL).
 11. Ha identificatori coerenti tra loro (sezioni 1 e 5.2).
 12. Ha file `.desktop` e metainfo validi, con `StartupWMClass` uguale all’App ID.

@@ -2205,9 +2205,12 @@ def ensure_icon():
 
 def show_about_dialog(parent, tr, app_id, app_name, version, description, has_icon,
                       components=()):
-    """Finestra «Informazioni» comune ai RuscaLinux OS Tools: una sola
-    pagina, con descrizione e nota di sviluppo sempre visibili (in
-    Adw.AboutDialog la descrizione finisce in una sottopagina).
+    """Finestra «Informazioni» comune ai RuscaLinux OS Tools.
+
+    Pagina principale: icona, nome, versione, descrizione (sempre visibile:
+    in Adw.AboutDialog finirebbe in una sottopagina) e collegamenti. La nota
+    di sviluppo e' una riga dell'elenco, come la licenza: con un clic apre la
+    sua pagina nella stessa finestra (specifiche, sezioni 3.10 e 12).
     `tr` restituisce il testo tradotto di una chiave di lang/.
     `components`: componenti esterni (nome, licenza, indirizzo), mostrati in
     un gruppo «Componenti esterni» (specifiche, sezioni 3.10 e 6)."""
@@ -2218,6 +2221,8 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
             except GLib.Error:
                 pass
         Gtk.UriLauncher.new(uri).launch(parent, None, done)
+
+    nav = Adw.NavigationView()
 
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
                   margin_top=12, margin_bottom=24, margin_start=24, margin_end=24)
@@ -2240,6 +2245,10 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
         row.add_suffix(Gtk.Image(icon_name="adw-external-link-symbolic"))
         row.connect("activated", open_uri, uri)
         links.add(row)
+    # Nota di sviluppo: una riga come le altre, che apre la sua pagina.
+    note_row = Adw.ActionRow(title=tr("dev_note_title"), activatable=True)
+    note_row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+    links.add(note_row)
     box.append(links)
 
     if components:
@@ -2251,10 +2260,6 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
             ext.add(row)
         box.append(ext)
 
-    # La nota di sviluppo è obbligatoria e sempre visibile (specifiche, sez. 12).
-    note = Adw.PreferencesGroup(title=tr("dev_note_title"),
-                                description=tr("ai_note"), margin_top=12)
-    box.append(note)
     copyright_label = Gtk.Label(label="© 2026 Nunzio Curcuruto", margin_top=12)
     copyright_label.add_css_class("caption")
     copyright_label.add_css_class("dim-label")
@@ -2263,9 +2268,20 @@ def show_about_dialog(parent, tr, app_id, app_name, version, description, has_ic
     scroller = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
                                   propagate_natural_height=True, child=box)
     view = Adw.ToolbarView(content=scroller)
-    header = Adw.HeaderBar(show_title=False)
-    view.add_top_bar(header)
-    Adw.Dialog(title=app_name, content_width=420, child=view).present(parent)
+    view.add_top_bar(Adw.HeaderBar(show_title=False))
+    nav.add(Adw.NavigationPage(title=app_name, child=view))
+
+    # Pagina della nota: testo a colore pieno (contrasto >= 4,5:1), pulsante
+    # indietro nella barra in alto, tradotto da libadwaita.
+    note_label = Gtk.Label(label=tr("ai_note"), wrap=True, xalign=0, valign=Gtk.Align.START,
+                           margin_top=12, margin_bottom=24, margin_start=24, margin_end=24)
+    note_label.add_css_class("body")
+    note_view = Adw.ToolbarView(content=note_label)
+    note_view.add_top_bar(Adw.HeaderBar())
+    note_page = Adw.NavigationPage(title=tr("dev_note_title"), child=note_view)
+    note_row.connect("activated", lambda _row: nav.push(note_page))
+
+    Adw.Dialog(title=app_name, content_width=420, child=nav).present(parent)
 
 # ----------------------------------------------------------------------------
 class WidthAwareScrolledWindow(Gtk.ScrolledWindow):

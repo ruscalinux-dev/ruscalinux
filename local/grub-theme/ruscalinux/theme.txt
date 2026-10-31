@@ -1,0 +1,68 @@
+# RuscaLinux — tema GRUB
+# Generato da branding/generators/ruscalinux-grub-theme.py: non modificare
+# qui, rigenera. {{VERSION}} viene sostituito durante la build.
+
+title-text: ""
+desktop-image: "background.png"
+desktop-image-scale-method: "crop"
+desktop-color: "#2d0a1d"
+message-font: "DM Sans Regular 21"
+message-color: "#ecdbe4"
+
++ boot_menu {
+    left = 8%
+    top = 28%
+    width = 46%
+    height = 54%
+    item_font = "DM Sans Regular 28"
+    selected_item_font = "DM Sans Bold 28"
+    item_color = "#ecdbe4"
+    selected_item_color = "#2d0a1d"
+    item_height = 36
+    item_spacing = 32
+    item_padding = 0
+    icon_width = 0
+    icon_height = 0
+    item_icon_space = 0
+    item_pixmap_style = "item_*.png"
+    selected_item_pixmap_style = "select_*.png"
+    scrollbar = true
+    scrollbar_width = 6
+    scrollbar_frame = "scrollbar_frame_*.png"
+    scrollbar_thumb = "scrollbar_thumb_*.png"
+}
+
+# Conto alla rovescia sotto il menu: GRUB lo mostra solo quando c'e' un
+# tempo di attesa. Niente barra: GRUB le impone un'altezza minima di circa
+# 28 px, troppo pesante per questo disegno.
++ label {
+    id = "__timeout__"
+    left = 8%
+    top = 84%
+    width = 40%
+    height = 30
+    font = "DM Sans Regular 21"
+    color = "#b994a9"
+    text = "Starting the selected entry in %d s"
+}
+
+# Aiuto e versione, in basso.
++ label {
+    left = 8%
+    top = 92%
+    width = 60%
+    height = 30
+    font = "DM Sans Regular 21"
+    color = "#b994a9"
+    text = "↑ ↓  Select      Enter  Start      E  Edit      C  Command line"
+}
++ label {
+    left = 72%
+    top = 92%
+    width = 20%
+    height = 30
+    align = "right"
+    font = "DM Sans Regular 21"
+    color = "#b994a9"
+    text = "RuscaLinux {{VERSION}}"
+}

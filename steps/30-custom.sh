@@ -13,6 +13,63 @@ mkdir -p .work/config/includes.binary/isolinux/
 cp local/grub/splash.png .work/config/includes.binary/boot/grub/
 cp local/isolinux/splash.png .work/config/includes.binary/isolinux/
 
+# TEMA GRUB RUSCALINUX (ISO e sistema installato)
+# Generato da branding/generators/ruscalinux-grub-theme.py in
+# local/grub-theme/ruscalinux/. Nella ISO va in boot/grub/themes/ruscalinux;
+# l'hook binario qui sotto lo attiva. splash.png resta: theme.cfg di
+# live-build attiva il tema solo se quel file esiste.
+TEMA_GRUB=local/grub-theme/ruscalinux
+for dest in .work/config/includes.binary/boot/grub/themes/ruscalinux \
+            .work/config/includes.chroot_after_packages/boot/grub/themes/ruscalinux; do
+    mkdir -p "$dest"
+    cp "$TEMA_GRUB"/* "$dest"/
+    sed -i "s|{{VERSION}}|@VERSION@|" "$dest/theme.txt"
+done
+
+# Hook binario: gira quando live-build ha gia' scritto i file di GRUB.
+#  - theme.cfg: carica i font del tema e attiva il tema RuscaLinux al posto
+#    di live-theme;
+#  - config.cfg: live-build chiede 800x600 (come la netinst Debian), troppo
+#    poco per il menu; si chiede 1920x1080, poi 1280x720, poi la modalita'
+#    preferita dallo schermo.
+mkdir -p .work/config/hooks/normal/
+cat <<'EOF' > .work/config/hooks/normal/9010-ruscalinux-grub-theme.hook.binary
+#!/bin/sh
+set -e
+[ -d binary ] && cd binary
+
+TEMA=/boot/grub/themes/ruscalinux
+if [ ! -f ".$TEMA/theme.txt" ]; then
+    echo "ATTENZIONE: tema GRUB RuscaLinux mancante in .$TEMA" >&2
+    exit 0
+fi
+
+if grep -q "set theme=" boot/grub/theme.cfg; then
+    awk -v tema="$TEMA" -v font="$(ls ".$TEMA"/*.pf2 | sed 's|^\.||' | tr '\n' ' ')" '
+        /set theme=/ {
+            match($0, /^[ \t]*/); rientro = substr($0, 1, RLENGTH)
+            n = split(font, f, " ")
+            for (i = 1; i <= n; i++) print rientro "loadfont " f[i]
+            print rientro "set theme=" tema "/theme.txt"
+            next
+        }
+        { print }
+    ' boot/grub/theme.cfg > boot/grub/theme.cfg.nuovo
+    mv boot/grub/theme.cfg.nuovo boot/grub/theme.cfg
+    echo "Tema GRUB RuscaLinux attivato in boot/grub/theme.cfg"
+else
+    echo "ATTENZIONE: in boot/grub/theme.cfg non c'e' 'set theme=': tema non attivato" >&2
+fi
+
+if grep -q "set gfxmode=800x600" boot/grub/config.cfg; then
+    sed -i "s|set gfxmode=800x600|set gfxmode=1920x1080,1280x720,auto|" boot/grub/config.cfg
+    echo "Risoluzione GRUB: 1920x1080, poi 1280x720, poi automatica"
+else
+    echo "ATTENZIONE: in boot/grub/config.cfg non c'e' 'set gfxmode=800x600'" >&2
+fi
+EOF
+chmod +x .work/config/hooks/normal/9010-ruscalinux-grub-theme.hook.binary
+
 # NOME E VERSIONE DEL SISTEMA OPERATIVO
 mkdir -p .work/config/includes.chroot_after_packages/etc/
 cat <<EOF > .work/config/includes.chroot_after_packages/etc/os-release
@@ -711,11 +768,15 @@ chmod +x .work/config/hooks/normal/9999-zz-branding-finalize.hook.chroot
 # ---------------------------------------------------------------------------
 # FIX 1 — GRUB BACKGROUND TRAMITE DROP-IN (evita il conflitto conffile)
 # ---------------------------------------------------------------------------
-mkdir -p .work/config/includes.chroot_after_packages/boot/grub/
+# Tema RuscaLinux (copiato all'inizio di questo passo in /boot/grub/themes):
+# Debian carica da solo i font .pf2 della cartella del tema. Il fondo neutro
+# console.png serve all'editor e alla riga di comando di GRUB.
 mkdir -p .work/config/includes.chroot_after_packages/etc/default/grub.d/
-cp local/splash.png .work/config/includes.chroot_after_packages/boot/grub/
-echo "GRUB_BACKGROUND=/boot/grub/splash.png" \
-    > .work/config/includes.chroot_after_packages/etc/default/grub.d/99-ruscalinux.cfg
+cat > .work/config/includes.chroot_after_packages/etc/default/grub.d/99-ruscalinux.cfg <<'GRUBCFG'
+GRUB_THEME=/boot/grub/themes/ruscalinux/theme.txt
+GRUB_BACKGROUND=/boot/grub/themes/ruscalinux/console.png
+GRUB_GFXMODE=1920x1080,1280x720,auto
+GRUBCFG
 
 # ---------------------------------------------------------------------------
 # FIX 3 — LOCALE, KEYBOARD AND TIMEZONE: English only
@@ -1465,7 +1526,9 @@ systemctl enable ruscalinux-autologin.service 2>/dev/null || true
 # mai il tema grafico anche se l'initramfs lo contiene correttamente.
 mkdir -p /etc/default/grub.d/
 cat > /etc/default/grub.d/99-ruscalinux.cfg <<'GRUBCFG'
-GRUB_BACKGROUND=/boot/grub/splash.png
+GRUB_THEME=/boot/grub/themes/ruscalinux/theme.txt
+GRUB_BACKGROUND=/boot/grub/themes/ruscalinux/console.png
+GRUB_GFXMODE=1920x1080,1280x720,auto
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 GRUBCFG
 update-grub || true

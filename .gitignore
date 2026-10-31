@@ -37,3 +37,6 @@ Thumbs.db
 *.swp
 /RELEASE-NOTES-*.md
 /build*.log
+
+# Anteprima del tema GRUB (branding/generators/ruscalinux-grub-theme.py)
+/local/grub-theme/preview.png

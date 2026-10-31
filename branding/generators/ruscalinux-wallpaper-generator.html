@@ -506,27 +506,30 @@ const W = 1920, H = 1080;
 // Tutto cio' che sta fra i due segni produce solo stringhe SVG, senza toccare
 // la pagina: si puo' eseguire anche fuori dal browser (prove, build).
 const THEMES = {
+  // Chiaro: famiglia del Rosa 50/200/300 del marchio (tonalita' 330-335),
+  // bordi rosa-malva chiari, aeroplanini e testo in Prugna 900 come il testo
+  // dell'interfaccia in modalita' chiara (specifiche, sezione 4.1).
   light: {
-    bg1:'#FDF7FB', bg2:'#DDB8D1', bg3:'#9C6B8D',
-    wave1:'#8E3B6C', wave2:'#C97FA8',
-    elementFill:'#2E1A34', elementAlpha:0.92,
-    textMain:'#241429', textSub:'rgba(36,20,41,0.80)', divider:'rgba(36,20,41,0.18)',
-    glowColor:'rgba(255,246,251,0.30)', vignette:'rgba(58,28,50,0.30)',
-    noiseOpacity:0.028, waveAlpha:0.40, starAlpha:0.16,
+    bg1:'#FFF8FB', bg2:'#F3D2E2', bg3:'#C48AAA',
+    wave1:'#9A3A6E', wave2:'#D98BB2',
+    elementFill:'#2D0A1D', elementAlpha:0.88,
+    textMain:'#2D0A1D', textSub:'rgba(45,10,29,0.82)', divider:'rgba(45,10,29,0.18)',
+    glowColor:'rgba(255,248,251,0.40)', vignette:'rgba(122,35,87,0.22)',
+    noiseOpacity:0.024, waveAlpha:0.34, starAlpha:0.14,
   },
   mid: {
     bg1:'#B8446F', bg2:'#6E2149', bg3:'#2B0A1E',
     wave1:'#FF9EC4', wave2:'#7E2B54',
     elementFill:'#FFF0F6', elementAlpha:0.9,
-    textMain:'#FFF3F8', textSub:'rgba(255,243,248,0.88)', divider:'rgba(255,243,248,0.26)',
+    textMain:'#FFF7F0', textSub:'rgba(255,247,240,0.88)', divider:'rgba(255,243,248,0.26)',
     glowColor:'rgba(255,150,190,0.40)', vignette:'rgba(24,4,16,0.55)',
     noiseOpacity:0.045, waveAlpha:0.55, starAlpha:0.7,
   },
   dark: {
-    bg1:'#43102F', bg2:'#1C0414', bg3:'#080004',
+    bg1:'#43102F', bg2:'#1E0516', bg3:'#10030B',
     wave1:'#C4568C', wave2:'#4A1234',
     elementFill:'#FFFFFF', elementAlpha:0.9,
-    textMain:'#F6EDF2', textSub:'rgba(246,237,242,0.80)', divider:'rgba(246,237,242,0.22)',
+    textMain:'#FFF7F0', textSub:'rgba(255,247,240,0.80)', divider:'rgba(246,237,242,0.22)',
     glowColor:'rgba(190,70,130,0.30)', vignette:'rgba(0,0,0,0.62)',
     noiseOpacity:0.06, waveAlpha:0.62, starAlpha:0.95,
   },

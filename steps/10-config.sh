@@ -23,5 +23,6 @@ lb config \
   --debian-installer "live" \
   --debian-installer-gui "true" \
   --debian-installer-distribution "trixie" \
+  --loadlin "false" \
   --cache "true" \
   --cache-indices "true"

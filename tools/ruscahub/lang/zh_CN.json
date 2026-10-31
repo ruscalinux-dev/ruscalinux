@@ -1,5 +1,5 @@
 {
-  "app_description": "AppImage 管理器：支持拖放导入，存储在主目录的隐藏文件夹中，可从 GNOME 菜单安装和卸载，粉色⇒梅紫色主题。",
+  "app_description": "AppImage 管理器：支持拖放导入，存储在主目录的隐藏文件夹中，可从 GNOME 菜单安装和卸载。",
   "ai_note": "设计、规格说明和测试由作者完成；代码在人工智能工具的辅助下编写。",
   "add_appimage": "添加 AppImage",
   "about_title": "关于 %s",

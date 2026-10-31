@@ -1,5 +1,5 @@
 {
-  "app_description": "Pengelola AppImage dengan impor seret & lepas, penyimpanan di folder tersembunyi di Home, pemasangan dan pencopotan dari menu GNOME, tema merah muda⇒plum.",
+  "app_description": "Pengelola AppImage dengan impor seret & lepas, penyimpanan di folder tersembunyi di Home, serta pemasangan dan pencopotan dari menu GNOME.",
   "ai_note": "Rancangan, spesifikasi, dan pengujian oleh penulis; kode ditulis dengan bantuan alat kecerdasan buatan.",
   "add_appimage": "Tambah AppImage",
   "about_title": "Tentang %s",

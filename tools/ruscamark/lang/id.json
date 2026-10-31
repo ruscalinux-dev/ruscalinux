@@ -76,7 +76,7 @@
   "err_export": "Galat ekspor:\n{e}",
   "export_footer": "{title} - halaman {page} / {pages}",
   "title_untitled": "Tanpa judul",
-  "about_desc": "Editor Markdown profesional dengan tampilan langsung format, halaman tulis di tengah, pemeriksa ejaan langsung dengan saran, tema merah muda→plum, dan target kata.",
+  "about_desc": "Editor Markdown profesional dengan tampilan langsung format, halaman tulis di tengah, pemeriksa ejaan langsung dengan saran, dan target kata.",
   "about_license": "Lisensi",
   "mi_bold": "Tebal",
   "mi_italic": "Miring",

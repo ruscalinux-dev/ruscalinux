@@ -1,5 +1,5 @@
 {
-  "app_description": "Menedżer AppImage z importem przez przeciągnij i upuść, przechowywaniem w ukrytym folderze katalogu domowego, instalacją i odinstalowaniem z menu GNOME oraz motywami róż⇒śliwka.",
+  "app_description": "Menedżer AppImage z importem przez przeciągnij i upuść, przechowywaniem w ukrytym folderze katalogu domowego oraz instalacją i odinstalowaniem z menu GNOME.",
   "ai_note": "Projekt, specyfikacja i testy: autor; kod napisany z pomocą narzędzi sztucznej inteligencji.",
   "add_appimage": "Dodaj AppImage",
   "about_title": "O programie %s",

@@ -1,5 +1,5 @@
 {
-  "app_description": "Sürükle-bırak ile içe aktarma, Ev dizinindeki gizli bir klasörde saklama, GNOME menüsünden kurma ve kaldırma özelliklerine sahip AppImage yöneticisi; pembe⇒erik rengi temalar.",
+  "app_description": "Sürükle-bırak ile içe aktarma, Ev dizinindeki gizli bir klasörde saklama, GNOME menüsünden kurma ve kaldırma özelliklerine sahip AppImage yöneticisi.",
   "ai_note": "Tasarım, belirtimler ve test yazara aittir; kod yapay zekâ araçlarının yardımıyla yazılmıştır.",
   "add_appimage": "AppImage Ekle",
   "about_title": "%s Hakkında",

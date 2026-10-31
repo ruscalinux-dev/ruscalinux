@@ -76,7 +76,7 @@
   "err_export": "Errore nell'esportazione:\n{e}",
   "export_footer": "{title} - pag. {page} / {pages}",
   "title_untitled": "Senza titolo",
-  "about_desc": "Editor professionale Markdown con resa live della formattazione, pagina centrata per la scrittura, controllo ortografico live con suggerimenti, temi rosa→prugna e obiettivo parole.",
+  "about_desc": "Editor professionale Markdown con resa live della formattazione, pagina centrata per la scrittura, controllo ortografico live con suggerimenti e obiettivo parole.",
   "about_license": "Licenza",
   "mi_bold": "Grassetto",
   "mi_italic": "Corsivo",

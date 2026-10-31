@@ -78,7 +78,7 @@ RTL_LANGS = ("ar",)
 
 # Copia interna di en.json: ultima rete di sicurezza se la cartella lang/ manca.
 BUILTIN_EN = {
-    "app_description": "AppImage manager with drag & drop import, storage in a hidden folder of the Home, installation and uninstallation from the GNOME menu, pink⇒plum themes.",
+    "app_description": "AppImage manager with drag & drop import, storage in a hidden folder of the Home, and installation and uninstallation from the GNOME menu.",
     "ai_note": "Design, specifications and testing by the author; code written with the assistance of AI tools.",
     "add_appimage": "Add AppImage",
     "about_title": "About %s",

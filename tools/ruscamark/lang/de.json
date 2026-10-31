@@ -76,7 +76,7 @@
   "err_export": "Fehler beim Export:\n{e}",
   "export_footer": "{title} - Seite {page} / {pages}",
   "title_untitled": "Unbenannt",
-  "about_desc": "Professioneller Markdown-Editor mit Live-Darstellung der Formatierung, zentrierter Schreibseite, Live-Rechtschreibprüfung mit Vorschlägen, Rosa→Pflaume-Themen und Wortziel.",
+  "about_desc": "Professioneller Markdown-Editor mit Live-Darstellung der Formatierung, zentrierter Schreibseite, Live-Rechtschreibprüfung mit Vorschlägen und Wortziel.",
   "about_license": "Lizenz",
   "mi_bold": "Fett",
   "mi_italic": "Kursiv",

@@ -76,7 +76,7 @@
   "err_export": "导出错误：\n{e}",
   "export_footer": "{title} - 第 {page} 页，共 {pages} 页",
   "title_untitled": "未命名",
-  "about_desc": "专业的 Markdown 编辑器：格式实时渲染、居中的写作页面、带建议的实时拼写检查、粉色→梅紫主题和字数目标。",
+  "about_desc": "专业的 Markdown 编辑器：格式实时渲染、居中的写作页面、带建议的实时拼写检查和字数目标。",
   "about_license": "许可证",
   "mi_bold": "粗体",
   "mi_italic": "斜体",

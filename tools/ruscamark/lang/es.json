@@ -76,7 +76,7 @@
   "err_export": "Error en la exportación:\n{e}",
   "export_footer": "{title} - página {page} / {pages}",
   "title_untitled": "Sin título",
-  "about_desc": "Editor Markdown profesional con renderizado en vivo del formato, página de escritura centrada, ortografía en vivo con sugerencias, temas rosa→ciruela y objetivo de palabras.",
+  "about_desc": "Editor Markdown profesional con renderizado en vivo del formato, página de escritura centrada, ortografía en vivo con sugerencias y objetivo de palabras.",
   "about_license": "Licencia",
   "mi_bold": "Negrita",
   "mi_italic": "Cursiva",

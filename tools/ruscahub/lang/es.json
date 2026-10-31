@@ -1,5 +1,5 @@
 {
-  "app_description": "Gestor de AppImage con importación por arrastre, almacenamiento en una carpeta oculta del Home, instalación y desinstalación desde el menú de GNOME, temas rosa⇒ciruela.",
+  "app_description": "Gestor de AppImage con importación por arrastre, almacenamiento en una carpeta oculta del Home e instalación y desinstalación desde el menú de GNOME.",
   "ai_note": "Diseño, especificaciones y pruebas del autor; código escrito con la ayuda de herramientas de inteligencia artificial.",
   "add_appimage": "Añadir AppImage",
   "about_title": "Acerca de %s",

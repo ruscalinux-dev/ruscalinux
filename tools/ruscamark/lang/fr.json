@@ -76,7 +76,7 @@
   "err_export": "Erreur d'exportation :\n{e}",
   "export_footer": "{title} - page {page} / {pages}",
   "title_untitled": "Sans titre",
-  "about_desc": "Éditeur Markdown professionnel avec rendu en direct de la mise en forme, page d'écriture centrée, orthographe en direct avec suggestions, thèmes rose→prune et objectif de mots.",
+  "about_desc": "Éditeur Markdown professionnel avec rendu en direct de la mise en forme, page d'écriture centrée, orthographe en direct avec suggestions et objectif de mots.",
   "about_license": "Licence",
   "mi_bold": "Gras",
   "mi_italic": "Italique",

@@ -76,7 +76,7 @@
   "err_export": "書き出しエラー:\n{e}",
   "export_footer": "{title} - {page} / {pages} ページ",
   "title_untitled": "無題",
-  "about_desc": "プロ向け Markdown エディター: 書式のライブ表示、中央配置の執筆ページ、候補付きライブスペルチェック、ピンク→プラムのテーマ、単語数の目標。",
+  "about_desc": "プロ向け Markdown エディター: 書式のライブ表示、中央配置の執筆ページ、候補付きライブスペルチェック、単語数の目標。",
   "about_license": "ライセンス",
   "mi_bold": "太字",
   "mi_italic": "斜体",

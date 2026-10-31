@@ -1,5 +1,5 @@
 {
-  "app_description": "Gestionnaire d'AppImage avec import par glisser-déposer, archivage dans un dossier caché du Home, installation et désinstallation depuis le menu GNOME, thèmes rose⇒prune.",
+  "app_description": "Gestionnaire d'AppImage avec import par glisser-déposer, archivage dans un dossier caché du Home, installation et désinstallation depuis le menu GNOME.",
   "ai_note": "Conception, spécifications et vérification par l’auteur ; code écrit avec l’aide d’outils d’intelligence artificielle.",
   "add_appimage": "Ajouter une AppImage",
   "about_title": "À propos de %s",

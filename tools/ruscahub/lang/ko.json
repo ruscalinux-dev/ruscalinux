@@ -1,5 +1,5 @@
 {
-  "app_description": "드래그 앤 드롭 가져오기, 홈의 숨김 폴더에 보관, GNOME 메뉴에서 설치 및 제거를 지원하는 AppImage 관리자, 분홍⇒자두색 테마.",
+  "app_description": "드래그 앤 드롭 가져오기, 홈의 숨김 폴더에 보관, GNOME 메뉴에서 설치 및 제거를 지원하는 AppImage 관리자.",
   "ai_note": "설계, 명세, 검증은 저자가 맡았으며, 코드는 인공지능 도구의 도움을 받아 작성되었습니다.",
   "add_appimage": "AppImage 추가",
   "about_title": "%s 정보",

@@ -76,7 +76,7 @@
   "err_export": "Dışa aktarma hatası:\n{e}",
   "export_footer": "{title} - sayfa {page} / {pages}",
   "title_untitled": "Adsız",
-  "about_desc": "Profesyonel Markdown düzenleyici: biçimlendirmenin canlı görüntülenmesi, ortalanmış yazı sayfası, önerili canlı yazım denetimi, pembe→erik temaları ve kelime hedefi.",
+  "about_desc": "Profesyonel Markdown düzenleyici: biçimlendirmenin canlı görüntülenmesi, ortalanmış yazı sayfası, önerili canlı yazım denetimi ve kelime hedefi.",
   "about_license": "Lisans",
   "mi_bold": "Kalın",
   "mi_italic": "İtalik",

@@ -1,5 +1,5 @@
 {
-  "app_description": "AppImage-Verwaltung mit Drag & Drop, Ablage im versteckten Ordner im Home-Verzeichnis, Installation und Deinstallation über das GNOME-Menü, Farbschema Rosa⇒Pflaume.",
+  "app_description": "AppImage-Verwaltung mit Drag & Drop, Ablage im versteckten Ordner im Home-Verzeichnis sowie Installation und Deinstallation über das GNOME-Menü.",
   "ai_note": "Entwurf, Spezifikationen und Tests vom Autor; Code mit Unterstützung von KI-Werkzeugen geschrieben.",
   "add_appimage": "AppImage hinzufügen",
   "about_title": "Info zu %s",

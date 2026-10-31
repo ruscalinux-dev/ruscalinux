@@ -76,7 +76,7 @@
   "err_export": "Błąd eksportu:\n{e}",
   "export_footer": "{title} - strona {page} / {pages}",
   "title_untitled": "Bez tytułu",
-  "about_desc": "Profesjonalny edytor Markdown: formatowanie na żywo, wyśrodkowana strona do pisania, sprawdzanie pisowni na żywo z podpowiedziami, motywy różowy→śliwkowy i cel słów.",
+  "about_desc": "Profesjonalny edytor Markdown: formatowanie na żywo, wyśrodkowana strona do pisania, sprawdzanie pisowni na żywo z podpowiedziami i cel słów.",
   "about_license": "Licencja",
   "mi_bold": "Pogrubienie",
   "mi_italic": "Kursywa",

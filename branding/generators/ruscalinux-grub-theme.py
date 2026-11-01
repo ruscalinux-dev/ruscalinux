@@ -4,6 +4,9 @@
 #
 #   python3 branding/generators/ruscalinux-grub-theme.py [cartella-di-uscita]
 #
+# Crea anche il menu BIOS della ISO (isolinux): local/isolinux/splash.png e
+# local/isolinux/stdmenu.cfg, nello stesso stile.
+#
 # Crea il tema completo in local/grub-theme/ruscalinux/ (o nella cartella
 # indicata): immagine di fondo, fondo neutro per l'editor e la riga di
 # comando (console.png), forme della voce selezionata, della barra del conto
@@ -134,7 +137,10 @@ def scia(d, larghezza, opacita):
             f'stroke-linecap="round" opacity="{opacita}"/>')
 
 
-def fondo_svg():
+def fondo_svg(w=W, h=H, dx=0):
+    """Fondo con la scena degli aeroplanini. w, h: dimensioni; dx sposta la
+    scena (onde, puntini, scie, aerei) in orizzontale, per i formati piu'
+    stretti come il 4:3 di isolinux."""
     # Le rotte salgono da sinistra in basso verso destra in alto: lo stesso
     # verso del generatore di sfondi. Nessun elemento entra nella zona del
     # menu (x < 0.55 W): li' il fondo resta uniforme.
@@ -160,7 +166,7 @@ def fondo_svg():
         o = round(rnd.uniform(0.10, 0.45) * (x / W), 3)
         stelle.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="{CREMA}" opacity="{o}"/>')
 
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
 <defs>
   <linearGradient id="base" x1="0" y1="0" x2="1" y2="0">
     <stop offset="0%" stop-color="{PRUGNA_900}"/>
@@ -188,8 +194,9 @@ def fondo_svg():
   <filter id="sfoca1" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="0.8"/></filter>
   <filter id="sfoca2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.6"/></filter>
 </defs>
-<rect width="{W}" height="{H}" fill="url(#base)"/>
-<rect width="{W}" height="{H}" fill="url(#luce)"/>
+<rect width="{w}" height="{h}" fill="url(#base)"/>
+<rect width="{w}" height="{h}" fill="url(#luce)"/>
+<g transform="translate({dx},0)">
 <g filter="url(#nebbia)" opacity="0.55">
   <path d="M 980,1140 C 1260,900 1500,620 2040,240" fill="none" stroke="url(#onda)" stroke-width="210" stroke-linecap="round"/>
   <path d="M 1180,1160 C 1420,980 1640,760 2060,520" fill="none" stroke="url(#onda)" stroke-width="120" stroke-linecap="round"/>
@@ -197,7 +204,8 @@ def fondo_svg():
 {"".join(stelle)}
 {scie}
 {aerei}
-<rect width="{W}" height="{H}" fill="url(#vignetta)"/>
+</g>
+<rect width="{w}" height="{h}" fill="url(#vignetta)"/>
 </svg>'''
 
 
@@ -230,6 +238,89 @@ def fondo(font, png):
     d.line([(x0, yf), (x0 + round(W * MENU["width"]), yf)],
            fill=esadecimale(ROSA_300, 70), width=2)
     img.convert("RGB").save(png, optimize=True)
+
+
+# =============================================================================
+# isolinux (avvio BIOS della ISO): stesso disegno, a 640x480
+# =============================================================================
+# vesamenu scrive con un font fisso di 8x16 pixel: lo schermo e' una griglia
+# di 80 colonne x 30 righe. Testata e filo sono allineati a quella griglia,
+# e il menu parte dalla colonna ISO_COLONNA come il menu GRUB parte dall'8%.
+ISO_W, ISO_H = 640, 480
+ISO_COLONNA = 4          # menu hshift: 4 colonne = 32 px
+ISO_RIGA_FILO = 7        # il filo sta sotto la riga 7 (y = 128 px)
+
+
+def isolinux_splash(font, png):
+    k = 1080 / ISO_H                       # si disegna a 1440x1080 e si riduce
+    gw, gh = round(ISO_W * k), 1080
+    rsvg(fondo_svg(gw, gh, dx=-300), png, gw, gh)
+    img = Image.open(png).convert("RGBA")
+
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        emblema_png = f.name
+    subprocess.run(["rsvg-convert", "-h", str(round(40 * k)),
+                    os.path.join(REPO, "branding", "logos", "emblem-ruscalinux-white.svg"),
+                    "-o", emblema_png], check=True)
+    emblema = Image.open(emblema_png).convert("RGBA")
+    os.unlink(emblema_png)
+    # La barra di selezione parte dalla colonna ISO_COLONNA + 1 (dopo il
+    # bordo invisibile): filo e testata si allineano a quella.
+    x0 = round((ISO_COLONNA + 1) * 8 * k)
+    y0 = round(40 * k)
+    img.alpha_composite(emblema, (x0 - round(4 * k), y0))
+    d = ImageDraw.Draw(img)
+    nome = ImageFont.truetype(font["syne-extrabold"], round(26 * k))
+    frase = ImageFont.truetype(font["dmsans-regular"], round(11 * k))
+    xt = x0 - round(4 * k) + emblema.width + round(10 * k)
+    d.text((xt, y0 + round(2 * k)), "ruscalinux", font=nome, fill=esadecimale(CREMA))
+    d.text((xt + round(1 * k), y0 + round(31 * k)), "Free, complete, and ready to go.",
+           font=frase, fill=esadecimale(ROSA_250))
+    yf = round((ISO_RIGA_FILO + 1) * 16 * k) - round(6 * k)
+    d.line([(x0, yf), (x0 + round(46 * 8 * k) - 1, yf)], fill=esadecimale(ROSA_300, 70),
+           width=round(1 * k))
+    img.convert("RGB").resize((ISO_W, ISO_H), Image.LANCZOS).save(png, optimize=True)
+
+
+def argb(c, alfa="ff"):
+    return "#" + alfa + c.lstrip("#").lower()
+
+
+def isolinux_stdmenu():
+    """stdmenu.cfg per vesamenu: lo includono il menu principale e tutti i
+    sottomenu, quindi vale ovunque. Sostituisce quello di live-build."""
+    trasp = "#00000000"
+    return f"""# RuscaLinux — menu isolinux (avvio BIOS della ISO)
+# Generato da branding/generators/ruscalinux-grub-theme.py: non modificare
+# qui, rigenera. Lo installa l'hook 9010-ruscalinux-grub-theme.hook.binary.
+menu background splash.png
+menu color screen      * {trasp} {trasp} none
+menu color border      * {trasp} {trasp} none
+menu color title       * {trasp} {trasp} none
+menu color unsel       * {argb(VOCE)} {trasp} none
+menu color hotkey      * {argb(ROSA_250)} {trasp} none
+menu color sel         * {argb(PRUGNA_900)} {argb(ROSA_300)} none
+menu color hotsel      * {argb(PRUGNA_900)} {argb(ROSA_300)} none
+menu color disabled    * {argb(TENUE)} {trasp} none
+menu color scrollbar   * {argb(ROSA_300)} {argb(TRACCIA)} none
+menu color tabmsg      * {argb(TENUE)} {trasp} none
+menu color cmdmark     * {argb(ROSA_300)} {trasp} none
+menu color cmdline     * {argb(VOCE)} {trasp} none
+menu color timeout_msg * {argb(TENUE)} {trasp} none
+menu color timeout     * {argb(ROSA_300)} {trasp} none
+menu color help        * {argb(VOCE)} {trasp} none
+menu width 48
+menu margin 0
+menu hshift {ISO_COLONNA - 1}
+menu vshift {ISO_RIGA_FILO - 1}
+menu rows 14
+menu helpmsgrow 24
+menu helpmsgendrow 25
+menu cmdlinerow 25
+menu timeoutrow 25
+menu tabmsgrow 26
+menu tabmsg Enter: start    Tab: edit the entry
+"""
 
 
 # =============================================================================
@@ -441,6 +532,15 @@ def main():
     console.save(os.path.join(USCITA, "console.png"), optimize=True)
 
     anteprima(font, USCITA, os.path.join(os.path.dirname(USCITA), "preview.png"))
+
+    # Menu BIOS (isolinux): immagine e colori, accanto agli altri file
+    # d'avvio della ISO.
+    iso = os.path.join(REPO, "local", "isolinux")
+    os.makedirs(iso, exist_ok=True)
+    isolinux_splash(font, os.path.join(iso, "splash.png"))
+    with open(os.path.join(iso, "stdmenu.cfg"), "w", encoding="utf-8") as f:
+        f.write(isolinux_stdmenu())
+    print(f"Menu isolinux scritto in {iso}")
     print(f"Tema scritto in {USCITA}")
 
 

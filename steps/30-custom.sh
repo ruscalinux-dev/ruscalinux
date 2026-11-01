@@ -12,6 +12,9 @@ mkdir -p .work/config/includes.binary/boot/grub/
 mkdir -p .work/config/includes.binary/isolinux/
 cp local/grub/splash.png .work/config/includes.binary/boot/grub/
 cp local/isolinux/splash.png .work/config/includes.binary/isolinux/
+# Colori e posizioni del menu BIOS (generati con il tema GRUB): l'hook
+# binario qui sotto li mette al posto dello stdmenu.cfg di live-build.
+cp local/isolinux/stdmenu.cfg .work/config/includes.binary/isolinux/ruscalinux-stdmenu.cfg
 
 # TEMA GRUB RUSCALINUX (ISO e sistema installato)
 # Generato da branding/generators/ruscalinux-grub-theme.py in
@@ -59,6 +62,15 @@ if grep -q "set theme=" boot/grub/theme.cfg; then
     echo "Tema GRUB RuscaLinux attivato in boot/grub/theme.cfg"
 else
     echo "ATTENZIONE: in boot/grub/theme.cfg non c'e' 'set theme=': tema non attivato" >&2
+fi
+
+# Menu BIOS (isolinux): stdmenu.cfg di RuscaLinux al posto di quello di
+# live-build. Lo includono il menu principale e tutti i sottomenu.
+if [ -f isolinux/ruscalinux-stdmenu.cfg ] && [ -f isolinux/stdmenu.cfg ]; then
+    mv isolinux/ruscalinux-stdmenu.cfg isolinux/stdmenu.cfg
+    echo "Menu isolinux RuscaLinux attivato in isolinux/stdmenu.cfg"
+else
+    echo "ATTENZIONE: menu isolinux RuscaLinux non attivato" >&2
 fi
 
 if grep -q "set gfxmode=800x600" boot/grub/config.cfg; then

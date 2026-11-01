@@ -21,8 +21,13 @@ con la versione di `release.conf`.
 - **Sistema installato:** `/boot/grub/themes/ruscalinux/`, attivato da
   `/etc/default/grub.d/99-ruscalinux.cfg` (`GRUB_THEME`, `GRUB_GFXMODE`).
 
-L'avvio BIOS della ISO usa isolinux, non GRUB: quel menu ha la sua immagine,
-`local/isolinux/splash.png`.
+L'avvio BIOS della ISO usa isolinux, non GRUB. Lo stesso generatore crea
+anche quel menu, nello stesso stile: `local/isolinux/splash.png` (640×480) e
+`local/isolinux/stdmenu.cfg` (colori e posizioni). L'hook mette
+`stdmenu.cfg` al posto di quello di live-build; lo includono il menu
+principale e tutti i sottomenu. isolinux scrive con un font fisso di 8×16
+pixel (griglia di 80×30 caratteri): testata e filo sono allineati a quella
+griglia. Provato in QEMU (BIOS): menu, modifica con Tab, sottomenu.
 
 Regole imparate provando il tema in GRUB vero:
 

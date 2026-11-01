@@ -53,6 +53,7 @@ You can add your own entries in `~/.config/ruscatranslator/rag/personale.json`. 
 | Text Size | Size of the text in both panes; also with Ctrl++ and Ctrl+−, Ctrl+0 returns to the system size |
 | Model | Choice among the GGUF files found, or any file |
 | Graphics Card (Vulkan) | Much faster; off by default because some drivers hang |
+| Graphics Card to Use | Automatic, or one of the computer’s graphics cards. On laptops with two graphics cards choose the dedicated one (for example NVIDIA) |
 | CPU Threads | As many as the physical cores is recommended |
 | Context | 8192 is enough for 6000-character parts |
 | Linguistic Knowledge | The RAG described above |
@@ -90,6 +91,7 @@ Translation is automatic: legal, medical or published texts need human review.
 | "No model found" | Copy a GGUF into `~/.local/share/ruscallama/models/` or choose it in Preferences |
 | The engine stops at once | **Engine Log** from the menu: memory is often the cause |
 | Slow translation | Try **Graphics Card (Vulkan)** |
+| The model loads without the graphics card but not with it | In **Graphics Card to Use** choose the dedicated card: on a laptop with two cards the engine may use the wrong one |
 | Parts left in the original language | Translate again, or fix them by hand before saving |
 
 Support: info@ruscalinux.org — The note on the use of AI tools is in the About window and in the `NOTA-IA.md` file of the repository.

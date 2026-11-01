@@ -53,6 +53,7 @@ Puoi aggiungere voci tue in `~/.config/ruscatranslator/rag/personale.json`. Il f
 | Dimensione del testo | Dimensione del testo nei due riquadri; anche con Ctrl++ e Ctrl+−, Ctrl+0 torna a quella di sistema |
 | Modello | Scelta tra i GGUF trovati, o un file qualunque |
 | Scheda grafica (Vulkan) | Molto più veloce; spenta per impostazione predefinita perché alcuni driver si bloccano |
+| Scheda da usare | Automatica, oppure una delle schede del computer. Nei portatili con due schede grafiche scegli quella dedicata (per esempio NVIDIA) |
 | Thread della CPU | Consigliati tanti quanti i core fisici |
 | Contesto | 8192 basta per le parti da 6000 caratteri |
 | Conoscenza linguistica | Il RAG descritto sopra |
@@ -90,6 +91,7 @@ La traduzione è automatica: per testi legali, medici o da pubblicare serve una 
 | «Nessun modello trovato» | Copia un GGUF in `~/.local/share/ruscallama/models/` o sceglilo nelle Preferenze |
 | Il motore si ferma subito | **Registro del motore** dal menu: spesso manca memoria |
 | Traduzione lenta | Prova la **Scheda grafica (Vulkan)** |
+| Con la scheda grafica il modello non si carica, senza sì | In **Scheda da usare** scegli la scheda dedicata: su un portatile con due schede il motore può usare quella sbagliata |
 | Parti rimaste nella lingua originale | Ritraduci, o correggile a mano prima di salvare |
 
 Supporto: info@ruscalinux.org — La nota sull'uso di strumenti di intelligenza artificiale è nella finestra Informazioni e nel file `NOTA-IA.md` del repository.

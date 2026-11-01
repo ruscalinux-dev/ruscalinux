@@ -18,6 +18,7 @@
 import http.client
 import json
 import os
+import re
 import secrets
 import signal
 import socket
@@ -110,6 +111,45 @@ def companions(model):
     except OSError:
         pass
     return mmproj, draft
+
+
+# ── schede grafiche ────────────────────────────────────────────────────────
+# Una riga di `llama-server --list-devices`, per esempio:
+#   "  Vulkan1: NVIDIA GeForce RTX 3060 Laptop GPU (6144 MiB, 5794 MiB free)"
+_DEVICE_RE = re.compile(r"^\s+(\S+):\s+(.*\S)\s+\((\d+) MiB, \d+ MiB free\)\s*$")
+
+
+def list_devices():
+    """Schede grafiche viste dal motore: [(nome, descrizione, MiB)], per
+    esempio ("Vulkan1", "NVIDIA GeForce RTX 3060 Laptop GPU", 6144). Lista
+    vuota se il motore manca o non vede schede. Il motore inizializza Vulkan,
+    quindi puo' servire un secondo: va chiamata fuori dal thread
+    dell'interfaccia."""
+    binary = find_binary()
+    if not binary:
+        return []
+    try:
+        r = subprocess.run([binary, "--list-devices"], stdin=subprocess.DEVNULL,
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    devices = []
+    for line in (r.stdout + "\n" + r.stderr).splitlines():
+        m = _DEVICE_RE.match(line)
+        if m:
+            devices.append((m.group(1), m.group(2), int(m.group(3))))
+    return devices
+
+
+def device_name(description, devices):
+    """Nome attuale (Vulkan0, Vulkan1, ...) della scheda scelta. Si salva la
+    descrizione e non il nome, perche' la numerazione puo' cambiare se
+    cambiano driver o schede. None: scelta automatica, oppure la scheda non
+    c'e' piu'."""
+    for name, desc, _mib in devices:
+        if description and desc == description:
+            return name
+    return None
 
 
 def _runtime_dir():

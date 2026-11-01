@@ -78,6 +78,8 @@
   "engine_desc": "Le modifiche valgono al riavvio del motore.",
   "gpu": "Scheda grafica (Vulkan)",
   "gpu_sub": "Molto più veloce; spegnila se il driver dà problemi",
+  "gpu_device": "Scheda da usare",
+  "gpu_device_auto": "Automatica",
   "threads": "Thread della CPU",
   "threads_sub": "Questo computer ha {n} core fisici: usane altrettanti",
   "context": "Contesto",

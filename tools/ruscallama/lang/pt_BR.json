@@ -81,6 +81,8 @@
   "engine_desc": "As mudanças valem quando o motor reiniciar.",
   "gpu": "Placa de vídeo (Vulkan)",
   "gpu_sub": "Muito mais rápido; desligue se o driver der problemas",
+  "gpu_device": "Placa de vídeo a usar",
+  "gpu_device_auto": "Automática",
   "threads": "Threads da CPU",
   "threads_sub": "Este computador tem {n} núcleos físicos: use a mesma quantidade",
   "context": "Contexto",

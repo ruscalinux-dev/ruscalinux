@@ -78,6 +78,8 @@
   "engine_desc": "Perubahan berlaku saat mesin dimulai ulang.",
   "gpu": "Kartu Grafis (Vulkan)",
   "gpu_sub": "Jauh lebih cepat; matikan bila driver bermasalah",
+  "gpu_device": "Kartu grafis yang dipakai",
+  "gpu_device_auto": "Otomatis",
   "threads": "Thread CPU",
   "threads_sub": "Komputer ini punya {n} inti fisik: gunakan sebanyak itu",
   "context": "Konteks",

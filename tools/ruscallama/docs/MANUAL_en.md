@@ -51,6 +51,7 @@ The side panel (F9) has four groups.
 | Answers | Instructions for the model | The system message |
 | Answers | Sampling Parameters | Temperature, top-p, top-k, min-p, penalties, seed; changing one sets the style to *Custom* |
 | Engine | Graphics Card (Vulkan) | Much faster; turn off if the driver gives problems |
+| Engine | Graphics Card to Use | Automatic, or one of the computer’s graphics cards. On laptops with two graphics cards choose the dedicated one (for example NVIDIA) |
 | Engine | CPU Threads | As many as the physical cores is recommended |
 | Engine | Context | Tokens the model keeps in mind |
 | Engine | Context Memory | Full precision or compressed (recommended) |
@@ -102,6 +103,7 @@ Answers from a language model can be wrong: check important information.
 | The engine stops at once | Open **Engine Log** from the menu: memory is often the cause; try a smaller model, less context or compressed context memory |
 | Very slow | Turn on **Graphics Card (Vulkan)**; check the number of threads |
 | The graphics driver hangs | Turn off **Graphics Card (Vulkan)** |
+| The model loads without the graphics card but not with it | In **Graphics Card to Use** choose the dedicated card: on a laptop with two cards the engine may use the wrong one |
 | Images are not accepted | You need an `mmproj` file next to the model and **Vision** on |
 
 Support: info@ruscalinux.org — The note on the use of AI tools is in the About window and in the `NOTA-IA.md` file of the repository.

@@ -51,6 +51,7 @@ Il pannello laterale (F9) ha quattro gruppi.
 | Risposte | Istruzioni per il modello | Il messaggio di sistema |
 | Risposte | Parametri di campionamento | Temperatura, top-p, top-k, min-p, penalità, seme; cambiarne uno porta lo stile su *Personalizzato* |
 | Motore | Scheda grafica (Vulkan) | Molto più veloce; spegnila se il driver dà problemi |
+| Motore | Scheda da usare | Automatica, oppure una delle schede del computer. Nei portatili con due schede grafiche scegli quella dedicata (per esempio NVIDIA) |
 | Motore | Thread della CPU | Consigliati tanti quanti i core fisici |
 | Motore | Contesto | Token che il modello tiene a mente |
 | Motore | Memoria del contesto | Precisione piena o compressa (consigliata) |
@@ -102,6 +103,7 @@ Le risposte di un modello linguistico possono essere sbagliate: verifica le info
 | Il motore si ferma subito | Apri **Registro del motore** dal menu: spesso manca memoria; prova un modello più piccolo, meno contesto o la memoria del contesto compressa |
 | Molto lento | Accendi **Scheda grafica (Vulkan)**; controlla il numero di thread |
 | Il driver grafico si blocca | Spegni **Scheda grafica (Vulkan)** |
+| Con la scheda grafica il modello non si carica, senza sì | In **Scheda da usare** scegli la scheda dedicata: su un portatile con due schede il motore può usare quella sbagliata |
 | Le immagini non partono | Serve un file `mmproj` accanto al modello e la **Visione** attiva |
 
 Supporto: info@ruscalinux.org — La nota sull'uso di strumenti di intelligenza artificiale è nella finestra Informazioni e nel file `NOTA-IA.md` del repository.

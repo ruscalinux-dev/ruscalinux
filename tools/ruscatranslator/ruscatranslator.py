@@ -77,7 +77,7 @@ ENGLISH = {c: e for c, _n, e in LANGUAGES}
 DOMAINS = ("generale", "saggistica", "letteratura", "dialoghi")
 CONTEXTS = (4096, 8192, 16384, 32768)
 DEFAULTS = {
-    "model": "", "gpu": False, "threads": engine.physical_cores(),
+    "model": "", "gpu": False, "gpu_device": "", "threads": engine.physical_cores(),
     "context": 8192, "rag": True, "domain": "generale", "src": "auto",
     "tgt": "en", "font_size": 0, "width": 1200, "height": 800, "maximized": False,
 }
@@ -430,6 +430,9 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
             self.maximize()
         self.engine = engine.Engine("ruscatranslator", self._on_engine_log,
                                     self._on_engine_state)
+        self.devices = []                    # schede viste dal motore
+        self._device_updating = False
+        threading.Thread(target=self._load_devices, daemon=True).start()
         self.log_lines = []
         self.models = []
         self.source_path = None
@@ -724,9 +727,14 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
 
     # ── motore ────────────────────────────────────────────────────────────
     def _engine_args(self):
-        return ["-t", self.cfg["threads"], "-c", self.cfg["context"], "-b", 4096,
+        args = ["-t", self.cfg["threads"], "-c", self.cfg["context"], "-b", 4096,
                 "-ub", 2048, "--parallel", 1, "--flash-attn", "on",
                 "-ctk", "q8_0", "-ctv", "q8_0", "--reasoning", "off"]
+        device = (engine.device_name(self.cfg["gpu_device"], self._devices_now())
+                  if self.cfg["gpu"] else None)
+        if device:
+            args += ["--device", device]
+        return args
 
     def start_engine(self):
         if self.engine.running:
@@ -969,8 +977,14 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
 
         eng = Adw.PreferencesGroup(title=_("group_engine"), description=_("engine_desc"))
         gpu = Adw.SwitchRow(title=_("gpu"), subtitle=_("gpu_sub"), active=self.cfg["gpu"])
-        gpu.connect("notify::active", lambda r, _p: self._set_engine("gpu", r.get_active()))
+        gpu.connect("notify::active", lambda r, _p: (
+            self._set_engine("gpu", r.get_active()), self.device_row.set_sensitive(r.get_active())))
         eng.add(gpu)
+        self.device_row = Adw.ComboRow(title=_("gpu_device"), use_subtitle=True,
+                                       sensitive=self.cfg["gpu"])
+        self._fill_device_row()
+        self.device_row.connect("notify::selected", self._on_device)
+        eng.add(self.device_row)
         threads = Adw.SpinRow.new_with_range(1, max(1, os.cpu_count() or 1), 1)
         threads.set_title(_("threads"))
         threads.set_subtitle(_("threads_sub", n=engine.physical_cores()))
@@ -1019,6 +1033,43 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
     def _set(self, key, value):
         self.cfg[key] = value
         save_settings(self.cfg)
+
+    # ── schede grafiche ───────────────────────────────────────────────────
+    # L'elenco si chiede al motore in background all'avvio del programma
+    # (Vulkan impiega un attimo a inizializzarsi). Si salva la descrizione
+    # della scheda, non il nome VulkanN, che puo' cambiare.
+    def _load_devices(self):
+        devices = engine.list_devices()
+        GLib.idle_add(self._devices_loaded, devices)
+
+    def _devices_loaded(self, devices):
+        self.devices = devices
+        self._fill_device_row()
+        return False
+
+    def _devices_now(self):
+        if not self.devices and self.cfg["gpu_device"]:
+            self.devices = engine.list_devices()
+        return self.devices
+
+    def _fill_device_row(self):
+        row = getattr(self, "device_row", None)
+        if row is None:
+            return
+        voci = [_("gpu_device_auto")] + [
+            f"{desc} ({max(1, round(mib / 1024))} GB)" for _n, desc, mib in self.devices]
+        descrizioni = [d[1] for d in self.devices]
+        self._device_updating = True
+        row.set_model(Gtk.StringList.new(voci))
+        row.set_selected(descrizioni.index(self.cfg["gpu_device"]) + 1
+                         if self.cfg["gpu_device"] in descrizioni else 0)
+        self._device_updating = False
+
+    def _on_device(self, row, _pspec):
+        if self._device_updating:
+            return
+        i = row.get_selected()
+        self._set_engine("gpu_device", self.devices[i - 1][1] if 0 < i <= len(self.devices) else "")
 
     def _set_engine(self, key, value):
         if self.cfg.get(key) == value:

@@ -80,7 +80,7 @@ KV_MODES = ("f16", "q8_0", "q4_0")
 FLASH_MODES = ("auto", "on", "off")
 EFFORTS = ("low", "medium", "high")
 DEFAULTS = {
-    "model": "", "gpu": True, "threads": engine.physical_cores(),
+    "model": "", "gpu": True, "gpu_device": "", "threads": engine.physical_cores(),
     "context": 8192, "kv": "q8_0", "flash": "auto", "vision": True,
     "speculative": False, "reasoning": False, "effort": "low",
     "preset": "balanced", "sampling": dict(PRESETS["balanced"]), "seed": -1,
@@ -531,6 +531,9 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
             self.maximize()
         self.engine = engine.Engine("ruscallama", self._on_engine_log,
                                     self._on_engine_state)
+        self.devices = []                    # schede viste dal motore
+        self._device_updating = False
+        threading.Thread(target=self._load_devices, daemon=True).start()
         self.log_lines = []
         self.history = []                    # messaggi in formato OpenAI
         self.attachments = []                # (tipo, nome, dato)
@@ -775,8 +778,14 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
         # Motore
         eng = Adw.PreferencesGroup(title=_("group_engine"), description=_("engine_desc"))
         self.gpu_row = Adw.SwitchRow(title=_("gpu"), subtitle=_("gpu_sub"), active=cfg["gpu"])
-        self.gpu_row.connect("notify::active", lambda r, _p: self._set_engine("gpu", r.get_active()))
+        self.gpu_row.connect("notify::active", lambda r, _p: (
+            self._set_engine("gpu", r.get_active()), self.device_row.set_sensitive(r.get_active())))
         eng.add(self.gpu_row)
+        self.device_row = Adw.ComboRow(title=_("gpu_device"), use_subtitle=True,
+                                       sensitive=cfg["gpu"])
+        self._fill_device_row()
+        self.device_row.connect("notify::selected", self._on_device)
+        eng.add(self.device_row)
         threads = Adw.SpinRow.new_with_range(1, max(1, os.cpu_count() or 1), 1)
         threads.set_title(_("threads"))
         threads.set_subtitle(_("threads_sub", n=engine.physical_cores()))
@@ -811,6 +820,43 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
     def _set(self, key, value):
         self.cfg[key] = value
         save_settings(self.cfg)
+
+    # ── schede grafiche ───────────────────────────────────────────────────
+    # L'elenco si chiede al motore in background all'avvio del programma
+    # (Vulkan impiega un attimo a inizializzarsi). Si salva la descrizione
+    # della scheda, non il nome VulkanN, che puo' cambiare.
+    def _load_devices(self):
+        devices = engine.list_devices()
+        GLib.idle_add(self._devices_loaded, devices)
+
+    def _devices_loaded(self, devices):
+        self.devices = devices
+        self._fill_device_row()
+        return False
+
+    def _devices_now(self):
+        if not self.devices and self.cfg["gpu_device"]:
+            self.devices = engine.list_devices()
+        return self.devices
+
+    def _fill_device_row(self):
+        row = getattr(self, "device_row", None)
+        if row is None:
+            return
+        voci = [_("gpu_device_auto")] + [
+            f"{desc} ({max(1, round(mib / 1024))} GB)" for _n, desc, mib in self.devices]
+        descrizioni = [d[1] for d in self.devices]
+        self._device_updating = True
+        row.set_model(Gtk.StringList.new(voci))
+        row.set_selected(descrizioni.index(self.cfg["gpu_device"]) + 1
+                         if self.cfg["gpu_device"] in descrizioni else 0)
+        self._device_updating = False
+
+    def _on_device(self, row, _pspec):
+        if self._device_updating:
+            return
+        i = row.get_selected()
+        self._set_engine("gpu_device", self.devices[i - 1][1] if 0 < i <= len(self.devices) else "")
 
     def _set_engine(self, key, value):
         """Opzioni che valgono solo all'avvio del motore."""
@@ -914,12 +960,17 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
             args += ["-ctk", cfg["kv"], "-ctv", cfg["kv"]]
         if cfg["vision"] and self.mmproj:
             args += ["--mmproj", self.mmproj]
+        device = engine.device_name(cfg["gpu_device"], self._devices_now()) if cfg["gpu"] else None
+        if device:
+            args += ["--device", device]
         if cfg["speculative"]:
             if self.draft:
                 args += ["--spec-type", "draft-mtp", "--spec-draft-n-max", 4,
                          "--model-draft", self.draft]
                 if cfg["gpu"]:
                     args += ["-ngld", 99]
+                    if device:
+                        args += ["--device-draft", device]
             elif "mtp" in os.path.basename(cfg["model"]).lower():
                 args += ["--spec-type", "draft-mtp", "--spec-draft-n-max", 4]
         return args

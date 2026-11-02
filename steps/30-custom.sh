@@ -1098,7 +1098,9 @@ echo "plymouth-themes" >> .work/config/package-lists/ruscalinux.list.chroot
 
 # SOSTITUZIONE PROFONDA DEL LOGO DEBIAN E DEL PIEDONE GNOME CON QUELLO DI RUSCALINUX
 mkdir -p .work/config/includes.chroot_after_packages/usr/share/icons/vendor/scalable/emblems/
-cp local/emblem-vendor.svg .work/config/includes.chroot_after_packages/usr/share/icons/vendor/scalable/emblems/
+# Stesso logo di ruscalinux-logo.svg, con il nome che Debian usa per
+# l'emblema del distributore: sostituisce il logo Debian anche li'.
+cp local/ruscalinux-logo.svg .work/config/includes.chroot_after_packages/usr/share/icons/vendor/scalable/emblems/emblem-vendor.svg
 
 mkdir -p .work/config/hooks/normal/
 cat <<'EOF' > .work/config/hooks/normal/9991-replace-debian-logos.hook.chroot

@@ -65,6 +65,11 @@ for code in codes:
     problems += [f"{code}: manca {k}" for k in ref if k not in data and not k.startswith("__")]
     problems += [f"{code}: segnaposto diversi in {k}" for k in ref
                  if k in data and not k.startswith("__") and fields(data[k]) != fields(ref[k])]
+    # Una copia dell'inglese non e' una traduzione: stesso criterio di
+    # is_complete() in src/ruscawriter/i18n.py (chiavi-sonda).
+    probe = ("btn_save", "btn_open", "menu_file", "menu_help", "mi_about", "cancel")
+    if code != "en" and sum(data.get(k) != ref.get(k) for k in probe) * 2 <= len(probe):
+        problems.append(f"{code}: sembra una copia dell'inglese, non una traduzione")
     t = lambda k: data.get(k, ref[k])
     sfx = "" if code == "en" else f"[{code}]"
     lang = "" if code == "en" else f' xml:lang="{code}"'

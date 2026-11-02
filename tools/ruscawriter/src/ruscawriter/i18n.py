@@ -21,12 +21,12 @@ Translations are NOT written in the code: they live in JSON files inside
 the 'lang/' folder (one per language, e.g. it.json, en.json, ...). This
 keeps the program modular and translatable without touching the Python
 sources: to add or complete a language, just edit its JSON file.
-- LANGUAGES lists the 15 official languages of the RuscaLinux project
-  (code and native name), as defined in the RuscaLinux OS Tools specs.
+- LANGUAGES lists the languages of the RuscaLinux OS Tools (code and native
+  name), as defined in the specs, section 9.
 - load_language(code) loads a language dictionary, automatically falling
   back to English (and then to the key itself) for any missing entry.
-- ensure_language_files() creates the "skeletons" of missing files, so the
-  selector immediately shows every language even if not yet translated.
+- A language without its file shows the English interface: no placeholder
+  files are written (they ended up in the packages as copies of English).
 - COMPLETE_LANGUAGES is COMPUTED from the JSON files, not written by hand:
   a language is "complete" when its file is a real translation, while the
   skeletons (copies of English) score zero. The menu therefore follows the
@@ -37,12 +37,12 @@ Le traduzioni NON sono scritte nel codice: vivono in file JSON nella
 cartella 'lang/' (uno per lingua, es. it.json, en.json, ...). Questo rende
 il programma modulare e traducibile senza toccare il Python: per aggiungere
 o completare una lingua basta editare il suo file JSON.
-- LANGUAGES elenca le 15 lingue ufficiali del progetto RuscaLinux (codice
-  e nome nativo), come definite nelle specifiche dei RuscaLinux OS Tools.
+- LANGUAGES elenca le lingue dei RuscaLinux OS Tools (codice e nome
+  nativo), come definite nelle specifiche, sezione 9.
 - load_language(code) carica il dizionario di una lingua, con fallback
   automatico all'inglese (e poi alla chiave stessa) per le voci mancanti.
-- ensure_language_files() crea gli "scheletri" dei file mancanti, così il
-  selettore mostra subito tutte le lingue anche se non ancora tradotte.
+- Una lingua senza il suo file mostra l'interfaccia in inglese: non si
+  scrivono file segnaposto (finivano nei pacchetti come copie dell'inglese).
 - COMPLETE_LANGUAGES e' CALCOLATO dai file JSON, non scritto a mano: una
   lingua e' "completa" quando il suo file e' una traduzione vera, mentre
   gli scheletri (copie dell'inglese) fanno zero. Il menu quindi segue i
@@ -184,17 +184,16 @@ def _load_json(code):
 #     That split must follow the JSON files: a hand-written list goes stale
 #     the day a translation lands (exactly what happened with the eight new
 #     languages). A language counts as translated when a handful of probe
-#     keys differ from English: the skeletons written by
-#     ensure_language_files() are copies of English and score zero, while
-#     any real translation scores full marks.
+#     keys differ from English: a copy of English scores zero, while any
+#     real translation scores full marks.
 # IT: QUALI LINGUE SONO TRADOTTE DAVVERO — calcolato, non elencato.
 #     Il menu divide le lingue fra "complete" e "interfaccia in inglese":
 #     quella divisione deve seguire i file JSON, perche' un elenco scritto a
 #     mano invecchia il giorno che arriva una traduzione (ed e' esattamente
 #     cio' che e' successo con le otto lingue nuove). Una lingua conta come
-#     tradotta quando alcune chiavi-sonda differiscono dall'inglese: gli
-#     scheletri scritti da ensure_language_files() sono copie dell'inglese e
-#     fanno zero, mentre una traduzione vera fa punteggio pieno.
+#     tradotta quando alcune chiavi-sonda differiscono dall'inglese: una
+#     copia dell'inglese fa zero, mentre una traduzione vera fa punteggio
+#     pieno. make-deb.sh usa lo stesso criterio per rifiutare le copie.
 # ---------------------------------------------------------------------------
 PROBE_KEYS = ("btn_save", "btn_open", "menu_file",
               "menu_help", "mi_about", "cancel")
@@ -261,40 +260,6 @@ class Translator:
     def is_rtl(self):
         return self.code in RTL_LANGUAGES
 
-
-def ensure_language_files():
-    """Crea i file di lingua mancanti come 'scheletri': un JSON con le stesse
-    chiavi dell'inglese ma con un commento che indica che vanno tradotte.
-    In pratica copiamo l'inglese come punto di partenza, così l'app funziona
-    e la lingua è selezionabile; chi traduce sostituisce i valori.
-    I file esistenti NON vengono toccati (le traduzioni già fatte si conservano).
-    """
-    # EN/IT: installed, lang/ is in /usr/share and read-only for the user:
-    # never crash the start for that. / installato, lang/ sta in /usr/share
-    # ed e' di sola lettura per l'utente: mai bloccare l'avvio per questo.
-    try:
-        os.makedirs(LANG_DIR, exist_ok=True)
-    except OSError:
-        return
-    base = _load_json("en")
-    if not base:
-        return
-    for code in LANGUAGES:
-        path = os.path.join(LANG_DIR, f"{code}.json")
-        if os.path.exists(path):
-            continue   # non sovrascrivere lingue già presenti/tradotte
-        # scheletro: copia dell'inglese, da tradurre
-        skeleton = {"__comment__": (
-            f"Traduzione di RuscaWriter in "
-            f"{LANGUAGES[code][1]} ({LANGUAGES[code][0]}). "
-            f"Sostituisci i valori inglesi con la traduzione. "
-            f"Le chiavi mancanti useranno l'inglese come ripiego.")}
-        skeleton.update(base)
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(skeleton, f, ensure_ascii=False, indent=2)
-        except OSError:
-            return
 
 def apply_toolkit_language(code):
     """EN — make GTK and libspelling speak the interface language too.

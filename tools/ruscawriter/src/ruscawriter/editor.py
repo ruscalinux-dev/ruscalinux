@@ -167,7 +167,7 @@ from .model import (classify_md_line, parse_inline, inline_spans,
                     wrapped_runs, unwrap_hard_breaks)
 from .i18n import apply_toolkit_language
 from .i18n import (Translator, LANGUAGES, LOCALE_ALIASES, available_languages,
-                   ensure_language_files, spell_locale_for,
+                   spell_locale_for,
                    RTL_LANGUAGES, COMPLETE_LANGUAGES, ASSETS_DIR)
 # EN/IT: the MDict reader. Like model.py it never imports GTK and uses only
 # the standard library, so the dictionary works with the machine unplugged
@@ -758,8 +758,6 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         if self.settings.get("win_maximized"):
             self.maximize()
         self.set_size_request(360, 294)
-
-        ensure_language_files()
         # La lingua dell'interfaccia segue quella del sistema (specifiche,
         # sezione 9.2): niente selettore interno.
         self.lang = detect_system_language()

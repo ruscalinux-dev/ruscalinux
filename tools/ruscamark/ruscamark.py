@@ -72,8 +72,9 @@ if SPELL_BACKEND is None:
 HAVE_SPELL = SPELL_BACKEND is not None
 HAS_FILEDIALOG = hasattr(Gtk, "FileDialog")
 # ----------------------------------------------------------------------------
-# i18n integrato (ex i18n.py): 15 lingue ufficiali dei RuscaLinux OS Tools
-#   en, zh_CN, es, hi, ar, pt_BR, ru, ja, de, fr, it, ko, id, tr, pl
+# i18n integrato (ex i18n.py): le lingue dei RuscaLinux OS Tools (specifiche,
+# sezione 9). LANGUAGES da' il nome di ciascuna; e' tradotta se c'e' il suo
+# file lang/<codice>.json (language_available).
 # Regole (SPECIFICHE-RUSCALINUX-OS-TOOLS.md):
 #   - le traduzioni stanno in lang/<codice>.json (UTF-8);
 #   - fallback: inglese; se una chiave manca anche in inglese si mostra la
@@ -100,9 +101,23 @@ LANGUAGES = {
     "id":    ("Bahasa Indonesia", "Indonesian"),
     "tr":    ("Türkçe", "Turkish"),
     "pl":    ("Polski", "Polish"),
+    "nl":    ("Nederlands", "Dutch"),
+    "uk":    ("Українська", "Ukrainian"),
+    "cs":    ("Čeština", "Czech"),
+    "vi":    ("Tiếng Việt", "Vietnamese"),
+    "sv":    ("Svenska", "Swedish"),
+    "ro":    ("Română", "Romanian"),
+    "hu":    ("Magyar", "Hungarian"),
+    "el":    ("Ελληνικά", "Greek"),
+    "fi":    ("Suomi", "Finnish"),
+    "zh_TW": ("中文（繁體）", "Traditional Chinese"),
 }
 RTL_LANGUAGES = {"ar"}
-_LOCALE_ALIASES = {"zh": "zh_CN", "pt": "pt_BR"}
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+_LOCALE_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                   "pt": "pt_BR", "sk": "cs"}
 _PROGRAM_DIR = os.path.dirname(os.path.abspath(__file__))
 LANG_DIRS = (
     os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"),
@@ -468,12 +483,12 @@ def detect_system_language():
             cand = cand.split(".")[0].split("@")[0]
             if not cand or cand in ("C", "POSIX"):
                 continue
-            if cand in LANGUAGES:
-                return cand
             base = cand.split("_")[0].lower()
-            base = _LOCALE_ALIASES.get(base, base)
-            if base in LANGUAGES:
-                return base
+            # solo lingue tradotte davvero: come negli altri programmi, se la
+            # traduzione manca si prova la candidata successiva
+            for code in (cand, _LOCALE_ALIASES.get(cand), base, _LOCALE_ALIASES.get(base)):
+                if code in LANGUAGES and language_available(code):
+                    return code
     return "en"
 
 

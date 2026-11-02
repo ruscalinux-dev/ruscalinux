@@ -75,10 +75,10 @@ def lang_file(code):
     """EN: path of a language file. IT: percorso di un file di lingua."""
     return os.path.join(LANG_DIR, f"{code}.json")
 
-# Le 15 lingue ufficiali di RuscaLinux (SPECIFICHE-RUSCALINUX-OS-TOOLS).
+# Le lingue dei RuscaLinux OS Tools (SPECIFICHE-RUSCALINUX-OS-TOOLS, sezione 9).
 # Ogni voce: codice -> (nome nativo, nome inglese). Il nome nativo è ciò che
 # vede l'utente nel selettore, così riconosce la propria lingua.
-# Codici con variante locale dove richiesto dalle specifiche: zh_CN, pt_BR.
+# Codici con variante locale dove richiesto dalle specifiche: zh_CN, zh_TW, pt_BR.
 LANGUAGES = {
     "en":    ("English", "English"),
     "zh_CN": ("简体中文", "Chinese (Simplified)"),
@@ -95,7 +95,24 @@ LANGUAGES = {
     "id":    ("Bahasa Indonesia", "Indonesian"),
     "tr":    ("Türkçe", "Turkish"),
     "pl":    ("Polski", "Polish"),
+    "nl":    ("Nederlands", "Dutch"),
+    "uk":    ("Українська", "Ukrainian"),
+    "cs":    ("Čeština", "Czech"),
+    "vi":    ("Tiếng Việt", "Vietnamese"),
+    "sv":    ("Svenska", "Swedish"),
+    "ro":    ("Română", "Romanian"),
+    "hu":    ("Magyar", "Hungarian"),
+    "el":    ("Ελληνικά", "Greek"),
+    "fi":    ("Suomi", "Finnish"),
+    "zh_TW": ("繁體中文", "Chinese (Traditional)"),
 }
+
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+# Chiavi in minuscolo, come le confronta detect_system_language().
+LOCALE_ALIASES = {"zh_hk": "zh_TW", "zh_mo": "zh_TW", "zh_sg": "zh_CN", "zh": "zh_CN",
+                  "pt": "pt_BR", "sk": "cs"}
 
 # lingue di destra-a-sinistra (per l'orientamento dell'area di scrittura)
 RTL_LANGUAGES = {"ar"}
@@ -120,6 +137,16 @@ SPELL_LOCALES = {
     "id":    "id_ID",
     "tr":    "tr_TR",
     "pl":    "pl_PL",
+    "nl":    "nl_NL",
+    "uk":    "uk_UA",
+    "cs":    "cs_CZ",
+    "vi":    "vi_VN",
+    "sv":    "sv_SE",
+    "ro":    "ro_RO",
+    "hu":    "hu_HU",
+    "el":    "el_GR",
+    "fi":    "fi_FI",
+    "zh_TW": "zh_TW",
 }
 
 

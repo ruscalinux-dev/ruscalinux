@@ -18,6 +18,8 @@
   "sc_close": "Zamknij okno",
   "sc_quit": "Zakończ",
   "app_summary": "Zarządzanie aplikacjami AppImage",
+  "desktop_generic_name": "Menedżer AppImage",
+  "desktop_comment": "Zarządzaj pakietami AppImage, instaluj je i uruchamiaj",
   "desktop_keywords": "AppImage;aplikacje;instaluj;menedżer;uruchamianie;",
   "list_title": "Twoje pliki AppImage",
   "list_hint": "Przeciągnij kolejne pliki .AppImage do okna, aby je dodać.",

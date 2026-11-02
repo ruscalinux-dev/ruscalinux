@@ -166,7 +166,7 @@ from .model import (
 from .model import (classify_md_line, parse_inline, inline_spans,
                     wrapped_runs, unwrap_hard_breaks)
 from .i18n import apply_toolkit_language
-from .i18n import (Translator, LANGUAGES, available_languages,
+from .i18n import (Translator, LANGUAGES, LOCALE_ALIASES, available_languages,
                    ensure_language_files, spell_locale_for,
                    RTL_LANGUAGES, COMPLETE_LANGUAGES, ASSETS_DIR)
 # EN/IT: the MDict reader. Like model.py it never imports GTK and uses only
@@ -557,12 +557,19 @@ def detect_system_language():
     for c in candidates:
         if not c:
             continue
-        base = c.split(".")[0].lower()       # es. "zh_cn", "pt_br", "it_it"
-        if base in lookup:                    # corrispondenza piena (zh_CN, pt_BR)
-            return lookup[base]
-        lang_only = base.split("_")[0]        # solo la lingua (it, en, fr...)
-        if lang_only in lookup:
-            return lookup[lang_only]
+        base = c.split(".")[0].split("@")[0].lower()   # es. "zh_hk", "pt_br", "it_it"
+        lang_only = base.split("_")[0]                  # solo la lingua (it, en, fr...)
+        # variante piena (zh_CN), suo ripiego (zh_HK -> zh_TW), lingua,
+        # ripiego della lingua (pt -> pt_BR, sk -> cs)
+        # solo lingue tradotte davvero (COMPLETE_LANGUAGES, calcolato dai
+        # file): come negli altri programmi, se la traduzione manca si prova
+        # la candidata successiva
+        for cand in (base, LOCALE_ALIASES.get(base), lang_only, LOCALE_ALIASES.get(lang_only)):
+            if not cand:
+                continue
+            code = cand if cand in LANGUAGES else lookup.get(cand.lower())
+            if code and code in COMPLETE_LANGUAGES:
+                return code
     return "en"
 
 # ---- correzione dell'elisione (italiano, francese) -------------------------

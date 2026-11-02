@@ -18,6 +18,8 @@
   "sc_close": "Pencereyi Kapat",
   "sc_quit": "Çık",
   "app_summary": "AppImage uygulamalarını yönetin",
+  "desktop_generic_name": "AppImage Yöneticisi",
+  "desktop_comment": "AppImage paketlerini yönetin, kurun ve çalıştırın",
   "desktop_keywords": "AppImage;uygulamalar;kur;yönetici;başlatıcı;",
   "list_title": "AppImage’larınız",
   "list_hint": "Eklemek için başka .AppImage dosyalarını pencereye sürükleyin.",

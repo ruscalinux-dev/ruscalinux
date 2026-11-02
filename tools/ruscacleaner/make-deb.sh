@@ -15,7 +15,6 @@ ARCH="${ARCH:-all}"        # Python puro: per le regole Debian l'architettura è
 MAINTAINER="Nunzio Curcuruto <info@ruscalinux.org>"
 HOMEPAGE="https://www.ruscalinux.org/"
 APP_ID="org.ruscalinux.RuscaCleaner"
-LANGS=(en zh_CN es hi ar pt_BR ru ja de fr it ko id tr pl)
 DOCS=(docs/MANUAL_en.md docs/MANUAL_it.md)
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,6 +30,12 @@ DATE_RFC="$(LC_ALL=C date -Ru -d "@$SOURCE_DATE_EPOCH")"
 
 say() { printf '\n==> %s\n' "$*"; }
 die() { echo "Errore: $*" >&2; exit 1; }
+
+# Le lingue sono i file di lang/ (specifiche, sezione 9.1): per aggiungerne
+# una basta aggiungere il suo file. en.json e it.json sono obbligatori; l'inglese va per primo (testi
+# predefiniti di menu e metainfo).
+mapfile -t LANGS < <(echo en; cd "$SRC_DIR/lang" && ls -1 -- *.json | sed 's/\.json$//' | grep -vx en | sort)
+for l in en it; do [ -f "$SRC_DIR/lang/$l.json" ] || die "manca lang/$l.json"; done
 
 case "${1:-}" in
     --clean)  rm -rf "$OUT_DIR"; echo "Rimossa build-deb/."; exit 0 ;;

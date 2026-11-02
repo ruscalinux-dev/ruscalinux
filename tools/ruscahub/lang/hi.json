@@ -18,6 +18,8 @@
   "sc_close": "विंडो बंद करें",
   "sc_quit": "बाहर निकलें",
   "app_summary": "AppImage अनुप्रयोग प्रबंधित करें",
+  "desktop_generic_name": "AppImage प्रबंधक",
+  "desktop_comment": "AppImage पैकेज प्रबंधित करें, इंस्टॉल करें और चलाएँ",
   "desktop_keywords": "AppImage;अनुप्रयोग;इंस्टॉल;प्रबंधक;लॉन्चर;",
   "list_title": "आपके AppImage",
   "list_hint": "जोड़ने के लिए और .AppImage फ़ाइलें विंडो पर खींचें।",

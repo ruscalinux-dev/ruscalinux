@@ -59,8 +59,10 @@ SAMPLING = dict(temperature=0.2, top_p=0.92, top_k=40, min_p=0.08,
 # Modelli preferiti per la traduzione, in ordine (parti del nome del file).
 PREFERRED_MODELS = ("gemma-4", "gemma4", "26b-a4b", "a4b")
 
-# Lingue dei documenti: le 15 lingue ufficiali di RuscaLinux (specifiche,
-# sezione 9). Codice, nome nella lingua stessa, nome in inglese (per il prompt).
+# Lingue dei documenti: le 15 tra cui RuscaTranslator traduce (specifiche,
+# guida a RuscaTranslator). Sono un elenco distinto da quello delle lingue
+# dell'interfaccia (sezione 9, file lang/). Codice, nome nella lingua
+# stessa, nome in inglese (per il prompt).
 LANGUAGES = (
     ("en", "English", "English"), ("zh", "中文（简体）", "Simplified Chinese"),
     ("es", "Español", "Spanish"), ("hi", "हिन्दी", "Hindi"),
@@ -105,6 +107,13 @@ BONUS = {
 
 
 # ── Traduzioni dell'interfaccia (lang/xx.json, ripiego en.json) ──────────────
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                "pt": "pt_BR", "sk": "cs"}
+
+
 def _load_strings():
     def read(code):
         try:
@@ -115,7 +124,10 @@ def _load_strings():
     strings = read("en")
     for name in GLib.get_language_names():
         base = name.split(".")[0].split("@")[0]
-        for code in (base, base.split("_")[0]):
+        lang = base.split("_")[0]
+        for code in (base, LANG_ALIASES.get(base), lang, LANG_ALIASES.get(lang)):
+            if not code:
+                continue
             if code in ("C", "POSIX", "en"):
                 return strings, "en"
             data = read(code)

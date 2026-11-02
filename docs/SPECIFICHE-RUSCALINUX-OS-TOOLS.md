@@ -526,7 +526,7 @@ StartupNotify=true
 StartupWMClass=org.ruscalinux.RuscaFoo
 ```
 
-`Comment` e `Keywords` vanno tradotti in tutte le 15 lingue della sezione 9 (`Comment[xx]=`). Il file va validato con `desktop-file-validate`.
+`Comment` e `Keywords` vanno tradotti in tutte le lingue della sezione 9 (`Comment[xx]=`), presi dai file di `lang/`. Il file va validato con `desktop-file-validate`.
 
 ### 5.4 Metainfo AppStream
 
@@ -661,12 +661,14 @@ Versione attuale:
 
 ## 🌍 9. SUPPORTO LINGUISTICO
 
-Ogni tool supporta queste 15 lingue (lista attiva; elenchi precedenti più estesi non sono validi):
+Ogni tool è tradotto in queste 25 lingue. Una lingua è attiva quando c’è il suo file in `lang/`: finché manca, valgono i ripieghi della sezione 9.2 e poi l’inglese.
 
 | File | Lingua | Direzione |
 |---|---|---|
 | en.json | Inglese | LTR |
+| it.json | Italiano | LTR |
 | zh_CN.json | Cinese semplificato | LTR |
+| zh_TW.json | Cinese tradizionale | LTR |
 | es.json | Spagnolo | LTR |
 | hi.json | Hindi | LTR |
 | ar.json | Arabo | **RTL** |
@@ -675,37 +677,60 @@ Ogni tool supporta queste 15 lingue (lista attiva; elenchi precedenti più estes
 | ja.json | Giapponese | LTR |
 | de.json | Tedesco | LTR |
 | fr.json | Francese | LTR |
-| it.json | Italiano | LTR |
 | ko.json | Coreano | LTR |
 | id.json | Indonesiano | LTR |
 | tr.json | Turco | LTR |
 | pl.json | Polacco | LTR |
+| nl.json | Olandese | LTR |
+| uk.json | Ucraino | LTR |
+| cs.json | Ceco | LTR |
+| vi.json | Vietnamita | LTR |
+| sv.json | Svedese | LTR |
+| ro.json | Rumeno | LTR |
+| hu.json | Ungherese | LTR |
+| el.json | Greco | LTR |
+| fi.json | Finlandese | LTR |
+
+Oltre le 25, si aggiunge una lingua solo quando un madrelingua può rivederla: ogni lingua in più va tradotta a ogni testo nuovo, in tutti i tool.
 
 ### 9.1 Implementazione
 
 1. Ogni tool contiene la cartella `lang/` con i file JSON, codificati in UTF-8.
-2. Nomi dei file: `xx.json` per lingue generiche, `xx_YY.json` per varianti locali (es. `zh_CN.json`, `pt_BR.json`).
-3. Italiano (`it.json`) e inglese (`en.json`) devono essere sempre presenti e completi.
-4. Lingua di fallback: `en.json`. Se manca una traduzione si usa l’inglese.
-5. Se una chiave manca sia nella lingua attiva sia in `en.json`, il programma non va in crash e mostra la chiave grezza.
-6. Le chiavi sono in inglese, minuscole, con punti per il contesto: `"cleaner.trash.empty": "Svuota cestino"`.
-7. Le stringhe con valori variabili usano segnaposto con nome: `"{count} file eliminati"`, mai concatenazioni.
+2. Nomi dei file: `xx.json` per lingue generiche, `xx_YY.json` per varianti locali (es. `zh_CN.json`, `zh_TW.json`, `pt_BR.json`).
+3. **Le lingue sono i file.** Programmi e `make-deb.sh` ricavano l’elenco da `lang/*.json`: per aggiungere una lingua basta aggiungere il suo file. In RuscaMark e RuscaWriter la lingua va anche nella tabella `LANGUAGES` (nome nella lingua stessa) e, in RuscaWriter, in `SPELL_LOCALES` (dizionario ortografico predefinito).
+4. Italiano (`it.json`) e inglese (`en.json`) devono essere sempre presenti e completi; `make-deb.sh` si ferma se mancano.
+5. Lingua di fallback: `en.json`. Se manca una traduzione si usa l’inglese.
+6. Se una chiave manca sia nella lingua attiva sia in `en.json`, il programma non va in crash e mostra la chiave grezza.
+7. Le chiavi sono in inglese, minuscole, con punti per il contesto: `"cleaner.trash.empty": "Svuota cestino"`.
+8. Le stringhe con valori variabili usano segnaposto con nome: `"{count} file eliminati"`, mai concatenazioni.
+9. Le traduzioni diverse da italiano e inglese sono fatte con l’assistenza di strumenti di intelligenza artificiale: le correzioni dei madrelingua (info@ruscalinux.org) sono benvenute.
 
 ### 9.2 Scelta della lingua
 
 1. La lingua segue quella di sistema, nello stesso ordine usato da GTK, così i testi dell’app e quelli dei widget di libadwaita (es. finestra “Informazioni”) coincidono.
 2. Niente selettore di lingua dentro le applicazioni.
+3. Si scelgono solo lingue tradotte davvero. Per ogni lingua di sistema si provano, in ordine: la variante (`zh_HK`), il suo ripiego, la lingua (`zh`), il ripiego della lingua. I ripieghi sono uguali in tutti i tool:
+
+| Lingua di sistema | Ripiego |
+|---|---|
+| Cinese di Hong Kong e Macao (`zh_HK`, `zh_MO`) | Cinese tradizionale (`zh_TW`) |
+| Cinese di Singapore (`zh_SG`) e cinese generico (`zh`) | Cinese semplificato (`zh_CN`) |
+| Portoghese (`pt`, `pt_PT`) | Portoghese brasiliano (`pt_BR`) |
+| Slovacco (`sk`) | Ceco (`cs`) |
 
 ```python
 from gi.repository import GLib
 
+LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                "pt": "pt_BR", "sk": "cs"}
+
 def pick_language(available):
-    for name in GLib.get_language_names():   # es. "it_IT.UTF-8", "it_IT", "it", "C"
+    for name in GLib.get_language_names():   # es. "zh_HK.UTF-8", "zh_HK", "zh", "C"
         base = name.split(".")[0].split("@")[0]
-        if base in available:
-            return base
-        if base.split("_")[0] in available:
-            return base.split("_")[0]
+        lang = base.split("_")[0]
+        for code in (base, LANG_ALIASES.get(base), lang, LANG_ALIASES.get(lang)):
+            if code in available:
+                return code
     return "en"
 ```
 
@@ -717,7 +742,7 @@ def pick_language(available):
 
 ### 9.4 Testi lunghi
 
-Tedesco, russo e francese possono essere fino al 40% più lunghi dell’inglese: le etichette vanno a capo o si accorciano con ellissi, mai tagliate. Verificare la finestra a 360 px di larghezza in tedesco.
+Tedesco, russo e francese possono essere fino al 40% più lunghi dell’inglese; finlandese e ungherese formano parole composte molto lunghe. Le etichette vanno a capo o si accorciano con ellissi, mai tagliate. Verificare la finestra a 360 px di larghezza in tedesco, finlandese e ungherese, e l’aspetto dell’alfabeto greco.
 
 ---
 
@@ -828,7 +853,7 @@ Un tool è pronto quando:
 7. Funziona a 360 × 294 px e da sola tastiera.
 8. Mostra stati vuoti con `Adw.StatusPage` e conferme con `Adw.AlertDialog`.
 9. Ha la finestra “Informazioni” comune (sezione 3.10), con la riga “Nota di sviluppo” che apre la nota IA; la nota compare solo nei tre posti della sezione 12.2.
-10. Ha le 15 traduzioni, con fallback inglese e senza crash su chiavi mancanti; funziona in arabo (RTL).
+10. Ha le traduzioni della sezione 9, con i ripieghi della sezione 9.2, fallback inglese e senza crash su chiavi mancanti; funziona in arabo (RTL).
 11. Ha identificatori coerenti tra loro (sezioni 1 e 5.2).
 12. Ha file `.desktop` e metainfo validi, con `StartupWMClass` uguale all’App ID.
 13. Ha icona SVG e icona simbolica.
@@ -940,7 +965,7 @@ Chat con modelli linguistici che girano su questo computer.
 
 ## 🌐 RuscaTranslator
 
-Traduzione di documenti Markdown tra le 15 lingue ufficiali (sezione 9).
+Traduzione di documenti Markdown tra 15 lingue: inglese, italiano, spagnolo, francese, tedesco, portoghese brasiliano, russo, cinese semplificato, giapponese, coreano, hindi, arabo, indonesiano, turco e polacco.
 
 1. Aprire un documento (Ctrl+O) o trascinarlo nel riquadro “Originale”.
 2. Scegliere lingua di partenza (o “Rileva la lingua”), lingua d’arrivo e tipo di testo.
@@ -1095,7 +1120,7 @@ Chat with language models that run on this computer.
 
 ## 🌐 RuscaTranslator
 
-Translation of Markdown documents between the 15 official languages.
+Translation of Markdown documents between 15 languages: English, Italian, Spanish, French, German, Brazilian Portuguese, Russian, Simplified Chinese, Japanese, Korean, Hindi, Arabic, Indonesian, Turkish and Polish.
 
 1. Open a document (Ctrl+O) or drag it onto the "Original" pane.
 2. Choose the source language (or "Detect language"), the target language and the text type.
@@ -1108,7 +1133,7 @@ Both programs use **ruscallama-engine**, that is llama.cpp, an external componen
 
 ## 🌍 Language support
 
-Every tool follows the system language and supports 15 languages: English, Simplified Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Italian, Korean, Indonesian, Turkish and Polish. English is the fallback for anything not yet translated.
+Every tool follows the system language and is translated into 25 languages: English, Italian, Simplified and Traditional Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Korean, Indonesian, Turkish, Polish, Dutch, Ukrainian, Czech, Vietnamese, Swedish, Romanian, Hungarian, Greek and Finnish. Slovak users see Czech and European Portuguese users see Brazilian Portuguese; English is the fallback for anything not yet translated. Translations other than Italian and English are made with the assistance of AI tools: corrections from native speakers are welcome at info@ruscalinux.org.
 
 ## 🧯 Troubleshooting
 

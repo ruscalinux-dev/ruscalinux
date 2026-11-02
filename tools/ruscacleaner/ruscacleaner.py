@@ -71,7 +71,11 @@ ADW_MIN = (1, 7)                         # libadwaita di Debian 13 trixie
 # lang/xx.json o lang/xx_YY.json. en.json è la base; una chiave che manca
 # ovunque mostra il proprio nome invece di bloccare il programma.
 _LANG_CODE = re.compile(r"[a-z]{2,3}(_[A-Z]{2})?")
-_LANG_ALIASES = {"pt": "pt_BR", "zh": "zh_CN"}
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+_LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                 "pt": "pt_BR", "sk": "cs"}
 
 
 def _read_lang(code: str) -> dict:
@@ -92,8 +96,8 @@ def _read_lang(code: str) -> dict:
 
 def _language_codes() -> List[str]:
     """Lingue da provare, nell'ordine di gettext: LANGUAGE, poi la locale dei
-    messaggi. Per ciascuna: variante (pt_PT), lingua (pt), variante
-    distribuita (pt_BR)."""
+    messaggi. Per ciascuna: variante (zh_HK), suo ripiego (zh_TW), lingua
+    (zh), ripiego della lingua (zh_CN)."""
     locale = next((os.environ[v] for v in ("LC_ALL", "LC_MESSAGES", "LANG")
                    if os.environ.get(v)), "")
     locale = locale.split(".")[0].split("@")[0]
@@ -103,7 +107,7 @@ def _language_codes() -> List[str]:
     for piece in os.environ.get("LANGUAGE", "").split(":") + [locale]:
         piece = piece.split(".")[0].split("@")[0].strip()
         lang = piece.split("_")[0]
-        for code in (piece, lang, _LANG_ALIASES.get(lang, "")):
+        for code in (piece, _LANG_ALIASES.get(piece, ""), lang, _LANG_ALIASES.get(lang, "")):
             if code and code not in codes:
                 codes.append(code)
     return codes

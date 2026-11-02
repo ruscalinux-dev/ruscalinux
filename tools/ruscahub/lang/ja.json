@@ -18,6 +18,8 @@
   "sc_close": "ウィンドウを閉じる",
   "sc_quit": "終了",
   "app_summary": "AppImage アプリケーションを管理",
+  "desktop_generic_name": "AppImage マネージャー",
+  "desktop_comment": "AppImage パッケージの管理、インストール、実行",
   "desktop_keywords": "AppImage;アプリケーション;インストール;マネージャー;ランチャー;",
   "list_title": "AppImage 一覧",
   "list_hint": "追加するには .AppImage ファイルをウィンドウにドラッグしてください。",

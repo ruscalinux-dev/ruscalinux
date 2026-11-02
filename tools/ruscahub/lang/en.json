@@ -18,6 +18,8 @@
   "sc_close": "Close Window",
   "sc_quit": "Quit",
   "app_summary": "Manage AppImage applications",
+  "desktop_generic_name": "AppImage Manager",
+  "desktop_comment": "Manage, install and run AppImage packages",
   "desktop_keywords": "AppImage;applications;install;manager;launcher;",
   "list_title": "Your AppImages",
   "list_hint": "Drag more .AppImage files onto the window to add them.",

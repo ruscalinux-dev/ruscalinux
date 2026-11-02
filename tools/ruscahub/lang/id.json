@@ -18,6 +18,8 @@
   "sc_close": "Tutup Jendela",
   "sc_quit": "Keluar",
   "app_summary": "Kelola aplikasi AppImage",
+  "desktop_generic_name": "Pengelola AppImage",
+  "desktop_comment": "Kelola, pasang, dan jalankan paket AppImage",
   "desktop_keywords": "AppImage;aplikasi;pasang;pengelola;peluncur;",
   "list_title": "AppImage Anda",
   "list_hint": "Seret berkas .AppImage lain ke jendela untuk menambahkannya.",

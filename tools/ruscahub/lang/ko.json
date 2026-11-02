@@ -18,6 +18,8 @@
   "sc_close": "창 닫기",
   "sc_quit": "끝내기",
   "app_summary": "AppImage 애플리케이션 관리",
+  "desktop_generic_name": "AppImage 관리자",
+  "desktop_comment": "AppImage 패키지 관리, 설치 및 실행",
   "desktop_keywords": "AppImage;애플리케이션;설치;관리자;실행기;",
   "list_title": "내 AppImage",
   "list_hint": "추가하려면 .AppImage 파일을 창으로 끌어 오십시오.",

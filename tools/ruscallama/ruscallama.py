@@ -90,6 +90,13 @@ DEFAULTS = {
 
 
 # ── Traduzioni (lang/xx.json, ripiego en.json, specifiche sezione 9) ─────────
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                "pt": "pt_BR", "sk": "cs"}
+
+
 def _load_strings():
     def read(code):
         try:
@@ -100,7 +107,10 @@ def _load_strings():
     strings = read("en")
     for name in GLib.get_language_names():
         base = name.split(".")[0].split("@")[0]
-        for code in (base, base.split("_")[0]):
+        lang = base.split("_")[0]
+        for code in (base, LANG_ALIASES.get(base), lang, LANG_ALIASES.get(lang)):
+            if not code:
+                continue
             if code in ("C", "POSIX", "en"):
                 return strings, "en"
             data = read(code)

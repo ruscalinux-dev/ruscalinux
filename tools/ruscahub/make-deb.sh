@@ -41,9 +41,13 @@ python3 - "$LANG_DIR" "$TEXTS_DIR" <<'PYCHECK' || { echo "ERRORE: traduzioni inc
 import json, sys
 from xml.sax.saxutils import escape
 folder, out = sys.argv[1], sys.argv[2]
-codes = ["en", "zh_CN", "es", "hi", "ar", "pt_BR", "ru", "ja", "de", "fr", "it", "ko", "id", "tr", "pl"]
+# Le lingue sono i file di lang/ (specifiche, sezione 9.1): per aggiungerne
+# una basta aggiungere il suo file. en.json e it.json sono obbligatori; l'inglese va per primo (testi
+# predefiniti di menu e metainfo).
+import os
+codes = ["en"] + sorted(f[:-5] for f in os.listdir(folder) if f.endswith(".json") and f != "en.json")
 load = lambda c: json.load(open(f"{folder}/{c}.json", encoding="utf-8"))
-ref, problems, keywords, summaries, descriptions = load("en"), [], [], [], []
+ref, problems, keywords, summaries, descriptions, names = load("en"), [], [], [], [], []
 for code in codes:
     try:
         data = load(code)
@@ -57,12 +61,14 @@ for code in codes:
     text = lambda k: data.get(k, ref[k])
     sfx = "" if code == "en" else f"[{code}]"
     lang = "" if code == "en" else f' xml:lang="{code}"'
+    names.append(f"GenericName{sfx}={text('desktop_generic_name')}")
+    names.append(f"Comment{sfx}={text('desktop_comment')}")
     keywords.append(f"Keywords{sfx}={text('desktop_keywords')}")
     summaries.append(f"  <summary{lang}>{escape(text('app_summary'))}</summary>")
     descriptions.append(f"    <p{lang}>{escape(text('app_description'))}</p>")
 if problems:
     sys.exit("\n".join(problems))
-for name, rows in (("keywords", keywords), ("summary", summaries), ("description", descriptions)):
+for name, rows in (("names", names), ("keywords", keywords), ("summary", summaries), ("description", descriptions)):
     open(f"{out}/{name}", "w", encoding="utf-8").write("\n".join(rows) + "\n")
 PYCHECK
 
@@ -94,42 +100,13 @@ exec python3 /usr/share/ruscahub/ruscahub.py "$@"
 EOF
 chmod 755 "$STAGE/usr/bin/ruscahub"
 
-# ------------------------------------------------------------------ desktop (15 lingue)
+# ------------------------------------------------------------------ desktop
+# Nome generico, descrizione e parole chiave tradotti vengono da lang/.
 {
 cat <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=RuscaHub
-GenericName=AppImage Manager
-GenericName[it]=Gestore di AppImage
-GenericName[de]=AppImage-Verwaltung
-GenericName[fr]=Gestionnaire d'AppImage
-GenericName[es]=Gestor de AppImage
-GenericName[pt_BR]=Gerenciador de AppImage
-GenericName[ru]=Менеджер AppImage
-GenericName[zh_CN]=AppImage 管理器
-GenericName[hi]=AppImage प्रबंधक
-GenericName[ar]=مدير AppImage
-GenericName[ja]=AppImage マネージャー
-GenericName[ko]=AppImage 관리자
-GenericName[id]=Pengelola AppImage
-GenericName[tr]=AppImage Yöneticisi
-GenericName[pl]=Menedżer AppImage
-Comment=Manage, install and run AppImage packages
-Comment[it]=Gestisci, installa ed esegui pacchetti AppImage
-Comment[de]=AppImage-Pakete verwalten, installieren und ausführen
-Comment[fr]=Gérer, installer et exécuter des paquets AppImage
-Comment[es]=Gestionar, instalar y ejecutar paquetes AppImage
-Comment[pt_BR]=Gerencie, instale e execute pacotes AppImage
-Comment[ru]=Управление, установка и запуск пакетов AppImage
-Comment[zh_CN]=管理、安装和运行 AppImage 软件包
-Comment[hi]=AppImage पैकेज प्रबंधित करें, इंस्टॉल करें और चलाएँ
-Comment[ar]=إدارة حزم AppImage وتثبيتها وتشغيلها
-Comment[ja]=AppImage パッケージの管理、インストール、実行
-Comment[ko]=AppImage 패키지 관리, 설치 및 실행
-Comment[id]=Kelola, pasang, dan jalankan paket AppImage
-Comment[tr]=AppImage paketlerini yönetin, kurun ve çalıştırın
-Comment[pl]=Zarządzaj pakietami AppImage, instaluj je i uruchamiaj
 Exec=ruscahub
 Icon=org.ruscalinux.RuscaHub
 Terminal=false
@@ -137,6 +114,7 @@ Categories=GTK;GNOME;Utility;
 StartupNotify=true
 StartupWMClass=org.ruscalinux.RuscaHub
 EOF
+cat "$TEXTS_DIR/names"
 cat "$TEXTS_DIR/keywords"
 } > "$STAGE/usr/share/applications/org.ruscalinux.RuscaHub.desktop"
 
@@ -271,7 +249,7 @@ Description: AppImage manager for RuscaLinux (RuscaTools suite)
  them in a hidden folder of the user home and integrates them into the
  GNOME menu through .desktop entries, with the original application icon.
  Install, uninstall, run and delete AppImages from a single GNOME
- (libadwaita) interface in the RuscaLinux colours, available in 15 languages.
+ (libadwaita) interface in the RuscaLinux colours, available in many languages.
  Deleted AppImages are moved to the trash.
 EOF
 chmod 644 "$STAGE/DEBIAN/control"

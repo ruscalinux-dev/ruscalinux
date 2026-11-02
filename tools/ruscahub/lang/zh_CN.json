@@ -18,6 +18,8 @@
   "sc_close": "关闭窗口",
   "sc_quit": "退出",
   "app_summary": "管理 AppImage 应用程序",
+  "desktop_generic_name": "AppImage 管理器",
+  "desktop_comment": "管理、安装和运行 AppImage 软件包",
   "desktop_keywords": "AppImage;应用程序;安装;管理器;启动器;",
   "list_title": "您的 AppImage",
   "list_hint": "将更多 .AppImage 文件拖到窗口中即可添加。",

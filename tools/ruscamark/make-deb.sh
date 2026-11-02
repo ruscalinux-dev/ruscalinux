@@ -13,7 +13,7 @@
 #   * nome del pacchetto Debian: ruscamark; il suffisso -ruscalinux
 #     compare solo nel nome del file .deb (ruscamark-ruscalinux_*.deb);
 #   * versione identica a RuscaLinux (1.99.2);
-#   * 15 lingue ufficiali (varianti zh_CN e pt_BR), fallback en.json;
+#   * le lingue dei RuscaLinux OS Tools (file lang/*.json), fallback en.json;
 #   * Python >= 3.10, GTK >= 4.18, libadwaita >= 1.7, dipendenze minime;
 #   * tema comune RuscaLinux (style.css), icona simbolica, metainfo
 #     e voce del menu con testi tradotti presi da lang/;
@@ -59,10 +59,13 @@ DEB_NAME="${PKG}-${SUFFIX}_${VER}_${ARCH}.deb"
 grep -q "^APP_VERSION = \"${VER}\"" ruscamark.py || { echo "ERRORE: APP_VERSION diversa da ${VER}."; exit 1; }
 # Privacy e sicurezza sono documentate nei manuali docs/Manual_{it,en}.md.
 
-# Le 15 lingue ufficiali sono in lang/*.json: devono avere le stesse chiavi
-# di en.json. Lo stesso passaggio prepara i testi tradotti per il file
-# .desktop e per la metainfo (una sola fonte).
-LANGS="en zh_CN es hi ar pt_BR ru ja de fr it ko id tr pl"
+# Le lingue sono i file di lang/ (specifiche, sezione 9.1): per aggiungerne
+# una basta aggiungere il suo file; devono avere le stesse chiavi di en.json.
+# Lo stesso passaggio prepara i testi tradotti per il file .desktop e per la
+# metainfo (una sola fonte). en.json e it.json sono obbligatori; l'inglese va per primo (testi
+# predefiniti di menu e metainfo).
+LANGS="en $(cd lang && ls -1 -- *.json | sed 's/\.json$//' | grep -vx en | sort | tr '\n' ' ')"
+for l in en it; do [ -f "lang/$l.json" ] || { echo "ERRORE: manca lang/$l.json"; exit 1; }; done
 HAVE_I18N=1
 TEXTS="$(mktemp -d)"
 python3 - "$TEXTS" $LANGS <<'PYCHECK' || { echo "ERRORE: traduzioni incomplete (vedi sopra)."; exit 1; }
@@ -342,7 +345,7 @@ SIZE_KB=$(du -sk "${ROOT}/usr" | cut -f1)
     echo " centra la pagina come un foglio di scrittura. Tabelle, immagini, liste"
     echo " di attività e note a piè di pagina. Interfaccia GNOME nei colori di"
     echo " RuscaLinux, controllo ortografico live con suggerimenti nel menu"
-    echo " contestuale (libspelling / GSpell 2), interfaccia nelle 15 lingue"
+    echo " contestuale (libspelling / GSpell 2), interfaccia in $(echo $LANGS | wc -w) lingue"
     echo " ufficiali di RuscaLinux, obiettivo parole, Trova/Sostituisci, export"
     echo " HTML e PDF. Tutta l'elaborazione avviene in locale."
 } > "${ROOT}/DEBIAN/control"
@@ -362,7 +365,7 @@ rm -rf "$STAGE"
 echo
 echo "Pacchetto creato : ${OUT}/${DEB_NAME}"
 echo "Dimensione       : $(du -h "${OUT}/${DEB_NAME}" | cut -f1)"
-echo "i18n             : $([ "$HAVE_I18N" -eq 1 ] && echo '15 lingue ufficiali (fallback en)' || echo 'lingue parziali (fallback en/it incorporati)')"
+echo "i18n             : $([ "$HAVE_I18N" -eq 1 ] && echo "$(echo $LANGS | wc -w) lingue (fallback en)" || echo 'lingue parziali (fallback en/it incorporati)')"
 echo "Traduzione       : assente (scelta progettuale)"
 echo
 cat "${OUT}/SHA256SUMS"

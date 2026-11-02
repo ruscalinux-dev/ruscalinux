@@ -71,9 +71,23 @@ for _alt in (Path("/usr/share/ruscahub/style.css"),):
     if not STYLE_SRC.is_file() and _alt.is_file():
         STYLE_SRC = _alt
 
-SUPPORTED_LANGS = ("en", "zh_CN", "es", "hi", "ar", "pt_BR", "ru", "ja",
-                   "de", "fr", "it", "ko", "id", "tr", "pl")
-LANG_ALIASES = {"zh": "zh_CN", "pt": "pt_BR"}
+def _available_langs():
+    """Le lingue sono i file di lang/ (en.json, it.json, zh_TW.json...): per
+    aggiungerne una basta aggiungere il suo file (specifiche, sezione 9.1)."""
+    for folder in LANG_DIRS:
+        if folder.is_dir():
+            found = {p.stem for p in folder.glob("*.json")}
+            if found:
+                return frozenset(found | {"en"})
+    return frozenset({"en"})
+
+
+SUPPORTED_LANGS = _available_langs()
+# Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
+# usano il cinese tradizionale, Singapore il semplificato; chi usa il
+# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
+                "pt": "pt_BR", "sk": "cs"}
 RTL_LANGS = ("ar",)
 
 # Copia interna di en.json: ultima rete di sicurezza se la cartella lang/ manca.
@@ -122,13 +136,10 @@ BUILTIN_EN = {
 def _match_lang(raw):
     """Converte un nome di locale (it_IT.UTF-8, pt-BR, zh_TW…) in una lingua supportata."""
     n = raw.split(".")[0].split("@")[0].replace("-", "_").strip()
-    if n in SUPPORTED_LANGS:
-        return n
     base = n.split("_")[0]
-    if base in LANG_ALIASES:
-        return LANG_ALIASES[base]
-    if base in SUPPORTED_LANGS:
-        return base
+    for code in (n, LANG_ALIASES.get(n), base, LANG_ALIASES.get(base)):
+        if code in SUPPORTED_LANGS:
+            return code
     return None
 
 

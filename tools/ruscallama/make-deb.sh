@@ -19,11 +19,15 @@ APP_ID="org.ruscalinux.RuscaLLama"
 ARCH="all"
 MAINT="Nunzio Curcuruto <info@ruscalinux.org>"
 HOMEPAGE="https://www.ruscalinux.org/"
-LANGS="en zh_CN es hi ar pt_BR ru ja de fr it ko id tr pl"
+# Le lingue sono i file di lang/ (specifiche, sezione 9.1): per aggiungerne
+# una basta aggiungere il suo file. en.json e it.json sono obbligatori; l'inglese va per primo (testi
+# predefiniti di menu e metainfo).
+LANGS="en $(cd lang && ls -1 -- *.json | sed 's/\.json$//' | grep -vx en | sort | tr '\n' ' ')"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
 FILES="ruscallama.py rusca_engine.py"
 
 die() { echo "ERRORE: $*" >&2; exit 1; }
+for l in en it; do [ -f "lang/$l.json" ] || die "manca lang/$l.json"; done
 for f in $FILES style.css "$PKG.svg" "$PKG-symbolic.svg" docs/MANUAL_it.md docs/MANUAL_en.md; do
     [ -e "$f" ] || die "manca $f"
 done

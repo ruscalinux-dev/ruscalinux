@@ -18,6 +18,8 @@
   "sc_close": "Chiudi finestra",
   "sc_quit": "Esci",
   "app_summary": "Gestisci le applicazioni AppImage",
+  "desktop_generic_name": "Gestore di AppImage",
+  "desktop_comment": "Gestisci, installa ed esegui pacchetti AppImage",
   "desktop_keywords": "AppImage;applicazioni;installa;gestore;avvio;",
   "list_title": "Le tue AppImage",
   "list_hint": "Trascina altri file .AppImage sulla finestra per aggiungerli.",

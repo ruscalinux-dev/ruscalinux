@@ -18,6 +18,8 @@
   "sc_close": "Fenster schließen",
   "sc_quit": "Beenden",
   "app_summary": "AppImage-Anwendungen verwalten",
+  "desktop_generic_name": "AppImage-Verwaltung",
+  "desktop_comment": "AppImage-Pakete verwalten, installieren und ausführen",
   "desktop_keywords": "AppImage;Anwendungen;installieren;Verwaltung;Starter;",
   "list_title": "Ihre AppImages",
   "list_hint": "Ziehen Sie weitere .AppImage-Dateien auf das Fenster, um sie hinzuzufügen.",

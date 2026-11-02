@@ -18,6 +18,8 @@
   "sc_close": "Cerrar ventana",
   "sc_quit": "Salir",
   "app_summary": "Gestiona aplicaciones AppImage",
+  "desktop_generic_name": "Gestor de AppImage",
+  "desktop_comment": "Gestionar, instalar y ejecutar paquetes AppImage",
   "desktop_keywords": "AppImage;aplicaciones;instalar;gestor;lanzador;",
   "list_title": "Tus AppImage",
   "list_hint": "Arrastra más archivos .AppImage a la ventana para añadirlos.",

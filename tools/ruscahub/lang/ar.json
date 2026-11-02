@@ -18,6 +18,8 @@
   "sc_close": "إغلاق النافذة",
   "sc_quit": "إنهاء",
   "app_summary": "إدارة تطبيقات AppImage",
+  "desktop_generic_name": "مدير AppImage",
+  "desktop_comment": "إدارة حزم AppImage وتثبيتها وتشغيلها",
   "desktop_keywords": "AppImage;تطبيقات;تثبيت;مدير;مشغل;",
   "list_title": "تطبيقات AppImage الخاصة بك",
   "list_hint": "اسحب المزيد من ملفات ‎.AppImage إلى النافذة لإضافتها.",

@@ -66,7 +66,7 @@ The window:
 - **Three columns**: chapters (with arrows to move them), text, chapter notes.
 - **Bottom bar**: chapter words, characters and estimated pages, project total, spell-check language and text size.
 
-The interface language is the system's (Settings → System → Region & Language), among the 15 official RuscaLinux languages; anything untranslated falls back to English.
+The interface language is the system's (Settings → System → Region & Language), among the languages the RuscaLinux OS Tools are translated into. Slovak users see Czech and European Portuguese users see Brazilian Portuguese; anything untranslated falls back to English.
 
 ---
 
@@ -119,7 +119,7 @@ A project is a `.rwr` file: a `tar.gz` archive holding one Markdown file per cha
 | Switch between light and dark | Ctrl+Shift+D |
 | Keyboard shortcuts | Ctrl+? |
 
-The View submenu also holds the writing font (Fonts…).
+The View submenu also holds the writing font (Fonts…) and the **column width**: *Normal* (68 characters per line, the book measure, the default) or *Wide* (80). The column keeps its width when you move or hide the side columns and when you resize the window: it only re-centres. If there is less room, the text uses all the space available.
 
 **Appearance.** The Appearance submenu offers three choices. *Automatic* follows GNOME's light or dark mode (Settings → Appearance) and changes with the system, even while you write. *Light* and *Dark* fix the choice. Ctrl+Shift+D switches between the two. Bars, menus and dialogs follow the common theme of the RuscaLinux OS Tools.
 

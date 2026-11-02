@@ -66,7 +66,7 @@ La finestra:
 - **Tre colonne**: capitoli (con le frecce per spostarli), testo, note del capitolo.
 - **Barra in basso**: parole del capitolo, caratteri e pagine stimate, totale del progetto, lingua del controllo ortografico e dimensione del testo.
 
-La lingua dell'interfaccia è quella del sistema (Impostazioni → Sistema → Regione e lingua), fra le 15 lingue ufficiali di RuscaLinux; se manca una traduzione si usa l'inglese.
+La lingua dell'interfaccia è quella del sistema (Impostazioni → Sistema → Regione e lingua), fra le lingue in cui sono tradotti i RuscaLinux OS Tools. Chi usa lo slovacco vede il ceco, chi usa il portoghese europeo vede il brasiliano; se manca una traduzione si usa l'inglese.
 
 ---
 
@@ -119,7 +119,7 @@ Un progetto è un file `.rwr`: un archivio `tar.gz` che contiene un file Markdow
 | Passa da chiaro a scuro | Ctrl+Maiusc+D |
 | Scorciatoie da tastiera | Ctrl+? |
 
-Dal sottomenu Visualizza si sceglie anche il carattere di scrittura (Caratteri…).
+Dal sottomenu Visualizza si sceglie anche il carattere di scrittura (Caratteri…) e la **larghezza della colonna**: *Normale* (68 caratteri per riga, la misura dei libri, predefinita) o *Larga* (80). La colonna resta della stessa larghezza quando sposti o nascondi le colonne laterali e quando ridimensioni la finestra: si ricentra soltanto. Se lo spazio è minore, il testo occupa tutto lo spazio disponibile.
 
 **Aspetto.** Il sottomenu Aspetto offre tre scelte. *Automatico* segue la modalità chiara o scura di GNOME (Impostazioni → Aspetto) e cambia insieme al sistema, anche mentre scrivi. *Chiaro* e *Scuro* fissano la scelta. Ctrl+Maiusc+D passa dall'uno all'altro. Barre, menu e dialoghi seguono il tema comune dei RuscaLinux OS Tools.
 

@@ -393,6 +393,36 @@ RIGHT_MIN_PX = 200
 CENTER_MIN_PX = 360
 
 
+def _vista_che_segue_la_larghezza(base):
+    """EN — the editor view, which calls back whenever it receives a new
+    width. The reading margins depend on the real width of the text area,
+    and that changes for many reasons: the window being maximized at start,
+    resized, the side columns moved or hidden. Measuring only at start and
+    when a divider moves left the margins computed on a provisional width
+    (a column much narrower than intended) until the next divider move.
+    IT — la vista dell'editor, che avvisa ogni volta che riceve una nuova
+    larghezza. I margini di lettura dipendono dalla larghezza vera dell'area
+    del testo, e questa cambia per molti motivi: la finestra che si
+    massimizza all'avvio, il ridimensionamento, le colonne laterali spostate
+    o nascoste. Misurarla solo all'avvio e quando si sposta un divisore
+    lasciava i margini calcolati su una larghezza provvisoria (una colonna
+    molto piu' stretta del previsto) fino al divisore successivo."""
+    class Vista(base):
+        def __init__(self, on_width, **kwargs):
+            super().__init__(**kwargs)
+            self._on_width = on_width
+            self._ultima_larghezza = -1
+
+        def do_size_allocate(self, width, height, baseline):
+            base.do_size_allocate(self, width, height, baseline)
+            if width != self._ultima_larghezza:
+                self._ultima_larghezza = width
+                # dopo l'allocazione, non durante: cambiare i margini qui
+                # dentro chiederebbe un'altra allocazione mentre GTK la fa
+                GLib.idle_add(self._on_width)
+    return Vista
+
+
 def split_columns(total, left_px=None, right_px=None,
                   left_visible=True, right_visible=True):
     """Larghezza delle tre colonne, dato lo spazio disponibile.
@@ -450,6 +480,11 @@ READING_MAX_PX = 980          # ripiego, se il font non si puo' misurare
 #      resta giusta a ogni corpo e con ogni carattere. Un'interlinea intorno
 #      a 1,5 lascia tornare l'occhio a capo senza scivolare di una riga.
 READING_MEASURE_CHARS = 68
+# EN — the user chooses between two measures, both within the comfortable
+#      45–80 range: Normal (the book measure, default) and Wide.
+# IT — l'utente sceglie fra due misure, entrambe nella fascia comoda 45–80:
+#      Normale (la misura dei libri, predefinita) e Larga.
+READING_WIDTHS = {"normal": READING_MEASURE_CHARS, "wide": 80}
 READING_LINE_SPACING = 1.5
 
 
@@ -774,6 +809,9 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
 
         self.font_available = register_bundled_font()
         self.font_size = int(self.settings.get("font_size", DEFAULT_FONT_SIZE))
+        self.reading_width = self.settings.get("reading_width", "normal")
+        if self.reading_width not in READING_WIDTHS:
+            self.reading_width = "normal"
         self.font_size = max(MIN_FONT_SIZE, min(self.font_size, MAX_FONT_SIZE))
         # Carattere dei documenti ESPORTATI. Vuoto = comportamento predefinito
         # (il serif da lettura incorporato). Puo' essere il nome di una
@@ -1201,6 +1239,19 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._apply_css()
         self._update_tag_colors()
 
+    def on_reading_width(self, code):
+        """Larghezza della colonna di scrittura: "normal" o "wide"."""
+        if code not in READING_WIDTHS:
+            return
+        self.reading_width = code
+        self.settings["reading_width"] = code
+        save_settings(self.settings)
+        act = getattr(self, "_reading_width_action", None)
+        if act is not None:
+            act.set_state(GLib.Variant("s", code))
+        self._last_side = None                      # la colonna va rimisurata
+        self._update_reading_margins()
+
     def on_theme_family(self, code):
         """Cambia tema (Ametista / Classico) senza toccare la
         preferenza chiaro-scuro, che resta com'era."""
@@ -1554,9 +1605,23 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             self.settings.get("left_px"), self.settings.get("right_px"),
             self.left_visible, self.right_visible)
 
+        # Ripristino in due tempi. Prima il divisore dei capitoli; quello
+        # delle note al giro successivo, quando il pannello interno ha la sua
+        # larghezza vera. Calcolarla a tavolino (totale meno capitoli) mentre
+        # il pannello interno non era ancora allocato faceva correggere la
+        # posizione a GTK: la colonna delle note ripartiva larga il doppio.
+        self._restoring_columns = True
         self.paned_outer.set_position(left_w)
-        inner_w = max(1, total - left_w)
-        self.paned_inner.set_position(max(0, inner_w - right_w))
+        GLib.idle_add(self._apply_inner_layout, right_w)
+        return False
+
+    def _apply_inner_layout(self, right_w, _retries=0):
+        inner_w = self.paned_inner.get_width()
+        if inner_w <= 1 and _retries < 20:
+            GLib.idle_add(self._apply_inner_layout, right_w, _retries + 1)
+            return False
+        if inner_w > 1:
+            self.paned_inner.set_position(max(0, inner_w - right_w))
         # I margini di lettura dipendono dalla larghezza dell'AREA DI
         # SCRITTURA, che cambia proprio adesso: si ricalcolano al giro
         # successivo, quando GTK ha applicato le posizioni appena chieste.
@@ -1564,6 +1629,14 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         # togliessero spazio al centro, e il testo usciva incolonnato
         # stretto in mezzo a due margini enormi.
         GLib.idle_add(self._update_reading_margins)
+        GLib.idle_add(self._remember_columns_total)
+        return False
+
+    def _remember_columns_total(self):
+        """Dopo il ripristino delle colonne: e' questa la larghezza della
+        finestra rispetto a cui uno spostamento dei divisori e' dell'utente."""
+        self._columns_total = self.paned_outer.get_width()
+        self._restoring_columns = False
         return False
 
     def _block_file_drops_on_editor(self):
@@ -1657,7 +1730,8 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             metrics = self.text_view.get_pango_context().get_metrics(desc, None)
             char_w = metrics.get_approximate_char_width() / Pango.SCALE
             if char_w > 0:
-                return int(char_w * READING_MEASURE_CHARS)
+                return int(char_w * READING_WIDTHS.get(self.reading_width,
+                                                       READING_MEASURE_CHARS))
         except Exception:
             pass
         return READING_MAX_PX
@@ -1706,27 +1780,47 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
     def on_divider_moved(self, _paned, _param):
         if self._restoring:
             return
-        # Si registra solo quando la finestra ha una larghezza VERA. Prima
-        # bastava _content_width(), che quando l'allocazione manca ripiega
-        # sulla larghezza salvata: durante l'avvio venivano cosi' memorizzate
-        # posizioni prese da una finestra che non esisteva ancora, e al
-        # riavvio successivo le colonne ripartivano storte — un errore che si
-        # ricopiava da solo di sessione in sessione.
-        # I margini seguono comunque il divisore: e' l'unica cosa che
-        # conta anche prima che la finestra abbia una larghezza definitiva.
+        # I margini seguono subito il divisore. Il salvataggio delle colonne
+        # laterali invece si fa dopo, quando GTK ha finito di sistemare la
+        # finestra: leggere le posizioni durante un ridimensionamento (un
+        # divisore gia' spostato, l'altro non ancora) dava larghezze assurde,
+        # per esempio una colonna delle note di 1300 px, che al riavvio
+        # lasciavano al testo una fessura.
         self._update_reading_margins()
-        total = self.paned_outer.get_allocated_width()
+        if not getattr(self, "_columns_save_pending", False):
+            self._columns_save_pending = True
+            GLib.idle_add(self._save_columns)
+
+    def _save_columns(self):
+        """Registra la larghezza delle colonne laterali, ma solo quando a
+        spostare un divisore e' stato l'utente. Se nel frattempo e' cambiata
+        la larghezza della finestra, i divisori si sono mossi per quello e la
+        scelta dell'utente resta quella di prima."""
+        self._columns_save_pending = False
+        if getattr(self, "_restoring_columns", False):
+            return False                   # ripristino in corso, non e' l'utente
+        total = self.paned_outer.get_width()
         if total <= 1:
-            return
-        left_w = self.paned_outer.get_position()
-        inner_pos = self.paned_inner.get_position()
-        inner_w = max(1, total - left_w)
-        right_w = max(0, inner_w - inner_pos)
+            return False
+        if total != getattr(self, "_columns_total", None):
+            self._columns_total = total
+            return False
+        left_w = self.left_panel.get_width()
+        right_w = self.right_panel.get_width()
         if self.left_visible and left_w > 0:
-            self.settings["left_px"] = left_w
+            self._store_column("left_px", left_w)
         if self.right_visible and right_w > 0:
-            self.settings["right_px"] = right_w
-        self._update_reading_margins()
+            self._store_column("right_px", right_w)
+        return False
+
+    def _store_column(self, key, width):
+        """Le differenze di un paio di pixel (lo spessore del divisore fra
+        come la colonna si ripristina e come si rimisura) non sono una
+        scelta dell'utente: registrarle faceva perdere un pixel a ogni
+        riavvio."""
+        vecchio = self.settings.get(key)
+        if not isinstance(vecchio, int) or abs(vecchio - width) > 2:
+            self.settings[key] = width
 
     def _on_size_changed(self, *_):
         if not self._restoring:
@@ -1736,8 +1830,11 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             # una massimizzata non sono una misura a cui tornare, sono lo
             # schermo.
             if not massimizzata:
-                w = self.get_width()
-                h = self.get_height()
+                # La dimensione predefinita, non get_width(): e' la stessa
+                # misura che set_default_size() ripristina all'avvio.
+                # get_width() non comprende il bordo della finestra, e la
+                # finestra si restringeva di qualche pixel a ogni riavvio.
+                w, h = self.get_default_size()
                 if w > 1:
                     self.settings["win_w"] = w
                 if h > 1:
@@ -1867,6 +1964,16 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self.add_action(app_act)
         self._appearance_action = app_act
 
+        # Larghezza della colonna (normale / larga): azione con
+        # stato, come l'aspetto, cosi' il menu mostra quale e' attiva.
+        width_act = Gio.SimpleAction.new_stateful(
+            "reading_width", GLib.VariantType.new("s"),
+            GLib.Variant("s", self.reading_width))
+        width_act.connect("activate",
+                          lambda _a, prm: self.on_reading_width(prm.get_string()))
+        self.add_action(width_act)
+        self._reading_width_action = width_act
+
         # Famiglia di tema: azione "con stato", come la lingua, cosi' il menu
         # mostra il pallino accanto alla voce attiva.
         theme_act = Gio.SimpleAction.new_stateful(
@@ -1966,6 +2073,14 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         v3.append(self.t("mi_font_dec"), "win.font_dec")
         v3.append(self._t_or("mi_font", "Caratteri…"), "win.choose_font")
         m_view.append_section(None, v3)
+        widths = Gio.Menu()
+        for codice, chiave, ripiego in (
+                ("normal", "mi_width_normal", "Normale"),
+                ("wide", "mi_width_wide", "Larga")):
+            it = Gio.MenuItem.new(self._t_or(chiave, ripiego), None)
+            it.set_action_and_target_value("win.reading_width", GLib.Variant("s", codice))
+            widths.append_item(it)
+        m_view.append_section(self._t_or("mi_width", "Larghezza della colonna"), widths)
         view.append_submenu(self.t("menu_view"), m_view)
         m_look = Gio.Menu()
         style = Gio.Menu()
@@ -2110,9 +2225,11 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 self.text_buffer.set_highlight_matching_brackets(False)
             except Exception:
                 pass
-            self.text_view = GtkSource.View.new_with_buffer(self.text_buffer)
+            self.text_view = _vista_che_segue_la_larghezza(GtkSource.View)(
+                self._update_reading_margins, buffer=self.text_buffer)
         else:
-            self.text_view = Gtk.TextView()
+            self.text_view = _vista_che_segue_la_larghezza(Gtk.TextView)(
+                self._update_reading_margins)
             self.text_buffer = self.text_view.get_buffer()
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.text_view.add_css_class("text-editor")

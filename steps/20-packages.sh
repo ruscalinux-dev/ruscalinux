@@ -98,6 +98,30 @@ spirv-headers
 # ===========================================================================
 python3-gi-cairo
 
+# Google Chrome - https://www.google.com/
+# Nessuna libreria in più: il pacchetto .deb ha già tutto
+
+# Visual Studio Code - https://code.visualstudio.com/
+socat
+
+# Zoom - https://www.zoom.com/
+libxcb-xtest0
+
+# DaVinci Resolve - https://www.blackmagicdesign.com/products/davinciresolve
+libglu1-mesa
+libxcb-damage0
+
+# Discord - https://discord.com/
+libdee-1.0-4
+libunity-protocol-private0
+libunity-scopes-json-def-desktop
+libunity9
+
+# Obsidian - https://obsidian.md/
+libayatana-appindicator3-1
+libayatana-ido3-0.4-0
+libayatana-indicator3-7
+
 # ===========================================================================
 # MULTILINGUAL SUPPORT
 # ===========================================================================

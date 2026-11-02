@@ -39,4 +39,4 @@ Thumbs.db
 /build*.log
 
 # Anteprima del tema GRUB (branding/generators/ruscalinux-grub-theme.py)
-/local/grub-theme/preview.png
+/local/grub/preview.png

@@ -18,10 +18,11 @@ cp local/isolinux/stdmenu.cfg .work/config/includes.binary/isolinux/ruscalinux-s
 
 # TEMA GRUB RUSCALINUX (ISO e sistema installato)
 # Generato da branding/generators/ruscalinux-grub-theme.py in
-# local/grub-theme/ruscalinux/. Nella ISO va in boot/grub/themes/ruscalinux;
-# l'hook binario qui sotto lo attiva. splash.png resta: theme.cfg di
-# live-build attiva il tema solo se quel file esiste.
-TEMA_GRUB=local/grub-theme/ruscalinux
+# local/grub/ruscalinux/. Nella ISO va in boot/grub/themes/ruscalinux;
+# l'hook binario qui sotto lo attiva. boot/grub/splash.png (da
+# local/grub/splash.png, lo stesso fondo del tema) non si vede, ma resta:
+# theme.cfg di live-build attiva il tema solo se quel file esiste.
+TEMA_GRUB=local/grub/ruscalinux
 for dest in .work/config/includes.binary/boot/grub/themes/ruscalinux \
             .work/config/includes.chroot_after_packages/boot/grub/themes/ruscalinux; do
     mkdir -p "$dest"

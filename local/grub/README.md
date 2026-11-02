@@ -1,16 +1,24 @@
-# Tema GRUB RuscaLinux
+# GRUB: tema RuscaLinux
 
-`ruscalinux/` contiene il tema GRUB usato sia nella ISO (avvio UEFI) sia nel
-sistema installato. Non si modifica a mano: si rigenera con
+Tutto quello che serve al menu GRUB, nella ISO (avvio UEFI) e nel sistema
+installato:
+
+| File | A cosa serve |
+|---|---|
+| `ruscalinux/` | Il tema: immagini, font in formato GRUB, `theme.txt` |
+| `splash.png` | Nella ISO va in `boot/grub/splash.png`. Non si vede, ma `theme.cfg` di live-build attiva il tema solo se esiste: è lo stesso fondo del tema |
+| `preview.png` | Anteprima del menu, da guardare prima del commit (ignorata da git) |
+
+Il menu BIOS della ISO (isolinux) sta in `../isolinux/`. Tutti questi file si
+generano insieme, non si modificano a mano:
 
 ```sh
 sudo apt install python3-pil librsvg2-bin grub-common
 python3 branding/generators/ruscalinux-grub-theme.py
 ```
 
-Il generatore scrive anche `preview.png` qui accanto (ignorato da git): è
-un'anteprima del menu, da guardare prima del commit. Il tema è stato provato
-con GRUB 2.12 in UEFI e BIOS, a 1920×1080 e a 1280×720.
+Il tema è stato provato con GRUB 2.12 in UEFI e BIOS, a 1920×1080 e a
+1280×720.
 
 `steps/30-custom.sh` copia il tema nella build e sostituisce `{{VERSION}}`
 con la versione di `release.conf`.

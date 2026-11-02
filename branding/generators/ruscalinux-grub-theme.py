@@ -5,9 +5,10 @@
 #   python3 branding/generators/ruscalinux-grub-theme.py [cartella-di-uscita]
 #
 # Crea anche il menu BIOS della ISO (isolinux): local/isolinux/splash.png e
-# local/isolinux/stdmenu.cfg, nello stesso stile.
+# local/isolinux/stdmenu.cfg, nello stesso stile; e local/grub/splash.png,
+# che nella ISO serve solo perche' theme.cfg di live-build attivi il tema.
 #
-# Crea il tema completo in local/grub-theme/ruscalinux/ (o nella cartella
+# Crea il tema completo in local/grub/ruscalinux/ (o nella cartella
 # indicata): immagine di fondo, fondo neutro per l'editor e la riga di
 # comando (console.png), forme della voce selezionata, della barra del conto
 # alla rovescia e della barra di scorrimento, font in formato GRUB (.pf2) e
@@ -41,7 +42,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 QUI = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(QUI, "..", ".."))
 USCITA = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else \
-    os.path.join(REPO, "local", "grub-theme", "ruscalinux")
+    os.path.join(REPO, "local", "grub", "ruscalinux")
 
 W, H = 1920, 1080
 
@@ -532,6 +533,13 @@ def main():
     console.save(os.path.join(USCITA, "console.png"), optimize=True)
 
     anteprima(font, USCITA, os.path.join(os.path.dirname(USCITA), "preview.png"))
+
+    # local/grub/splash.png: nella ISO va in boot/grub/splash.png. Non si
+    # vede (il menu usa il tema), ma theme.cfg di live-build attiva il tema
+    # solo se il file esiste: e' lo stesso fondo del tema, cosi' resta coerente.
+    os.makedirs(os.path.join(REPO, "local", "grub"), exist_ok=True)
+    Image.open(os.path.join(USCITA, "background.png")).save(
+        os.path.join(REPO, "local", "grub", "splash.png"), optimize=True)
 
     # Menu BIOS (isolinux): immagine e colori, accanto agli altri file
     # d'avvio della ISO.

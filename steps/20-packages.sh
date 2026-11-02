@@ -103,7 +103,14 @@ python3-gi-cairo
 # ===========================================================================
 
 # --- Fonts for non-Latin scripts (Noto covers virtually all scripts) ---
-fonts-noto
+# Not the "fonts-noto" metapackage: it also pulls fonts-noto-cjk-extra and
+# fonts-noto-ui-extra, about 280 MB of extra weights (Thin, Light, Black...).
+# The packages below cover every script in regular and bold. fonts-noto-extra
+# stays: LibreOffice asks for it and it covers Urdu.
+fonts-noto-core
+fonts-noto-ui-core
+fonts-noto-mono
+fonts-noto-color-emoji
 fonts-noto-cjk
 fonts-noto-extra
 
@@ -121,6 +128,8 @@ hunspell-en-us
 aspell-en
 mythes-en-us
 hyphen-en-us
+# GIMP manual in English only: about 68 MB per language. In the other
+# languages GIMP offers to open the online manual.
 gimp-help-en
 
 # --- English (en_GB...) ---
@@ -131,7 +140,6 @@ hunspell-en-gb
 hunspell-en-au
 hunspell-en-ca
 hunspell-en-za
-gimp-help-en-gb
 
 # --- Spanish (es) ---
 task-spanish
@@ -143,7 +151,6 @@ hyphen-es
 libreoffice-l10n-es
 firefox-esr-l10n-es-es
 thunderbird-l10n-es-es
-gimp-help-es
 
 # --- French (fr) ---
 task-french
@@ -155,7 +162,6 @@ hyphen-fr
 libreoffice-l10n-fr
 firefox-esr-l10n-fr
 thunderbird-l10n-fr
-gimp-help-fr
 
 # --- German (de) ---
 task-german
@@ -167,7 +173,6 @@ hyphen-de
 libreoffice-l10n-de
 firefox-esr-l10n-de
 thunderbird-l10n-de
-gimp-help-de
 
 # --- Portuguese Brazil (pt_BR) ---
 task-brazilian-portuguese
@@ -179,7 +184,6 @@ hyphen-pt-br
 libreoffice-l10n-pt-br
 firefox-esr-l10n-pt-br
 thunderbird-l10n-pt-br
-gimp-help-pt-br
 
 # --- Russian (ru) ---
 task-russian
@@ -191,7 +195,6 @@ hyphen-ru
 libreoffice-l10n-ru
 firefox-esr-l10n-ru
 thunderbird-l10n-ru
-gimp-help-ru
 
 # --- Arabic (ar) ---
 task-arabic
@@ -236,7 +239,6 @@ libreoffice-l10n-it
 libreoffice-help-it
 firefox-esr-l10n-it
 thunderbird-l10n-it
-gimp-help-it
 
 # --- Japanese (ja) ---
 task-japanese
@@ -430,7 +432,6 @@ hyphen-pt-pt
 libreoffice-l10n-pt
 firefox-esr-l10n-pt-pt
 thunderbird-l10n-pt-pt
-gimp-help-pt
 
 # --- Galiziano (gl) ---
 hunspell-gl

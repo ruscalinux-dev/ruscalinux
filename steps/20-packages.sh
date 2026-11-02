@@ -104,9 +104,6 @@ python3-gi-cairo
 # Visual Studio Code - https://code.visualstudio.com/
 socat
 
-# Zoom - https://www.zoom.com/
-libxcb-xtest0
-
 # DaVinci Resolve - https://www.blackmagicdesign.com/products/davinciresolve
 libglu1-mesa
 libxcb-damage0

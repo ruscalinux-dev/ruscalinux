@@ -239,6 +239,7 @@ firefox-esr-l10n-hi-in
 # --- Bengali (bn) ---
 task-bengali
 libreoffice-l10n-bn
+firefox-esr-l10n-bn
 
 # --- Indonesian (id) ---
 hunspell-id
@@ -247,7 +248,9 @@ firefox-esr-l10n-id
 thunderbird-l10n-id
 
 # --- Urdu (ur) ---
-# (no task-urdu or libreoffice-l10n-ur in Debian trixie; fonts-noto-extra covers the script)
+# (no task-urdu, libreoffice-l10n-ur or hunspell-ur in Debian trixie;
+# fonts-noto-extra covers the script)
+firefox-esr-l10n-ur
 
 # --- Italian (it) ---
 task-italian
@@ -356,6 +359,8 @@ thunderbird-l10n-da
 
 # --- Finlandese (fi) ---
 task-finnish
+voikko-fi
+libreoffice-voikko
 libreoffice-l10n-fi
 firefox-esr-l10n-fi
 thunderbird-l10n-fi
@@ -393,6 +398,7 @@ thunderbird-l10n-hr
 
 # --- Serbo (sr) ---
 task-serbian
+hunspell-sr
 libreoffice-l10n-sr
 firefox-esr-l10n-sr
 thunderbird-l10n-sr
@@ -455,15 +461,21 @@ firefox-esr-l10n-pt-pt
 thunderbird-l10n-pt-pt
 
 # --- Galiziano (gl) ---
+task-galician
 hunspell-gl
+hyphen-gl
+mythes-gl
 libreoffice-l10n-gl
 firefox-esr-l10n-gl
+thunderbird-l10n-gl
 
 # --- Basco (eu) ---
+task-basque
 hunspell-eu
 aspell-eu
 libreoffice-l10n-eu
 firefox-esr-l10n-eu
+thunderbird-l10n-eu
 
 # ===========================================================================
 # SUPPORTO MULTILINGUA ESTESO — LINGUE MONDIALI
@@ -472,6 +484,7 @@ firefox-esr-l10n-eu
 # --- Coreano (ko) ---
 task-korean
 ibus-hangul
+hunspell-ko
 libreoffice-l10n-ko
 firefox-esr-l10n-ko
 thunderbird-l10n-ko
@@ -483,6 +496,7 @@ firefox-esr-l10n-zh-tw
 thunderbird-l10n-zh-tw
 
 # --- Vietnamita (vi) ---
+hunspell-vi
 libreoffice-l10n-vi
 firefox-esr-l10n-vi
 thunderbird-l10n-vi
@@ -491,28 +505,41 @@ thunderbird-l10n-vi
 task-thai
 fonts-thai-tlwg
 libreoffice-l10n-th
+firefox-esr-l10n-th
+thunderbird-l10n-th
 
 # --- Persiano / Farsi (fa) ---
+task-persian
+myspell-fa
 libreoffice-l10n-fa
 firefox-esr-l10n-fa
 
 # --- Tamil (ta) ---
 task-tamil
 libreoffice-l10n-ta
+firefox-esr-l10n-ta
 
 # --- Telugu (te) ---
 task-telugu
 libreoffice-l10n-te
+firefox-esr-l10n-te
 
 # --- Marathi (mr) ---
+task-marathi
 libreoffice-l10n-mr
 firefox-esr-l10n-mr
 
 # --- Punjabi (pa) ---
+task-punjabi
 libreoffice-l10n-pa-in
+firefox-esr-l10n-pa-in
+thunderbird-l10n-pa-in
 
 # --- Malese (ms) ---
 firefox-esr-l10n-ms
+thunderbird-l10n-ms
 
 # --- Swahili (sw) ---
+# (no libreoffice-l10n-sw or firefox-esr-l10n-sw in Debian trixie)
+hunspell-sw
 EOF

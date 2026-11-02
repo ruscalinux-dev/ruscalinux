@@ -800,7 +800,7 @@ cat <<'EOF' > .work/config/hooks/normal/0010-locale-multi.hook.chroot
 #!/bin/sh
 set -e
 
-# 1) Enable all 12 supported locales in locale.gen
+# 1) Enable all supported locales in locale.gen (49, one per line)
 LOCALES="
 en_US.UTF-8 UTF-8
 es_ES.UTF-8 UTF-8

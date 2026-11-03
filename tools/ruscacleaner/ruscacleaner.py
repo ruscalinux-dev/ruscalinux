@@ -72,8 +72,8 @@ ADW_MIN = (1, 7)                         # libadwaita di Debian 13 trixie
 # ovunque mostra il proprio nome invece di bloccare il programma.
 _LANG_CODE = re.compile(r"[a-z]{2,3}(_[A-Z]{2})?")
 # Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
-# usano il cinese tradizionale, Singapore il semplificato; chi usa il
-# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+# usano il cinese tradizionale, Singapore il semplificato; il portoghese
+# senza variante legge il brasiliano, lo slovacco il ceco.
 _LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
                  "pt": "pt_BR", "sk": "cs"}
 

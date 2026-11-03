@@ -661,7 +661,7 @@ Versione attuale:
 
 ## 🌍 9. SUPPORTO LINGUISTICO
 
-Ogni tool è tradotto in queste 25 lingue. Una lingua è attiva quando c’è il suo file in `lang/`: finché manca, valgono i ripieghi della sezione 9.2 e poi l’inglese.
+Ogni tool è tradotto in queste 26 lingue. Una lingua è attiva quando c’è il suo file in `lang/`: finché manca, valgono i ripieghi della sezione 9.2 e poi l’inglese.
 
 | File | Lingua | Direzione |
 |---|---|---|
@@ -673,6 +673,7 @@ Ogni tool è tradotto in queste 25 lingue. Una lingua è attiva quando c’è il
 | hi.json | Hindi | LTR |
 | ar.json | Arabo | **RTL** |
 | pt_BR.json | Portoghese brasiliano | LTR |
+| pt_PT.json | Portoghese europeo | LTR |
 | ru.json | Russo | LTR |
 | ja.json | Giapponese | LTR |
 | de.json | Tedesco | LTR |
@@ -691,12 +692,12 @@ Ogni tool è tradotto in queste 25 lingue. Una lingua è attiva quando c’è il
 | el.json | Greco | LTR |
 | fi.json | Finlandese | LTR |
 
-Oltre le 25, si aggiunge una lingua solo quando un madrelingua può rivederla: ogni lingua in più va tradotta a ogni testo nuovo, in tutti i tool.
+Oltre le 26, si aggiunge una lingua solo quando un madrelingua può rivederla: ogni lingua in più va tradotta a ogni testo nuovo, in tutti i tool.
 
 ### 9.1 Implementazione
 
 1. Ogni tool contiene la cartella `lang/` con i file JSON, codificati in UTF-8.
-2. Nomi dei file: `xx.json` per lingue generiche, `xx_YY.json` per varianti locali (es. `zh_CN.json`, `zh_TW.json`, `pt_BR.json`).
+2. Nomi dei file: `xx.json` per lingue generiche, `xx_YY.json` per varianti locali (es. `zh_CN.json`, `zh_TW.json`, `pt_BR.json`, `pt_PT.json`).
 3. **Le lingue sono i file.** Programmi e `make-deb.sh` ricavano l’elenco da `lang/*.json`: per aggiungere una lingua basta aggiungere il suo file. In RuscaMark e RuscaWriter la lingua va anche nella tabella `LANGUAGES` (nome nella lingua stessa) e, in RuscaWriter, in `SPELL_LOCALES` (dizionario ortografico predefinito).
 4. Italiano (`it.json`) e inglese (`en.json`) devono essere sempre presenti e completi; `make-deb.sh` si ferma se mancano.
 5. Lingua di fallback: `en.json`. Se manca una traduzione si usa l’inglese.
@@ -715,7 +716,7 @@ Oltre le 25, si aggiunge una lingua solo quando un madrelingua può rivederla: o
 |---|---|
 | Cinese di Hong Kong e Macao (`zh_HK`, `zh_MO`) | Cinese tradizionale (`zh_TW`) |
 | Cinese di Singapore (`zh_SG`) e cinese generico (`zh`) | Cinese semplificato (`zh_CN`) |
-| Portoghese (`pt`, `pt_PT`) | Portoghese brasiliano (`pt_BR`) |
+| Portoghese senza variante (`pt`) | Portoghese brasiliano (`pt_BR`) |
 | Slovacco (`sk`) | Ceco (`cs`) |
 
 ```python
@@ -1133,7 +1134,7 @@ Both programs use **ruscallama-engine**, that is llama.cpp, an external componen
 
 ## 🌍 Language support
 
-Every tool follows the system language and is translated into 25 languages: English, Italian, Simplified and Traditional Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Korean, Indonesian, Turkish, Polish, Dutch, Ukrainian, Czech, Vietnamese, Swedish, Romanian, Hungarian, Greek and Finnish. Slovak users see Czech and European Portuguese users see Brazilian Portuguese; English is the fallback for anything not yet translated. Translations other than Italian and English are made with the assistance of AI tools: corrections from native speakers are welcome at info@ruscalinux.org.
+Every tool follows the system language and is translated into 26 languages: English, Italian, Simplified and Traditional Chinese, Spanish, Hindi, Arabic, Brazilian and European Portuguese, Russian, Japanese, German, French, Korean, Indonesian, Turkish, Polish, Dutch, Ukrainian, Czech, Vietnamese, Swedish, Romanian, Hungarian, Greek and Finnish. Slovak users see Czech; English is the fallback for anything not yet translated. Translations other than Italian and English are made with the assistance of AI tools: corrections from native speakers are welcome at info@ruscalinux.org.
 
 ## 🧯 Troubleshooting
 

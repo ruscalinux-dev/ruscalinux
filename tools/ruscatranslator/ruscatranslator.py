@@ -108,8 +108,8 @@ BONUS = {
 
 # ── Traduzioni dell'interfaccia (lang/xx.json, ripiego en.json) ──────────────
 # Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
-# usano il cinese tradizionale, Singapore il semplificato; chi usa il
-# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+# usano il cinese tradizionale, Singapore il semplificato; il portoghese
+# senza variante legge il brasiliano, lo slovacco il ceco.
 LANG_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
                 "pt": "pt_BR", "sk": "cs"}
 

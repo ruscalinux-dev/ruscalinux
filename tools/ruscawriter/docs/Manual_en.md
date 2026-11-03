@@ -66,7 +66,7 @@ The window:
 - **Three columns**: chapters (with arrows to move them), text, chapter notes.
 - **Bottom bar**: chapter words, characters and estimated pages, project total, spell-check language and text size.
 
-The interface language is the system's (Settings → System → Region & Language), among the languages the RuscaLinux OS Tools are translated into. Slovak users see Czech and European Portuguese users see Brazilian Portuguese; anything untranslated falls back to English.
+The interface language is the system's (Settings → System → Region & Language), among the languages the RuscaLinux OS Tools are translated into. Slovak users see Czech; anything untranslated falls back to English.
 
 ---
 

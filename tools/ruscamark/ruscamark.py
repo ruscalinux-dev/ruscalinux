@@ -111,11 +111,12 @@ LANGUAGES = {
     "el":    ("Ελληνικά", "Greek"),
     "fi":    ("Suomi", "Finnish"),
     "zh_TW": ("中文（繁體）", "Traditional Chinese"),
+    "pt_PT": ("Português (Portugal)", "Portuguese (Portugal)"),
 }
 RTL_LANGUAGES = {"ar"}
 # Ripieghi fra lingue vicine (specifiche, sezione 9.2): Hong Kong e Macao
-# usano il cinese tradizionale, Singapore il semplificato; chi usa il
-# portoghese europeo legge il brasiliano, chi usa lo slovacco il ceco.
+# usano il cinese tradizionale, Singapore il semplificato; il portoghese
+# senza variante legge il brasiliano, lo slovacco il ceco.
 _LOCALE_ALIASES = {"zh_HK": "zh_TW", "zh_MO": "zh_TW", "zh_SG": "zh_CN", "zh": "zh_CN",
                    "pt": "pt_BR", "sk": "cs"}
 _PROGRAM_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -137,7 +137,7 @@ Many programs rewrite their traces when they quit, so cleaning them while open a
 
 The interface is translated into the languages of the RuscaLinux OS Tools: they are the files in the `lang/` folder. Translations other than Italian and English are made with the assistance of AI tools: corrections from native speakers are welcome (info@ruscalinux.org).
 
-The language follows the system settings (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES`, `LANG`). A regional variant falls back to its language (`de_AT` → `de`). Hong Kong and Macao use Traditional Chinese (`zh_TW`), other Chinese locales Simplified Chinese (`zh_CN`); Portuguese uses `pt_BR` and Slovak uses Czech. Anything missing falls back to English. To try a language: `LANGUAGE=it ruscacleaner`.
+The language follows the system settings (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES`, `LANG`). A regional variant falls back to its language (`de_AT` → `de`). Hong Kong and Macao use Traditional Chinese (`zh_TW`), other Chinese locales Simplified Chinese (`zh_CN`); Slovak uses Czech. Anything missing falls back to English. To try a language: `LANGUAGE=it ruscacleaner`.
 
 ---
 

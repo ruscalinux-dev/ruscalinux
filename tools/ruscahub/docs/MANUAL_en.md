@@ -126,7 +126,7 @@ with the assistance of AI tools: corrections from native speakers are welcome
 
 - The language follows the system locale; manual override: `RUSCAHUB_LANG=de ruscahub`.
 - Hong Kong and Macao use Traditional Chinese (`zh_TW`), other Chinese locales
-  Simplified Chinese (`zh_CN`); Portuguese uses `pt_BR` and Slovak uses Czech.
+  Simplified Chinese (`zh_CN`); Slovak uses Czech.
 - With Arabic the interface is laid out right to left.
 - A missing translation falls back to `en.json`; if the text is missing there too,
   the program does not crash and shows the key name.

@@ -137,7 +137,7 @@ Molti programmi riscrivono le proprie tracce quando si chiudono: pulirle con il 
 
 L'interfaccia è tradotta nelle lingue dei RuscaLinux OS Tools: sono i file della cartella `lang/`. Le traduzioni diverse da italiano e inglese sono fatte con l'assistenza di strumenti di intelligenza artificiale: le correzioni dei madrelingua sono benvenute (info@ruscalinux.org).
 
-La lingua segue le impostazioni di sistema (`LANGUAGE`, poi `LC_ALL`, `LC_MESSAGES`, `LANG`). Una variante regionale ripiega sulla sua lingua (`de_AT` → `de`). Hong Kong e Macao usano il cinese tradizionale (`zh_TW`), il resto del cinese il semplificato (`zh_CN`); il portoghese usa `pt_BR` e lo slovacco il ceco. Ciò che manca torna all'inglese. Per provare una lingua: `LANGUAGE=en ruscacleaner`.
+La lingua segue le impostazioni di sistema (`LANGUAGE`, poi `LC_ALL`, `LC_MESSAGES`, `LANG`). Una variante regionale ripiega sulla sua lingua (`de_AT` → `de`). Hong Kong e Macao usano il cinese tradizionale (`zh_TW`), il resto del cinese il semplificato (`zh_CN`); lo slovacco usa il ceco. Ciò che manca torna all'inglese. Per provare una lingua: `LANGUAGE=en ruscacleaner`.
 
 ---
 

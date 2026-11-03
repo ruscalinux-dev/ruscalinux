@@ -66,7 +66,7 @@ La finestra:
 - **Tre colonne**: capitoli (con le frecce per spostarli), testo, note del capitolo.
 - **Barra in basso**: parole del capitolo, caratteri e pagine stimate, totale del progetto, lingua del controllo ortografico e dimensione del testo.
 
-La lingua dell'interfaccia è quella del sistema (Impostazioni → Sistema → Regione e lingua), fra le lingue in cui sono tradotti i RuscaLinux OS Tools. Chi usa lo slovacco vede il ceco, chi usa il portoghese europeo vede il brasiliano; se manca una traduzione si usa l'inglese.
+La lingua dell'interfaccia è quella del sistema (Impostazioni → Sistema → Regione e lingua), fra le lingue in cui sono tradotti i RuscaLinux OS Tools. Chi usa lo slovacco vede il ceco; se manca una traduzione si usa l'inglese.
 
 ---
 

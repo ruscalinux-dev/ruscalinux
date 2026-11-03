@@ -126,7 +126,7 @@ strumenti di intelligenza artificiale: le correzioni dei madrelingua sono benven
 
 - La lingua segue quella del sistema; per forzarla: `RUSCAHUB_LANG=de ruscahub`.
 - Hong Kong e Macao usano il cinese tradizionale (`zh_TW`), il resto del cinese il
-  semplificato (`zh_CN`); il portoghese usa `pt_BR` e lo slovacco il ceco.
+  semplificato (`zh_CN`); lo slovacco usa il ceco.
 - Con l'arabo l'interfaccia viene disposta da destra a sinistra.
 - Se manca una traduzione si usa `en.json`; se manca anche lì il programma non
   si blocca e mostra il nome della chiave.

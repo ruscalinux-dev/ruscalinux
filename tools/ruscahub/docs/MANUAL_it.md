@@ -119,21 +119,14 @@ la voce di menu viene riscritta con l'icona trovata.
 | `/usr/share/ruscahub/lang/*.json` | Traduzioni dell'interfaccia |
 
 ## 10. Lingue supportate
-RuscaHub è tradotto in 15 lingue:
-
-| File | Lingua | File | Lingua |
-|---|---|---|---|
-| `en.json` | Inglese | `de.json` | Tedesco |
-| `zh_CN.json` | Cinese semplificato | `fr.json` | Francese |
-| `es.json` | Spagnolo | `it.json` | Italiano |
-| `hi.json` | Hindi | `ko.json` | Coreano |
-| `ar.json` | Arabo | `id.json` | Indonesiano |
-| `pt_BR.json` | Portoghese brasiliano | `tr.json` | Turco |
-| `ru.json` | Russo | `pl.json` | Polacco |
-| `ja.json` | Giapponese | | |
+RuscaHub è tradotto nelle lingue dei RuscaLinux OS Tools: sono i file della cartella
+`lang/`. Le traduzioni diverse da italiano e inglese sono fatte con l'assistenza di
+strumenti di intelligenza artificiale: le correzioni dei madrelingua sono benvenute
+(info@ruscalinux.org).
 
 - La lingua segue quella del sistema; per forzarla: `RUSCAHUB_LANG=de ruscahub`.
-- Il cinese tradizionale (`zh_TW`, `zh_HK`) usa il cinese semplificato; il portoghese usa `pt_BR`.
+- Hong Kong e Macao usano il cinese tradizionale (`zh_TW`), il resto del cinese il
+  semplificato (`zh_CN`); il portoghese usa `pt_BR` e lo slovacco il ceco.
 - Con l'arabo l'interfaccia viene disposta da destra a sinistra.
 - Se manca una traduzione si usa `en.json`; se manca anche lì il programma non
   si blocca e mostra il nome della chiave.
@@ -141,8 +134,9 @@ RuscaHub è tradotto in 15 lingue:
   modificare il file della lingua.
 
 ## 11. Finestra Informazioni
-Si apre dal menu principale ed è una pagina unica: icona, nome, versione,
-descrizione, collegamenti a sito web, supporto e licenza, e la nota di sviluppo.
+Si apre dal menu principale: icona, nome, versione, descrizione e collegamenti a
+sito web, supporto e licenza. La riga «Nota di sviluppo» apre la nota in una
+seconda pagina, con il pulsante indietro in alto.
 
 ## 12. Creazione del pacchetto .deb
 Dalla radice del progetto:

@@ -135,9 +135,9 @@ Molti programmi riscrivono le proprie tracce quando si chiudono: pulirle con il 
 
 ## 8. Lingue
 
-L'interfaccia è disponibile in 15 lingue: inglese, cinese semplificato, spagnolo, hindi, arabo, portoghese brasiliano, russo, giapponese, tedesco, francese, italiano, coreano, indonesiano, turco e polacco.
+L'interfaccia è tradotta nelle lingue dei RuscaLinux OS Tools: sono i file della cartella `lang/`. Le traduzioni diverse da italiano e inglese sono fatte con l'assistenza di strumenti di intelligenza artificiale: le correzioni dei madrelingua sono benvenute (info@ruscalinux.org).
 
-La lingua segue le impostazioni di sistema (`LANGUAGE`, poi `LC_ALL`, `LC_MESSAGES`, `LANG`). Una variante regionale ripiega sulla sua lingua (`de_AT` → `de`); portoghese e cinese usano `pt_BR` e `zh_CN`. Ciò che manca torna all'inglese. Per provare una lingua: `LANGUAGE=en ruscacleaner`.
+La lingua segue le impostazioni di sistema (`LANGUAGE`, poi `LC_ALL`, `LC_MESSAGES`, `LANG`). Una variante regionale ripiega sulla sua lingua (`de_AT` → `de`). Hong Kong e Macao usano il cinese tradizionale (`zh_TW`), il resto del cinese il semplificato (`zh_CN`); il portoghese usa `pt_BR` e lo slovacco il ceco. Ciò che manca torna all'inglese. Per provare una lingua: `LANGUAGE=en ruscacleaner`.
 
 ---
 

@@ -119,21 +119,14 @@ is rewritten with the icon found.
 | `/usr/share/ruscahub/lang/*.json` | Interface translations |
 
 ## 10. Supported languages
-RuscaHub is translated into 15 languages:
-
-| File | Language | File | Language |
-|---|---|---|---|
-| `en.json` | English | `de.json` | German |
-| `zh_CN.json` | Simplified Chinese | `fr.json` | French |
-| `es.json` | Spanish | `it.json` | Italian |
-| `hi.json` | Hindi | `ko.json` | Korean |
-| `ar.json` | Arabic | `id.json` | Indonesian |
-| `pt_BR.json` | Brazilian Portuguese | `tr.json` | Turkish |
-| `ru.json` | Russian | `pl.json` | Polish |
-| `ja.json` | Japanese | | |
+RuscaHub is translated into the languages of the RuscaLinux OS Tools: they are the
+files in the `lang/` folder. Translations other than Italian and English are made
+with the assistance of AI tools: corrections from native speakers are welcome
+(info@ruscalinux.org).
 
 - The language follows the system locale; manual override: `RUSCAHUB_LANG=de ruscahub`.
-- Traditional Chinese (`zh_TW`, `zh_HK`) uses Simplified Chinese; Portuguese uses `pt_BR`.
+- Hong Kong and Macao use Traditional Chinese (`zh_TW`), other Chinese locales
+  Simplified Chinese (`zh_CN`); Portuguese uses `pt_BR` and Slovak uses Czech.
 - With Arabic the interface is laid out right to left.
 - A missing translation falls back to `en.json`; if the text is missing there too,
   the program does not crash and shows the key name.
@@ -141,8 +134,9 @@ RuscaHub is translated into 15 languages:
   that language's file.
 
 ## 11. About window
-Opens from the main menu as a single page: icon, name, version, description,
-links to website, support and license, and the development note.
+Opens from the main menu: icon, name, version, description and links to website,
+support and license. The “Development Note” row opens the note on a second page,
+with the back button at the top.
 
 ## 12. Building the .deb package
 From the project root:

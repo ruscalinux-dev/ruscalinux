@@ -40,3 +40,7 @@ Thumbs.db
 
 # Anteprima del tema GRUB (branding/generators/ruscalinux-grub-theme.py)
 /local/grub/preview.png
+
+# Cache di Python: le crea Python avviando i programmi dai sorgenti
+__pycache__/
+*.pyc

@@ -478,17 +478,20 @@ def available_languages():
 
 
 def detect_system_language():
-    for var in ("LC_ALL", "LC_MESSAGES", "LANG", "LANGUAGE"):
-        for cand in (os.environ.get(var) or "").split(":"):
-            cand = cand.split(".")[0].split("@")[0]
-            if not cand or cand in ("C", "POSIX"):
-                continue
-            base = cand.split("_")[0].lower()
-            # solo lingue tradotte davvero: come negli altri programmi, se la
-            # traduzione manca si prova la candidata successiva
-            for code in (cand, _LOCALE_ALIASES.get(cand), base, _LOCALE_ALIASES.get(base)):
-                if code in LANGUAGES and language_available(code):
-                    return code
+    # Le lingue di sistema nell'ordine di GTK (specifiche, sezione 9.2):
+    # prima LANGUAGE, poi LC_ALL, LC_MESSAGES, LANG. Prima si leggevano
+    # nell'ordine inverso, e LANGUAGE (la variabile per scegliere la lingua
+    # delle applicazioni) veniva ignorata se LANG era impostata.
+    for nome in GLib.get_language_names():
+        cand = nome.split(".")[0].split("@")[0]
+        if not cand or cand in ("C", "POSIX"):
+            continue
+        base = cand.split("_")[0].lower()
+        # solo lingue tradotte davvero: come negli altri programmi, se la
+        # traduzione manca si prova la candidata successiva
+        for code in (cand, _LOCALE_ALIASES.get(cand), base, _LOCALE_ALIASES.get(base)):
+            if code in LANGUAGES and language_available(code):
+                return code
     return "en"
 
 

@@ -573,11 +573,11 @@ def save_settings(data):
 
 
 def detect_system_language():
-    candidates = []
-    for var in ("LC_ALL", "LC_MESSAGES", "LANG", "LANGUAGE"):
-        val = os.environ.get(var)
-        if val:
-            candidates.extend(val.split(":"))
+    # Le lingue di sistema nell'ordine di GTK (specifiche, sezione 9.2):
+    # prima LANGUAGE, poi LC_ALL, LC_MESSAGES, LANG. Prima si leggevano
+    # nell'ordine inverso, e LANGUAGE (la variabile per scegliere la lingua
+    # delle applicazioni) veniva ignorata se LANG era impostata.
+    candidates = [n for n in GLib.get_language_names() if n not in ("C", "POSIX")]
     try:
         loc = locale.getlocale()[0]
         if not loc and hasattr(locale, "getdefaultlocale"):

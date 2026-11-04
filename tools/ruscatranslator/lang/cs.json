@@ -1,7 +1,7 @@
 {
   "app_summary": "Překládejte dokumenty Markdown ve svém počítači",
   "desktop_keywords": "překlad;překládat;překladač;Markdown;jazyk;AI;",
-  "app_description": "Překládá dokumenty Markdown mezi patnácti jazyky pomocí jazykového modelu, který běží v tomto počítači prostřednictvím ruscallama-engine. Nic neopouští počítač.",
+  "app_description": "Překládá dokumenty Markdown mezi dvaceti šesti jazyky pomocí jazykového modelu, který běží v tomto počítači prostřednictvím ruscallama-engine. Nic neopouští počítač.",
   "about": "O aplikaci RuscaTranslator",
   "about_components": "Externí součásti",
   "about_license": "Licence",

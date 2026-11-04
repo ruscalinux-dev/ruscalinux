@@ -1,7 +1,7 @@
 {
   "app_summary": "Translate Markdown documents on your computer",
   "desktop_keywords": "translate;translation;translator;Markdown;language;AI;",
-  "app_description": "Translates Markdown documents between fifteen languages with a language model that runs on this computer, through ruscallama-engine. Nothing leaves the machine.",
+  "app_description": "Translates Markdown documents between twenty-six languages with a language model that runs on this computer, through ruscallama-engine. Nothing leaves the machine.",
   "about": "About RuscaTranslator",
   "about_components": "External Components",
   "about_license": "License",

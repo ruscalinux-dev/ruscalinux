@@ -2,9 +2,9 @@
 
 **Version** 1.99.2 · **Author** Nunzio Curcuruto · **Distribution** RuscaLinux ([ruscalinux.org](https://www.ruscalinux.org/)) · **License** GNU GPL v3 or later
 
-RuscaTranslator translates **Markdown** documents between the fifteen official languages of RuscaLinux with a language model that runs **on this computer**, through **ruscallama-engine** (llama.cpp, an external component under the MIT license). Headings, lists, tables, code and links stay intact.
+RuscaTranslator translates **Markdown** documents between the twenty-six official languages of RuscaLinux with a language model that runs **on this computer**, through **ruscallama-engine** (llama.cpp, an external component under the MIT license). Headings, lists, tables, code and links stay intact.
 
-Languages: English, Simplified Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, Russian, Japanese, German, French, Italian, Korean, Indonesian, Turkish, Polish. The source language can be detected automatically: from the script for Chinese, Japanese, Korean, Arabic, Hindi and Russian, from the most frequent words for the others.
+Languages: English, Simplified Chinese, Traditional Chinese, Spanish, Hindi, Arabic, Brazilian Portuguese, European Portuguese, Russian, Japanese, German, French, Italian, Korean, Indonesian, Turkish, Polish, Dutch, Ukrainian, Czech, Vietnamese, Swedish, Romanian, Hungarian, Greek, Finnish. The source language can be detected automatically: from the script for Chinese, Japanese, Korean, Arabic, Hindi, Greek, Russian and Ukrainian, from the most frequent words and letters for the others. With very short or mixed texts detection can be wrong, and between close variants (Simplified and Traditional Chinese, Brazilian and European Portuguese) it decides from typical characters and forms: in those cases, choose the language by hand.
 
 ---
 

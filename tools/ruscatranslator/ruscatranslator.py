@@ -3,7 +3,7 @@
 """
 RuscaTranslator 1.99.2 — traduttore di documenti Markdown per RuscaLinux.
 
-Traduce tra le 15 lingue ufficiali con un modello linguistico locale, eseguito da
+Traduce tra le 26 lingue ufficiali con un modello linguistico locale, eseguito da
 ruscallama-engine (llama.cpp, software esterno con licenza MIT). Per la
 coppia italiano/inglese usa un RAG linguistico (raglin.py): equivalenti,
 falsi amici, glossario del documento, memoria di traduzione e correzioni
@@ -59,19 +59,28 @@ SAMPLING = dict(temperature=0.2, top_p=0.92, top_k=40, min_p=0.08,
 # Modelli preferiti per la traduzione, in ordine (parti del nome del file).
 PREFERRED_MODELS = ("gemma-4", "gemma4", "26b-a4b", "a4b")
 
-# Lingue dei documenti: le 15 tra cui RuscaTranslator traduce (specifiche,
-# guida a RuscaTranslator). Sono un elenco distinto da quello delle lingue
-# dell'interfaccia (sezione 9, file lang/). Codice, nome nella lingua
-# stessa, nome in inglese (per il prompt).
+# Lingue dei documenti: le 26 lingue dei RuscaLinux OS Tools (specifiche,
+# sezione 9). Codice, nome nella lingua stessa, nome in inglese (per il
+# prompt). I codici gia' usati fino alla 1.99.2 ("zh", "pt-BR") restano
+# uguali, cosi' le impostazioni salvate continuano a valere; le lingue
+# nuove sono in fondo, e le varianti accanto alla lingua sorella.
 LANGUAGES = (
-    ("en", "English", "English"), ("zh", "中文（简体）", "Simplified Chinese"),
+    ("en", "English", "English"),
+    ("zh", "中文（简体）", "Simplified Chinese"),
+    ("zh-TW", "中文（繁體）", "Traditional Chinese"),
     ("es", "Español", "Spanish"), ("hi", "हिन्दी", "Hindi"),
-    ("ar", "العربية", "Arabic"), ("pt-BR", "Português (Brasil)", "Brazilian Portuguese"),
+    ("ar", "العربية", "Arabic"),
+    ("pt-BR", "Português (Brasil)", "Brazilian Portuguese"),
+    ("pt-PT", "Português (Portugal)", "European Portuguese"),
     ("ru", "Русский", "Russian"), ("ja", "日本語", "Japanese"),
     ("de", "Deutsch", "German"), ("fr", "Français", "French"),
     ("it", "Italiano", "Italian"), ("ko", "한국어", "Korean"),
     ("id", "Bahasa Indonesia", "Indonesian"), ("tr", "Türkçe", "Turkish"),
-    ("pl", "Polski", "Polish"),
+    ("pl", "Polski", "Polish"), ("nl", "Nederlands", "Dutch"),
+    ("uk", "Українська", "Ukrainian"), ("cs", "Čeština", "Czech"),
+    ("vi", "Tiếng Việt", "Vietnamese"), ("sv", "Svenska", "Swedish"),
+    ("ro", "Română", "Romanian"), ("hu", "Magyar", "Hungarian"),
+    ("el", "Ελληνικά", "Greek"), ("fi", "Suomi", "Finnish"),
 )
 CODES = [c for c, _n, _e in LANGUAGES]
 NATIVE = {c: n for c, n, _e in LANGUAGES}
@@ -84,25 +93,62 @@ DEFAULTS = {
     "tgt": "en", "font_size": 0, "width": 1200, "height": 800, "maximized": False,
 }
 
+# Rilevamento delle lingue in alfabeto latino: parole frequenti e lettere
+# tipiche. "pt" e' il portoghese comune; la variante si sceglie dopo
+# (_pt_variant). Le parole brevi condivise tra lingue (" a ", " to ",
+# " se ", " on ") sono escluse apposta.
 STOP_LAT = {
-    "it":    (" che ", " di ", " il ", " la ", " per ", " non ", " sono ", " come "),
-    "en":    (" the ", " of ", " and ", " to ", " in ", " that ", " is ", " with "),
-    "de":    (" der ", " die ", " das ", " und ", " nicht ", " mit ", " für ", " ich "),
-    "fr":    (" le ", " les ", " des ", " est ", " dans ", " pour ", " une ", " avec "),
-    "es":    (" el ", " los ", " las ", " que ", " por ", " para ", " muy ", " está "),
-    "pt-BR": (" o ", " os ", " as ", " que ", " não ", " para ", " com ", " você "),
-    "pl":    (" nie ", " jest ", " i ", " w ", " na ", " z ", " że ", " się "),
-    "tr":    (" ve ", " bir ", " bu ", " için ", " ile ", " değil ", " olarak ", " çok "),
-    "id":    (" yang ", " dan ", " ini ", " itu ", " dengan ", " untuk ", " tidak ", " dalam "),
+    "it": (" che ", " di ", " il ", " la ", " per ", " non ", " sono ", " come "),
+    "en": (" the ", " of ", " and ", " to ", " in ", " that ", " is ", " with "),
+    "de": (" der ", " die ", " das ", " und ", " nicht ", " mit ", " für ", " ich "),
+    "fr": (" le ", " les ", " des ", " est ", " dans ", " pour ", " une ", " avec "),
+    "es": (" el ", " los ", " las ", " que ", " por ", " para ", " muy ", " está "),
+    "pt": (" o ", " os ", " as ", " que ", " não ", " para ", " com ", " uma "),
+    "pl": (" nie ", " jest ", " i ", " w ", " na ", " z ", " że ", " się "),
+    "tr": (" ve ", " bir ", " bu ", " için ", " ile ", " değil ", " olarak ", " çok "),
+    "id": (" yang ", " dan ", " ini ", " itu ", " dengan ", " untuk ", " tidak ", " dalam "),
+    "nl": (" het ", " een ", " van ", " niet ", " zijn ", " voor ", " ook ", " dat "),
+    "sv": (" och ", " att ", " det ", " som ", " inte ", " för ", " med ", " är "),
+    "cs": (" je ", " že ", " jsou ", " není ", " také ", " který ", " jako ", " ale "),
+    "ro": (" și ", " în ", " este ", " nu ", " cu ", " pentru ", " care ", " sunt "),
+    "hu": (" és ", " az ", " hogy ", " nem ", " egy ", " van ", " meg ", " kell "),
+    "fi": (" ja ", " että ", " ei ", " oli ", " mutta ", " kun ", " myös ", " ovat "),
+    "vi": (" và ", " của ", " là ", " có ", " không ", " những ", " được ", " cho "),
 }
 BONUS = {
-    "pl":    ("ł", "ą", "ę", "ś", "ż"),
-    "pt-BR": ("ão", "ç"),
-    "es":    ("¿", "¡"),
-    "fr":    ("è", "ê", "ç"),
-    "de":    ("ß", "ü", "ö", "ä"),
-    "tr":    ("ı", "ş", "ğ"),
+    "pl": ("ł", "ą", "ę", "ś", "ż"),
+    "pt": ("ão", "ç"),
+    "es": ("¿", "¡"),
+    "fr": ("ê", "ç"),           # non "è": e' comunissima in italiano
+    "de": ("ß", "ü"),           # non "ä", "ö": anche svedese e finlandese
+    "tr": ("ı", "ş", "ğ"),
+    "cs": ("ř", "ě", "ů", "č"),
+    "ro": ("ș", "ț", "ă", "î", "â"),
+    "hu": ("ő", "ű", "gy"),
+    "fi": ("ää", "yy"),
+    "sv": ("å",),
+    "nl": ("ij",),
+    "vi": ("ơ", "ư", "đ", "ạ", "ả", "ấ", "ầ", "ế", "ề", "ệ", "ộ", "ờ", "ợ", "ủ", "ứ"),
 }
+
+# Varianti. Cinese: caratteri che si scrivono diversamente nelle due forme
+# (stesso ordine nelle due stringhe). Ucraino e russo: lettere proprie di
+# ciascuno. Portoghese: forme europee e brasiliane frequenti.
+HAN_SEMPLIFICATI = "这个们说来时会对后国学体经点样还让开关为与从听见话书车长门问题处应该实际电机发动么过现种东"
+HAN_TRADIZIONALI = "這個們說來時會對後國學體經點樣還讓開關為與從聽見話書車長門問題處應該實際電機發動麼過現種東"
+PT_PT = (" facto", " equipa", " ecrã", " utilizador", " registo", " connosco",
+         " telemóvel", " autocarro", " comboio", " casa de banho", " pequeno-almoço")
+PT_BR = (" você", " vocês", " a gente ", " usuário", " tela ", " registro",
+         " fato ", " ônibus", " trem ", " celular", " café da manhã")
+RE_PT_PT = re.compile(r"\b(?:estou|está|estás|estamos|estão|estava|estavam|continua|anda) a \w+r\b")
+RE_PT_BR = re.compile(r"\b(?:estou|está|estamos|estão|estava|estavam|continua|anda) \w+ndo\b")
+
+
+def _pt_variant(low):
+    """Portoghese europeo o brasiliano; nel dubbio brasiliano, come prima."""
+    pt = sum(low.count(m) for m in PT_PT) + 2 * len(RE_PT_PT.findall(low))
+    br = sum(low.count(m) for m in PT_BR) + 2 * len(RE_PT_BR.findall(low))
+    return "pt-PT" if pt > br else "pt-BR"
 
 
 
@@ -209,8 +255,18 @@ def detect_language(text):
                           ("[\u4e00-\u9fff]", "zh"),
                           ("[\u0600-\u06ff]", "ar"),
                           ("[\u0900-\u097f]", "hi"),       # devanagari
+                          ("[\u0370-\u03ff\u1f00-\u1fff]", "el"),
                           ("[\u0400-\u04ff]", "ru")):
         if re.search(pattern, t):
+            if code == "zh":
+                trad = sum(t.count(c) for c in HAN_TRADIZIONALI)
+                simp = sum(t.count(c) for c in HAN_SEMPLIFICATI)
+                return "zh-TW" if trad > simp else "zh"
+            if code == "ru":
+                low = t.lower()
+                uk = sum(low.count(c) for c in "іїєґ")
+                ru = sum(low.count(c) for c in "ыэъё")
+                return "uk" if uk > ru else "ru"
             return code
     low = " " + t.lower().replace("\n", " ") + " "
     scores = {}
@@ -218,7 +274,8 @@ def detect_language(text):
         score = sum(low.count(m) for m in marks)
         score += sum(3 * low.count(b) for b in BONUS.get(code, ()))
         scores[code] = score
-    return max(scores, key=scores.get)
+    best = max(scores, key=scores.get)
+    return _pt_variant(low) if best == "pt" else best
 
 
 def build_prompt(src, tgt, domain):

@@ -1,7 +1,7 @@
 {
   "app_summary": "Käännä Markdown-asiakirjoja omalla tietokoneellasi",
   "desktop_keywords": "käännä;käännös;kääntäjä;Markdown;kieli;tekoäly;",
-  "app_description": "Kääntää Markdown-asiakirjoja viidentoista kielen välillä tällä tietokoneella toimivalla kielimallilla ruscallama-enginen kautta. Mikään ei poistu koneelta.",
+  "app_description": "Kääntää Markdown-asiakirjoja kahdenkymmenenkuuden kielen välillä tällä tietokoneella toimivalla kielimallilla ruscallama-enginen kautta. Mikään ei poistu koneelta.",
   "about": "Tietoja: RuscaTranslator",
   "about_components": "Ulkoiset komponentit",
   "about_license": "Lisenssi",

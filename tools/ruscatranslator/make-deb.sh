@@ -161,7 +161,7 @@ $PKG \\- translate Markdown documents with a local language model
 .B $PKG
 [\\fIFILE\\fR]
 .SH DESCRIPTION
-RuscaTranslator translates Markdown documents between fifteen languages with a language model that runs on this computer through ruscallama-engine (llama.cpp). For Italian and English it adds a linguistic knowledge base, a document glossary, a translation memory and final corrections. If FILE is given, it is opened at start. Nothing is sent over the internet.
+RuscaTranslator translates Markdown documents between twenty-six languages with a language model that runs on this computer through ruscallama-engine (llama.cpp). For Italian and English it adds a linguistic knowledge base, a document glossary, a translation memory and final corrections. If FILE is given, it is opened at start. Nothing is sent over the internet.
 .SH SEE ALSO
 /usr/share/doc/$PKG/MANUAL_en.md.gz
 .SH AUTHOR
@@ -207,6 +207,10 @@ $PKG ($VER) unstable; urgency=medium
   * Memoria di traduzione e glossari in ~/.local/share/ruscatranslator.
   * raglin.py in /usr/share/ruscatranslator (prima in /usr/bin).
   * Interfaccia in 15 lingue; icona e icona simbolica nuove.
+  * Traduzione tra tutte le 26 lingue dei RuscaLinux OS Tools (prima 15):
+    aggiunti cinese tradizionale, portoghese europeo, olandese, ucraino,
+    ceco, vietnamita, svedese, rumeno, ungherese, greco e finlandese, con
+    rilevamento automatico anche delle varianti.
 
  -- $MAINT  $(LC_ALL=C date -Ru -d "@$SOURCE_DATE_EPOCH")
 CHANGELOG
@@ -222,8 +226,8 @@ Maintainer: $MAINT
 Homepage: $HOMEPAGE
 Installed-Size: $(du -sk "$ROOT/usr" | cut -f1)
 Description: translate Markdown documents with a local language model
- RuscaTranslator translates Markdown documents between fifteen languages
- with a language model that runs on this computer through
+ RuscaTranslator translates Markdown documents between twenty-six
+ languages with a language model that runs on this computer through
  ruscallama-engine (llama.cpp), keeping headings, lists, tables, code and
  links intact. Between Italian and English it adds a linguistic knowledge
  base, a document glossary, a translation memory and final corrections.

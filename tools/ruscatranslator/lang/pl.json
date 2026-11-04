@@ -1,7 +1,7 @@
 {
   "app_summary": "Tłumacz dokumenty Markdown na swoim komputerze",
   "desktop_keywords": "tłumaczenie;tłumacz;Markdown;język;SI;",
-  "app_description": "Tłumaczy dokumenty Markdown między piętnastoma językami za pomocą modelu językowego działającego na tym komputerze dzięki ruscallama-engine. Nic nie opuszcza maszyny.",
+  "app_description": "Tłumaczy dokumenty Markdown między dwudziestoma sześcioma językami za pomocą modelu językowego działającego na tym komputerze dzięki ruscallama-engine. Nic nie opuszcza maszyny.",
   "about": "O programie RuscaTranslator",
   "about_components": "Komponenty zewnętrzne",
   "about_license": "Licencja",

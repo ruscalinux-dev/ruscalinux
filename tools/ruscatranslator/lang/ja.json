@@ -1,7 +1,7 @@
 {
   "app_summary": "コンピューター上で Markdown 文書を翻訳",
   "desktop_keywords": "翻訳;翻訳者;Markdown;言語;AI;",
-  "app_description": "ruscallama-engine を通じて、このコンピューター上で動く言語モデルで Markdown 文書を 15 言語間で翻訳します。何もマシンの外に出ません。",
+  "app_description": "ruscallama-engine を通じて、このコンピューター上で動く言語モデルで Markdown 文書を 26 言語間で翻訳します。何もマシンの外に出ません。",
   "about": "RuscaTranslator について",
   "about_components": "外部コンポーネント",
   "about_license": "ライセンス",

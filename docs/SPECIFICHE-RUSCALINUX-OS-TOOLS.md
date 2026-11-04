@@ -968,7 +968,7 @@ Chat con modelli linguistici che girano su questo computer.
 
 ## 🌐 RuscaTranslator
 
-Traduzione di documenti Markdown tra 15 lingue: inglese, italiano, spagnolo, francese, tedesco, portoghese brasiliano, russo, cinese semplificato, giapponese, coreano, hindi, arabo, indonesiano, turco e polacco.
+Traduzione di documenti Markdown tra le 26 lingue della sezione 9: inglese, italiano, cinese semplificato e tradizionale, spagnolo, hindi, arabo, portoghese brasiliano ed europeo, russo, giapponese, tedesco, francese, coreano, indonesiano, turco, polacco, olandese, ucraino, ceco, vietnamita, svedese, rumeno, ungherese, greco e finlandese.
 
 1. Aprire un documento (Ctrl+O) o trascinarlo nel riquadro “Originale”.
 2. Scegliere lingua di partenza (o “Rileva la lingua”), lingua d’arrivo e tipo di testo.
@@ -1123,7 +1123,7 @@ Chat with language models that run on this computer.
 
 ## 🌐 RuscaTranslator
 
-Translation of Markdown documents between 15 languages: English, Italian, Spanish, French, German, Brazilian Portuguese, Russian, Simplified Chinese, Japanese, Korean, Hindi, Arabic, Indonesian, Turkish and Polish.
+Translation of Markdown documents between the 26 languages of RuscaLinux OS Tools: English, Italian, Simplified and Traditional Chinese, Spanish, Hindi, Arabic, Brazilian and European Portuguese, Russian, Japanese, German, French, Korean, Indonesian, Turkish, Polish, Dutch, Ukrainian, Czech, Vietnamese, Swedish, Romanian, Hungarian, Greek and Finnish.
 
 1. Open a document (Ctrl+O) or drag it onto the "Original" pane.
 2. Choose the source language (or "Detect language"), the target language and the text type.

@@ -1,7 +1,7 @@
 {
   "app_summary": "在您的電腦上翻譯 Markdown 文件",
   "desktop_keywords": "翻譯;譯者;Markdown;語言;AI;",
-  "app_description": "透過 ruscallama-engine，用在這臺電腦上執行的語言模型在十五種語言之間翻譯 Markdown 文件。任何內容都不會離開這臺機器。",
+  "app_description": "透過 ruscallama-engine，用在這臺電腦上執行的語言模型在二十六種語言之間翻譯 Markdown 文件。任何內容都不會離開這臺機器。",
   "about": "關於 RuscaTranslator",
   "about_components": "外部元件",
   "about_license": "授權",

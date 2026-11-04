@@ -1,7 +1,7 @@
 {
   "app_summary": "Markdown-dokumentumok fordítása a saját gépén",
   "desktop_keywords": "fordítás;fordít;fordító;Markdown;nyelv;MI;",
-  "app_description": "Markdown-dokumentumokat fordít tizenöt nyelv között egy ezen a számítógépen futó nyelvi modellel, a ruscallama-engine segítségével. Semmi sem hagyja el a gépet.",
+  "app_description": "Markdown-dokumentumokat fordít huszonhat nyelv között egy ezen a számítógépen futó nyelvi modellel, a ruscallama-engine segítségével. Semmi sem hagyja el a gépet.",
   "about": "A RuscaTranslator névjegye",
   "about_components": "Külső összetevők",
   "about_license": "Licenc",

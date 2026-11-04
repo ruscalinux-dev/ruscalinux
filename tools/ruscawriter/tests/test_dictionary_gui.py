@@ -166,9 +166,17 @@ def run_checks(window):
     window.on_lookup_word()
     check("si riapre", window._dict_popover is not None)
     # Con un capitolo corto non c'e' niente da scorrere, quindi si controlla
-    # l'aggancio: allo scorrimento dell'area di scrittura, il foglietto si
-    # chiude invece di restare a indicare la riga sbagliata.
-    window._sw_center.get_vadjustment().emit("value-changed")
+    # l'aggancio simulando lo spostamento. Uno scorrimento vero (piu' di 4 px,
+    # finito l'intervallo di grazia) chiude il foglietto, che altrimenti
+    # indicherebbe la riga sbagliata; un ritocco di layout di un pixel o due,
+    # come quello che GTK fa ridisponendo il testo, no.
+    vadj = window._sw_center.get_vadjustment()
+    window._dict_grace_until = 0
+    window._dict_scroll_from = vadj.get_value() - 2
+    vadj.emit("value-changed")
+    check("un ritocco di 2 px non lo chiude", window._dict_popover is not None)
+    window._dict_scroll_from = vadj.get_value() - 40
+    vadj.emit("value-changed")
     check("scorrere lo chiude", window._dict_popover is None)
 
     scrivi(window, "Il canto dell'anima non cadere mai.", 16)
@@ -200,9 +208,13 @@ def run_checks(window):
             cerca_bottoni(c)
             c = c.get_next_sibling()
     cerca_bottoni(window._dict_popover.get_child())
-    check("c'e' il pulsante per vedere tutto", len(bottoni) == 1)
-    if bottoni:
-        bottoni[0].emit("clicked")
+    # Nel foglietto ci sono due pulsanti: la chiusura "✕" in alto e, per le
+    # voci tagliate, quello per vedere tutto. Si cerca quest'ultimo per nome.
+    tutto = [b for b in bottoni if b.get_label() == window.t("dict_more")]
+    check("c'e' il pulsante per chiudere", any(b.get_label() == "✕" for b in bottoni))
+    check("c'e' il pulsante per vedere tutto", len(tutto) == 1)
+    if tutto:
+        tutto[0].emit("clicked")
         testi = [l.get_text() for l in (popover_labels(window) or [])]
         check("dopo il clic si vede tutta la voce",
               any(t.count("Testo lungo") > 5 for t in testi))

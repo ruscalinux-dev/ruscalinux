@@ -266,7 +266,7 @@ def test_theme_families():
           build_css(dark=False, theme="inesistente")
           == build_css(dark=False, theme=pw_model.DEFAULT_THEME))
 
-    # nomi: tradotti in tutte le 15 lingue, tre e diversi fra loro
+    # nomi: tradotti in tutte le 26 lingue, tre e diversi fra loro
     check("nomi italiani",
           [pw_model.theme_label(t) for t in pw_model.THEMES]
           == ["Ametista", "Classico"])
@@ -707,7 +707,7 @@ def test_margini_di_lettura():
           "if _tentativi < 20:" in src)
     check("il divisore aggiorna comunque i margini",
           src.index("self._update_reading_margins()")
-          < src.index("total = self.paned_outer.get_allocated_width()"))
+          < src.index("total = self.paned_outer.get_width()"))
 
     # la regola: colonna limitata e centrata quando c'e' spazio in eccesso
     massimo = 980
@@ -794,9 +794,12 @@ def test_larghezza_delle_colonne():
         check(f"finestra da {tot}px non fa danni",
               sx >= 0 and dx >= 0 and sx + centro + dx == max(tot, 0))
 
-    # le posizioni non si salvano se la finestra non ha una larghezza vera
+    # le posizioni non si salvano se la finestra non ha una larghezza vera:
+    # _save_columns legge la larghezza e si ferma se non e' ancora allocata
+    corpo = src[src.index("def _save_columns"):src.index("def _store_column")]
     check("non si registrano posizioni da una finestra non allocata",
-          "total = self.paned_outer.get_allocated_width()" in src)
+          "total = self.paned_outer.get_width()" in corpo
+          and "if total <= 1:" in corpo)
 
 
 def test_lingue_non_tradotte():
@@ -806,8 +809,8 @@ def test_lingue_non_tradotte():
 
     non_tradotte = [c for c in pw_i18n.LANGUAGES
                     if c not in pw_i18n.COMPLETE_LANGUAGES]
-    # le specifiche di RuscaLinux chiedono 15 lingue, tutte tradotte
-    check("le 15 lingue ufficiali sono tutte complete", non_tradotte == [])
+    # le specifiche di RuscaLinux chiedono 26 lingue, tutte tradotte
+    check("le 26 lingue ufficiali sono tutte complete", non_tradotte == [])
 
     # La lingua dell'interfaccia segue quella del sistema (specifiche dei
     # RuscaLinux OS Tools, 9.2): il selettore interno e le sue etichette
@@ -835,7 +838,7 @@ def test_lingue_non_tradotte():
     with open(os.path.join(ROOT, "src", "ruscawriter", "editor.py"),
               encoding="utf-8") as f:
         src = f.read()
-    check("l'arabo, unica lingua da destra a sinistra fra le 15, e' "
+    check("l'arabo, unica lingua da destra a sinistra fra le 26, e' "
           "dichiarato", RTL_LANGUAGES == {"ar"})
     check("l'editor importa davvero RTL_LANGUAGES", "RTL_LANGUAGES" in src)
     check("e orienta l'area di scrittura", "_apply_text_direction" in src)
@@ -1333,10 +1336,13 @@ def test_suggerimento_pagina_vuota():
 
 
 def test_i18n():
-    print("internazionalizzazione (15 lingue)")
-    pw_i18n.ensure_language_files()
+    print("internazionalizzazione (26 lingue)")
+    # Le lingue sono i file di lang/ (specifiche, sezione 9): niente piu'
+    # file segnaposto creati dal programma (ensure_language_files, tolta).
     langs = pw_i18n.available_languages()
-    check("15 lingue disponibili", len(langs) == 15)
+    check("26 lingue disponibili", len(langs) == 26)
+    check("ogni lingua ha il suo file in lang/",
+          all(os.path.isfile(pw_i18n.lang_file(c)) for c, _n in langs))
     codes = {c for c, _n in langs}
     check("italiano e inglese presenti", "it" in codes and "en" in codes)
     # IT ed EN completi e allineati

@@ -1183,13 +1183,29 @@ chmod +x .work/config/hooks/installer/9001-banner.hook.installer
 # risoluzione proporzionale allo schermo (spiegazione nel file). Va
 # nell'initrd dell'installer, come il banner, perche' deve agire prima
 # della prima schermata: il preseed arriva troppo tardi.
+#
+# Percorso: usr/lib/..., NON lib/... L'installer di trixie e' merged-usr:
+# /lib e' un collegamento a usr/lib. Una cartella lib/ in includes.installer
+# prende il posto del collegamento e l'installer non parte piu' (kernel
+# panic "Attempted to kill init! exitcode=0x00000200").
 if [ ! -f local/installer/S61ruscalinux-dpi ]; then
     echo "ERRORE: manca local/installer/S61ruscalinux-dpi"
     exit 1
 fi
-mkdir -p .work/config/includes.installer/lib/debian-installer.d/
+mkdir -p .work/config/includes.installer/usr/lib/debian-installer.d/
 install -m 755 local/installer/S61ruscalinux-dpi \
-    .work/config/includes.installer/lib/debian-installer.d/S61ruscalinux-dpi
+    .work/config/includes.installer/usr/lib/debian-installer.d/S61ruscalinux-dpi
+
+# Controllo per tutto includes.installer: niente cartelle che nell'initrd
+# merged-usr sono collegamenti.
+for d in bin sbin lib lib32 lib64 libx32; do
+    if [ -e ".work/config/includes.installer/$d" ]; then
+        echo "ERRORE: .work/config/includes.installer/$d esiste."
+        echo "        Nell'installer di trixie /$d e' un collegamento a /usr/$d:"
+        echo "        metti i file in includes.installer/usr/$d/."
+        exit 1
+    fi
+done
 
 # ===========================================================================
 # FIX — HOSTNAME PREDEFINITO DAL MODELLO DELLA MACCHINA (DMI / SMBIOS)

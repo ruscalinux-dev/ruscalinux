@@ -233,26 +233,42 @@ else
     ESITO=$(sudo cat "$INITRD_GTK" | python3 -c '
 import gzip, re, sys
 dati = gzip.decompress(sys.stdin.buffer.read())
-file, i = {}, 0
+file, tipo, i = {}, {}, 0
 while True:
     i = dati.find(b"070701", i)          # inizio del prossimo elemento cpio
     if i < 0:
         break
     h = dati[i:i + 110]
+    modo = int(h[14:22], 16)
     dim, nome_len = int(h[54:62], 16), int(h[94:102], 16)
     nome = dati[i + 110:i + 110 + nome_len - 1].decode(errors="replace")
     inizio = (i + 110 + nome_len + 3) & ~3
     file[nome] = dati[inizio:inizio + dim]  # gli archivi aggiunti dopo vincono
+    tipo[nome] = modo & 0o170000
     i = (inizio + dim + 3) & ~3
-s61 = file.get("lib/debian-installer.d/S61ruscalinux-dpi")
-s62 = file.get("lib/debian-installer.d/S62Xorg", b"").decode(errors="replace")
-if not s61:
+def trova(nome):                        # usr/lib (merged-usr) o lib
+    for p in ("usr/lib/", "lib/"):
+        if p + nome in file:
+            return file[p + nome]
+    return None
+s61 = trova("debian-installer.d/S61ruscalinux-dpi")
+s62 = (trova("debian-installer.d/S62Xorg") or b"").decode(errors="replace")
+# merged-usr (trixie): lib deve essere un collegamento. Se diventa una
+# cartella mentre i file dell installer stanno in usr/lib, non parte nulla.
+if tipo.get("lib") == 0o040000 and \
+   any(n.startswith("usr/lib/debian-installer") for n in file):
+    print("ERRORE: nell initrd c e una cartella lib/ accanto a usr/lib: l installer non parte")
+elif not s61:
     print("manca S61ruscalinux-dpi nell initrd")
 elif "Xorg $DPMS" not in s62 or re.search(r"^DPMS=", s62, re.M):
     print("S62Xorg di Debian e cambiato e non passa piu -dpi a Xorg")
 else:
     print("ok")
 ' 2>&1 || echo "initrd illeggibile")
+    case "$ESITO" in ERRORE*)
+        echo "    $ESITO"
+        exit 1 ;;
+    esac
     if [ "$ESITO" = ok ]; then
         echo "    Testo dell'installer: script presente, Xorg ricevera' -dpi"
     else

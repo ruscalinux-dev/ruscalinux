@@ -7,12 +7,19 @@
 # su uno schermo Full HD il testo e' alto circa 15 pixel. Qui si fa partire
 # Xorg con una risoluzione proporzionale all'altezza dello schermo, cosi'
 # crescono tutti i caratteri insieme, compresi quelli che gtk-set-font
-# ingrandisce per alcune lingue e per il tema ad alto contrasto:
+# ingrandisce per alcune lingue e per il tema ad alto contrasto.
 #
-#   altezza  768 o meno  ->  96 DPI (come prima)
-#   altezza 1080         -> 135 DPI (9 pt = 17 px)
-#   altezza 1440         -> 180 DPI
-#   altezza 1920 o piu'  -> 240 DPI (massimo)
+# Regola: l'installer occupa lo schermo come su uno schermo alto 640 punti,
+# su qualunque monitor (DPI = altezza x 96 / 640 = altezza x 3 / 20).
+# Non meno di 640: l'installer di Debian e' pensato per 800x600 e alcune
+# schermate (lingue, paesi, partizioni) non entrerebbero.
+#
+#   altezza  640 o meno  ->  96 DPI (come Debian)
+#   altezza  768         -> 115 DPI
+#   altezza 1080         -> 162 DPI (Full HD)
+#   altezza 1440         -> 216 DPI
+#   altezza 2160         -> 324 DPI (4K)
+#   altezza 2560 o piu'  -> 384 DPI (massimo)
 #
 # Come arriva a Xorg: S62Xorg di Debian (rootskel-gtk) lo avvia con
 #     Xorg $DPMS -noreset -nolisten tcp
@@ -57,9 +64,9 @@ if [ -z "$rl_dpi" ]; then
 		done
 	fi
 	if [ -n "$rl_altezza" ]; then
-		rl_dpi=$((rl_altezza / 8))
+		rl_dpi=$((rl_altezza * 3 / 20))
 		[ "$rl_dpi" -lt 96 ] && rl_dpi=96
-		[ "$rl_dpi" -gt 240 ] && rl_dpi=240
+		[ "$rl_dpi" -gt 384 ] && rl_dpi=384
 	fi
 fi
 

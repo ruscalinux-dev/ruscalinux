@@ -41,7 +41,7 @@
   (Ukrainian and Russian, Simplified and Traditional Chinese, European and
   Brazilian Portuguese). Models are not included: copy a GGUF file into
   `~/.local/share/ruscallama/models/`.
-- **ruscallama-engine** is llama.cpp 0.8.0, the latest stable release, built
+- **ruscallama-engine** is llama.cpp 0.9.0, the latest stable release, built
   from source with Vulkan for NVIDIA, AMD and Intel graphics. It is built
   without HTTPS support and without its web interface, so it cannot download
   anything: nothing is sent over the internet.

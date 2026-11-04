@@ -223,9 +223,10 @@ fi
 echo "    Controllo chiave privata: assente dalla ISO"
 
 # Testo dell'installer (local/installer/S61ruscalinux-dpi): lo script deve
-# essere nell'initrd grafico, e S62Xorg di Debian deve ancora avviare Xorg
-# con $DPMS, da cui passa l'opzione -dpi. Se Debian lo cambia, l'installer
-# funziona lo stesso ma con il testo piccolo: lo si dice, senza fermarsi.
+# essere nell'initrd grafico, e S62Xorg di Debian deve ancora contenere la
+# riga "Xorg $DPMS", in cui lo script aggiunge -dpi. Se Debian la cambia,
+# l'installer funziona lo stesso ma con il testo piccolo: lo si dice, senza
+# fermarsi.
 INITRD_GTK=$(sudo find .work/binary/install -path '*gtk*' -name 'initrd.gz' 2> /dev/null | head -n 1)
 if [ -z "$INITRD_GTK" ]; then
     echo "    ATTENZIONE: initrd dell'installer grafico non trovato: testo non verificato"
@@ -260,8 +261,8 @@ if tipo.get("lib") == 0o040000 and \
     print("ERRORE: nell initrd c e una cartella lib/ accanto a usr/lib: l installer non parte")
 elif not s61:
     print("manca S61ruscalinux-dpi nell initrd")
-elif "Xorg $DPMS" not in s62 or re.search(r"^DPMS=", s62, re.M):
-    print("S62Xorg di Debian e cambiato e non passa piu -dpi a Xorg")
+elif "Xorg $DPMS" not in s62:
+    print("in S62Xorg di Debian manca la riga Xorg $DPMS dove aggiungere -dpi")
 else:
     print("ok")
 ' 2>&1 || echo "initrd illeggibile")

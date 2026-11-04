@@ -21,19 +21,23 @@
 #   altezza 2160         -> 324 DPI (4K)
 #   altezza 2560 o piu'  -> 384 DPI (massimo)
 #
-# Come arriva a Xorg: S62Xorg di Debian (rootskel-gtk) lo avvia con
-#     Xorg $DPMS -noreset -nolisten tcp
-# e imposta DPMS solo se all'avvio c'e' dpms=true/false. Gli script di
-# questa cartella sono letti uno dopo l'altro nella stessa shell, quindi
-# "-dpi N" messo qui in DPMS arriva a Xorg senza toccare i file di Debian.
-# Se Debian cambiasse S62Xorg, la riga verrebbe solo ignorata (testo come
-# prima); build.sh controlla sull'initrd della ISO che funzioni ancora.
+# Come arriva a Xorg: S62Xorg di Debian (rootskel-gtk), che gira subito
+# dopo questo file, avvia il server con "Xorg $DPMS -noreset ...". Qui si
+# aggiunge "-dpi N" in quella riga del file, prima che venga eseguito:
+#     Xorg $DPMS ...   ->   Xorg -dpi N $DPMS ...
+# L'initrd dell'installer e' in memoria, quindi il file si puo' modificare.
+# Non si usa la variabile DPMS: in trixie S62Xorg la imposta da se' ("-s 0")
+# e cancellerebbe il valore. Se Debian cambiasse quella riga, la modifica
+# non si applica e il testo resta come prima; build.sh controlla sull'initrd
+# della ISO che la riga ci sia ancora. Lo script puo' girare piu' volte:
+# un "-dpi" gia' presente viene sostituito, non duplicato.
 # Non si usa gtk-xft-dpi in gtkrc: GTK 2 lo ignora quando gira su X.
 #
 # Con il parametro di avvio ruscalinux.dpi=N (72-384) si sceglie il valore
-# a mano; ruscalinux.dpi=96 torna all'aspetto di Debian. Con dpms=true o
-# dpms=false S62Xorg riscrive DPMS e il testo resta piccolo.
+# a mano; ruscalinux.dpi=96 torna all'aspetto di Debian.
 
+rl_s62=/usr/lib/debian-installer.d/S62Xorg
+[ -f "$rl_s62" ] || rl_s62=/lib/debian-installer.d/S62Xorg
 rl_altezza=""
 rl_dpi=""
 
@@ -71,9 +75,14 @@ if [ -z "$rl_dpi" ]; then
 fi
 
 # Senza informazioni non si cambia nulla: resta l'aspetto di Debian.
-if [ -n "$rl_dpi" ]; then
-	DPMS="${DPMS:+$DPMS }-dpi $rl_dpi"
-	logger -t ruscalinux "installer: Xorg a ${rl_dpi} DPI (schermo alto ${rl_altezza:-?} px)" 2>/dev/null || true
+if [ -n "$rl_dpi" ] && [ -f "$rl_s62" ]; then
+	if grep -q 'Xorg \(-dpi [0-9]* \)\{0,1\}\$DPMS' "$rl_s62"; then
+		sed -i "s/Xorg \(-dpi [0-9]* \)\{0,1\}\\\$DPMS/Xorg -dpi $rl_dpi \\\$DPMS/" "$rl_s62"
+		chmod 755 "$rl_s62"
+		logger -t ruscalinux "installer: Xorg a ${rl_dpi} DPI (schermo alto ${rl_altezza:-?} px)" 2>/dev/null || true
+	else
+		logger -t ruscalinux "installer: riga di Xorg non trovata in $rl_s62, testo invariato" 2>/dev/null || true
+	fi
 fi
 
-unset rl_altezza rl_dpi rl_p rl_c
+unset rl_s62 rl_altezza rl_dpi rl_p rl_c

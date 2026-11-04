@@ -116,6 +116,18 @@ elif [ -n "$(find branding tools -name build-deb -prune -o \
     ./make-debs.sh
 fi
 
+# Motore dei modelli: make-deb.sh costruisce l'ultima release stabile di
+# llama.cpp. Se ne e' uscita una piu' nuova di quella gia' impacchettata, si
+# ricostruisce anche se in tools/ non e' cambiato nulla. Senza rete il
+# controllo si salta e resta il pacchetto che c'e'.
+MOTORE=$(ls local/extra_debs/ruscallama-engine-*.deb 2> /dev/null | head -n 1)
+ULTIMA=$(bash tools/ruscallama-engine/ultima-versione.sh 2> /dev/null | cut -d ' ' -f 1 || true)
+if [ -n "$MOTORE" ] && [ -n "$ULTIMA" ] && \
+   ! dpkg-deb -f "$MOTORE" Description | grep -qF "llama.cpp $ULTIMA,"; then
+    echo "    llama.cpp $ULTIMA e' piu' recente del motore impacchettato: ricostruisco i pacchetti"
+    ./make-debs.sh
+fi
+
 # Controlla che ci siano davvero. Una ISO senza una utility si costruisce
 # lo stesso, e te ne accorgeresti solo dopo l'avvio.
 #
@@ -209,6 +221,45 @@ if sudo unsquashfs -l .work/binary/live/filesystem.squashfs \
     exit 1
 fi
 echo "    Controllo chiave privata: assente dalla ISO"
+
+# Testo dell'installer (local/installer/S61ruscalinux-dpi): lo script deve
+# essere nell'initrd grafico, e S62Xorg di Debian deve ancora avviare Xorg
+# con $DPMS, da cui passa l'opzione -dpi. Se Debian lo cambia, l'installer
+# funziona lo stesso ma con il testo piccolo: lo si dice, senza fermarsi.
+INITRD_GTK=$(sudo find .work/binary/install -path '*gtk*' -name 'initrd.gz' 2> /dev/null | head -n 1)
+if [ -z "$INITRD_GTK" ]; then
+    echo "    ATTENZIONE: initrd dell'installer grafico non trovato: testo non verificato"
+else
+    ESITO=$(sudo cat "$INITRD_GTK" | python3 -c '
+import gzip, re, sys
+dati = gzip.decompress(sys.stdin.buffer.read())
+file, i = {}, 0
+while True:
+    i = dati.find(b"070701", i)          # inizio del prossimo elemento cpio
+    if i < 0:
+        break
+    h = dati[i:i + 110]
+    dim, nome_len = int(h[54:62], 16), int(h[94:102], 16)
+    nome = dati[i + 110:i + 110 + nome_len - 1].decode(errors="replace")
+    inizio = (i + 110 + nome_len + 3) & ~3
+    file[nome] = dati[inizio:inizio + dim]  # gli archivi aggiunti dopo vincono
+    i = (inizio + dim + 3) & ~3
+s61 = file.get("lib/debian-installer.d/S61ruscalinux-dpi")
+s62 = file.get("lib/debian-installer.d/S62Xorg", b"").decode(errors="replace")
+if not s61:
+    print("manca S61ruscalinux-dpi nell initrd")
+elif "Xorg $DPMS" not in s62 or re.search(r"^DPMS=", s62, re.M):
+    print("S62Xorg di Debian e cambiato e non passa piu -dpi a Xorg")
+else:
+    print("ok")
+' 2>&1 || echo "initrd illeggibile")
+    if [ "$ESITO" = ok ]; then
+        echo "    Testo dell'installer: script presente, Xorg ricevera' -dpi"
+    else
+        echo "    ATTENZIONE: testo dell'installer non ingrandito ($ESITO)."
+        echo "                Vedi local/installer/S61ruscalinux-dpi."
+    fi
+fi
 
 cd .work
 sha256sum "$ISO" > SHA256SUMS

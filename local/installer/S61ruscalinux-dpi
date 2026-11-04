@@ -1,0 +1,72 @@
+# RuscaLinux — dimensione del testo dell'installer grafico.
+#
+# Questo file viene letto (non eseguito) dall'installer all'avvio, prima di
+# S62Xorg: niente "exit", niente "set -e", variabili con prefisso rl_.
+#
+# L'installer usa DejaVu Sans 9 pt (gtk-set-font) e Xorg parte a 96 DPI:
+# su uno schermo Full HD il testo e' alto circa 15 pixel. Qui si fa partire
+# Xorg con una risoluzione proporzionale all'altezza dello schermo, cosi'
+# crescono tutti i caratteri insieme, compresi quelli che gtk-set-font
+# ingrandisce per alcune lingue e per il tema ad alto contrasto:
+#
+#   altezza  768 o meno  ->  96 DPI (come prima)
+#   altezza 1080         -> 135 DPI (9 pt = 17 px)
+#   altezza 1440         -> 180 DPI
+#   altezza 1920 o piu'  -> 240 DPI (massimo)
+#
+# Come arriva a Xorg: S62Xorg di Debian (rootskel-gtk) lo avvia con
+#     Xorg $DPMS -noreset -nolisten tcp
+# e imposta DPMS solo se all'avvio c'e' dpms=true/false. Gli script di
+# questa cartella sono letti uno dopo l'altro nella stessa shell, quindi
+# "-dpi N" messo qui in DPMS arriva a Xorg senza toccare i file di Debian.
+# Se Debian cambiasse S62Xorg, la riga verrebbe solo ignorata (testo come
+# prima); build.sh controlla sull'initrd della ISO che funzioni ancora.
+# Non si usa gtk-xft-dpi in gtkrc: GTK 2 lo ignora quando gira su X.
+#
+# Con il parametro di avvio ruscalinux.dpi=N (72-384) si sceglie il valore
+# a mano; ruscalinux.dpi=96 torna all'aspetto di Debian. Con dpms=true o
+# dpms=false S62Xorg riscrive DPMS e il testo resta piccolo.
+
+rl_altezza=""
+rl_dpi=""
+
+# Valore scelto all'avvio
+for rl_p in $(cat /proc/cmdline 2>/dev/null); do
+	case "$rl_p" in
+	ruscalinux.dpi=*) rl_dpi="${rl_p#ruscalinux.dpi=}" ;;
+	esac
+done
+case "$rl_dpi" in
+	''|*[!0-9]*) rl_dpi="" ;;
+	*) [ "$rl_dpi" -lt 72 ] && rl_dpi=72
+	   [ "$rl_dpi" -gt 384 ] && rl_dpi=384 ;;
+esac
+
+# Altezza dello schermo: prima il framebuffer (EFI, simpledrm, vesa), poi la
+# modalita' preferita di un'uscita DRM collegata.
+if [ -z "$rl_dpi" ]; then
+	if [ -r /sys/class/graphics/fb0/virtual_size ]; then
+		rl_altezza=$(cut -d, -f2 /sys/class/graphics/fb0/virtual_size 2>/dev/null)
+	fi
+	case "$rl_altezza" in ''|*[!0-9]*) rl_altezza="" ;; esac
+	if [ -z "$rl_altezza" ]; then
+		for rl_c in /sys/class/drm/card*-*; do
+			[ -r "$rl_c/status" ] && [ "$(cat "$rl_c/status")" = connected ] || continue
+			rl_altezza=$(head -n 1 "$rl_c/modes" 2>/dev/null | sed -n 's/^[0-9]*x\([0-9]*\).*/\1/p')
+			[ -n "$rl_altezza" ] && break
+		done
+	fi
+	if [ -n "$rl_altezza" ]; then
+		rl_dpi=$((rl_altezza / 8))
+		[ "$rl_dpi" -lt 96 ] && rl_dpi=96
+		[ "$rl_dpi" -gt 240 ] && rl_dpi=240
+	fi
+fi
+
+# Senza informazioni non si cambia nulla: resta l'aspetto di Debian.
+if [ -n "$rl_dpi" ]; then
+	DPMS="${DPMS:+$DPMS }-dpi $rl_dpi"
+	logger -t ruscalinux "installer: Xorg a ${rl_dpi} DPI (schermo alto ${rl_altezza:-?} px)" 2>/dev/null || true
+fi
+
+unset rl_altezza rl_dpi rl_p rl_c

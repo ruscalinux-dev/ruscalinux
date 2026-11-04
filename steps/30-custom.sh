@@ -1175,6 +1175,22 @@ exit 0
 EOF
 chmod +x .work/config/hooks/installer/9001-banner.hook.installer
 
+# ---------------------------------------------------------------------------
+# FIX — TESTO DELL'INSTALLER GRAFICO PIU' GRANDE
+# ---------------------------------------------------------------------------
+# L'installer usa DejaVu Sans 9 pt con Xorg a 96 DPI: sugli schermi Full HD
+# e piu' grandi il testo e' minuscolo. Lo script fa partire Xorg con una
+# risoluzione proporzionale allo schermo (spiegazione nel file). Va
+# nell'initrd dell'installer, come il banner, perche' deve agire prima
+# della prima schermata: il preseed arriva troppo tardi.
+if [ ! -f local/installer/S61ruscalinux-dpi ]; then
+    echo "ERRORE: manca local/installer/S61ruscalinux-dpi"
+    exit 1
+fi
+mkdir -p .work/config/includes.installer/lib/debian-installer.d/
+install -m 755 local/installer/S61ruscalinux-dpi \
+    .work/config/includes.installer/lib/debian-installer.d/S61ruscalinux-dpi
+
 # ===========================================================================
 # FIX — HOSTNAME PREDEFINITO DAL MODELLO DELLA MACCHINA (DMI / SMBIOS)
 # ===========================================================================

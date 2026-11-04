@@ -63,7 +63,7 @@ Si trova nel repository in `docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`. In caso di 
 
 RuscaLLama e RuscaTranslator usano modelli linguistici in formato GGUF che girano sul computer dell’utente, tramite **ruscallama-engine**.
 
-- **ruscallama-engine è llama.cpp** (<https://github.com/ggml-org/llama.cpp>), software esterno con licenza MIT, copyright The ggml authors. RuscaLinux lo compila dal sorgente senza modificarne il codice, con il backend Vulkan (NVIDIA, AMD, Intel, con ripiego sulla CPU) e **senza libcurl**: il motore non sa scaricare nulla. La versione è fissata in `make-deb.sh` e verificata con un’impronta SHA-256 (sezione 6).
+- **ruscallama-engine è llama.cpp** (<https://github.com/ggml-org/llama.cpp>), software esterno con licenza MIT, copyright The ggml authors. RuscaLinux lo compila dal sorgente senza modificarne il codice, con il backend Vulkan (NVIDIA, AMD, Intel, con ripiego sulla CPU), **senza HTTPS** (`LLAMA_OPENSSL=OFF`) e senza interfaccia web: il motore non può scaricare modelli da Hugging Face né da altri siti. La versione è l’ultima release stabile di llama.cpp, verificata con il commit del tag e con un’impronta SHA-256 (sezioni 6 e 7).
 - Il pacchetto del motore non ha interfaccia, quindi non ha traduzioni, icona né finestra Informazioni: lo dichiarano le finestre Informazioni di RuscaLLama e RuscaTranslator, nel gruppo “Componenti esterni”.
 - I modelli non fanno parte dei pacchetti: l’utente li copia in `~/.local/share/ruscallama/models/` o l’amministratore in `/usr/share/ruscallama/models/`. Ogni modello ha la propria licenza, che l’utente deve rispettare.
 - Il modulo `rusca_engine.py`, che avvia e interroga il motore, è identico nei due programmi, come `style.css` (si modifica una volta e si copia).
@@ -576,7 +576,7 @@ Componenti esterni in uso:
 | Componente | Versione | Licenza | Dove | Usato da |
 |---|---|---|---|---|
 | EB Garamond e Courier Prime (caratteri tipografici) | inclusi nei sorgenti | SIL Open Font License 1.1 | `tools/ruscawriter/assets/`, installati in `/usr/share/ruscawriter/assets/` con il testo della licenza | RuscaWriter |
-| llama.cpp (con ggml e le librerie che include: nlohmann/json e cpp-httplib MIT, xxHash BSD-2-Clause, stb, miniaudio, sha1 e sha256 di pubblico dominio) | 0.6.0, fissata in `tools/ruscallama-engine/make-deb.sh` | MIT | Compilato nel pacchetto `ruscallama-engine`, in `/usr/lib/ruscallama-engine/` | RuscaLLama, RuscaTranslator |
+| llama.cpp (con ggml e le librerie che include: nlohmann/json e cpp-httplib MIT, xxHash BSD-2-Clause, stb, miniaudio, sha1 e sha256 di pubblico dominio) | ultima release stabile al momento della build (1.99.2: 0.8.0), scritta nella descrizione del pacchetto e in `/usr/share/doc/ruscallama-engine/README.md.gz` | MIT | Compilato nel pacchetto `ruscallama-engine`, in `/usr/lib/ruscallama-engine/` | RuscaLLama, RuscaTranslator |
 
 Il file `copyright` di `ruscallama-engine` riporta tutte queste licenze; solo lo script di costruzione e il profilo AppArmor sono di RuscaLinux (GPL-3.0).
 
@@ -605,11 +605,13 @@ Il suffisso `ruscalinux` nel nome del file indica che il pacchetto appartiene al
 
 1. architettura `amd64`; file `ruscallama-engine-ruscalinux_<versione>_amd64.deb`;
 2. versione del pacchetto uguale a quella di RuscaLinux; la versione di llama.cpp è scritta nella descrizione e in `/usr/share/doc/ruscallama-engine/README.md.gz`;
-3. sorgente scaricato da GitHub solo durante la costruzione, verificato con l’impronta in `checksums/`; si aggiorna a una release pubblicata da almeno due settimane e provata con i due programmi;
-4. binari e librerie private in `/usr/lib/ruscallama-engine/` (non in `/opt`, che Debian riserva ad altro), con RUNPATH su quella cartella, senza simboli di debug e con i flag di sicurezza di `dpkg-buildflags`;
-5. dipendenze calcolate con `dpkg-shlibdeps`;
-6. compilazione tenuta in cache (`~/.cache/ruscalinux/ruscallama-engine/`): le build successive rifanno solo il pacchetto;
-7. dipendenze di costruzione: `build-essential cmake pkg-config dpkg-dev wget libvulkan-dev glslc spirv-headers`.
+3. si costruisce l’ultima release stabile di llama.cpp (tag `vX.Y.Z` indicato da GitHub come “Latest”), trovata da `ultima-versione.sh`; `RUSCALLAMA_LLAMA_VERSION` ne fissa una. Il sorgente si scarica da GitHub solo durante la costruzione; il commit dell’archivio deve coincidere con quello del tag, e l’impronta SHA-256 si registra in `checksums/` alla prima costruzione di ogni versione (il file va aggiunto al repository) e si confronta nelle successive;
+4. al posto della prova manuale, la build controlla che `llama-server` accetti tutte le opzioni usate da RuscaLLama e RuscaTranslator e che nessuna libreria nuova in `vendor/` manchi dal file `copyright`; una release uscita da meno di 14 giorni dà un avviso, e va provata con i due programmi prima di pubblicare la ISO;
+5. compilazione senza rete (`unshare -rn`), con `LLAMA_OPENSSL=OFF`, `LLAMA_BUILD_UI=OFF`, `LLAMA_USE_PREBUILT_UI=OFF` e `LLAMA_CONNECT=OFF`; la build si ferma se i binari usano OpenSSL o curl;
+6. binari e librerie private in `/usr/lib/ruscallama-engine/` (non in `/opt`, che Debian riserva ad altro), con RUNPATH su quella cartella, senza simboli di debug e con i flag di sicurezza di `dpkg-buildflags`;
+7. dipendenze calcolate con `dpkg-shlibdeps`;
+8. compilazione tenuta in cache (`~/.cache/ruscalinux/ruscallama-engine/`): le build successive rifanno solo il pacchetto;
+9. dipendenze di costruzione: `build-essential cmake pkg-config dpkg-dev wget git libvulkan-dev glslc spirv-headers`.
 
 Esempio di output:
 
@@ -795,7 +797,7 @@ Regole aggiuntive per gli strumenti di intelligenza artificiale:
 |---|---|
 | Il motore ascolta solo in locale | `llama-server` sempre con `--host 127.0.0.1`, su una porta libera scelta a ogni avvio |
 | Gli altri utenti del computer non lo usano | Chiave casuale a ogni avvio, in `$XDG_RUNTIME_DIR/ruscallama/` con permessi 0600, passata con `--api-key-file`; ogni richiesta la presenta |
-| Nessun download | Motore compilato senza libcurl; i programmi non scaricano modelli |
+| Nessun download | Motore compilato senza HTTPS (niente OpenSSL né libcurl) e senza interfaccia web; i programmi non scaricano modelli e non usano le opzioni di download del motore |
 | Niente interfaccia web del motore | `--no-webui` |
 | Processi rimasti accesi | Fermati solo se il processo è davvero `llama-server` ed è dell’utente (controllo su `/proc`) |
 | Confinamento | Profilo AppArmor per `llama-server`, in modalità complain: nega `.ssh`, `.gnupg`, `.config`, profili di Firefox e Thunderbird |

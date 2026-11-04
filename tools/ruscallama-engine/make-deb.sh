@@ -12,10 +12,20 @@
 #
 # Regole delle specifiche dei RuscaLinux OS Tools:
 #   * versione del pacchetto = versione di RuscaLinux (release.conf);
-#     la versione di llama.cpp e' fissata qui sotto e scritta nella
-#     descrizione e nella documentazione del pacchetto;
+#     la versione di llama.cpp e' scritta nella descrizione e nella
+#     documentazione del pacchetto;
 #   * un solo .deb in build-deb/, con suffisso -ruscalinux e SHA256SUMS;
 #   * architettura amd64: e' codice compilato, non Python.
+#
+# Quale llama.cpp: l'ultima release stabile pubblicata su GitHub, trovata da
+# ultima-versione.sh. Il sorgente viene controllato in due modi:
+#   * il commit scritto nell'archivio deve essere quello del tag su GitHub;
+#   * l'impronta SHA-256 dell'archivio viene registrata in checksums/ la
+#     prima volta che una versione viene costruita, e le build successive
+#     della stessa versione devono trovare lo stesso archivio. Il file nuovo
+#     in checksums/ va aggiunto al repository (git add).
+# Dopo la compilazione si controlla che llama-server accetti tutte le
+# opzioni usate da RuscaLLama e RuscaTranslator (OPZIONI_USATE, qui sotto).
 #
 # La compilazione e' lunga. Il risultato viene tenuto in una cache
 # (~/.cache/ruscalinux/ruscallama-engine) e riusato finche' non cambiano
@@ -23,12 +33,15 @@
 # rifanno solo il pacchetto, in pochi secondi.
 #
 # Variabili utili (facoltative):
+#   RUSCALLAMA_LLAMA_VERSION=0.7.0
+#                             costruisce quella versione invece dell'ultima
+#   GITHUB_TOKEN=<token>      alza il limite di richieste all'API di GitHub
 #   RUSCALLAMA_BACKEND=cpu    compila senza Vulkan (prove, macchine senza GPU)
 #   RUSCALLAMA_CACHE=<dir>    cartella della cache
 #   RUSCALLAMA_JOBS=<n>       processi di compilazione (default: nproc)
 #
 # Dipendenze di compilazione:
-#   sudo apt install build-essential cmake pkg-config dpkg-dev wget \
+#   sudo apt install build-essential cmake pkg-config dpkg-dev wget git \
 #                    libvulkan-dev glslc spirv-headers
 # ---------------------------------------------------------------------------
 set -euo pipefail
@@ -37,11 +50,27 @@ SRC_DIR="$(pwd)"
 
 # ── Versioni ────────────────────────────────────────────────────────────────
 VER="1.99.2"                       # = VERSION in release.conf
-LLAMA_CPP_VERSION="0.6.0"          # tag v0.6.0 di llama.cpp
-# Si aggiorna llama.cpp cambiando la riga qui sopra e aggiungendo in
-# checksums/ l'impronta del nuovo archivio. Regola: usare una release
-# pubblicata da almeno due settimane, provata con RuscaLLama e
-# RuscaTranslator (le opzioni di llama-server cambiano tra le versioni).
+# La versione di llama.cpp non e' scritta qui: e' l'ultima release stabile,
+# o quella di RUSCALLAMA_LLAMA_VERSION (vedi ultima-versione.sh).
+
+# Una release piu' giovane di cosi' viene costruita lo stesso, ma con un
+# avviso: le prime correzioni di una release arrivano di solito nei primi
+# giorni. Prima di pubblicare la ISO, prova RuscaLLama e RuscaTranslator.
+GIORNI_MINIMI=14
+
+# Opzioni di llama-server usate da RuscaLLama e RuscaTranslator
+# (rusca_engine.py e i due programmi). Se una release non ne riconosce una,
+# il motore non partirebbe: la build si ferma. Aggiornare l'elenco quando i
+# programmi cominciano a usare un'opzione nuova.
+OPZIONI_USATE="-m --host --port --api-key-file --no-webui --jinja -ngl
+  --list-devices -t -c -b -ub --parallel --flash-attn --reasoning-format
+  --reasoning --mmproj --device --spec-type --spec-draft-n-max --model-draft
+  --device-draft -ctk -ctv"
+
+# Librerie incluse da llama.cpp in vendor/ e dichiarate nel file copyright
+# qui sotto. Se una release ne aggiunge una, la build si ferma: va aggiunta
+# al file copyright (specifiche, sezione 6) e a questo elenco.
+VENDOR_DICHIARATI="cpp-httplib hash miniaudio nlohmann sheredom stb"
 
 PKG="ruscallama-engine"
 ARCH="amd64"
@@ -53,10 +82,6 @@ JOBS="${RUSCALLAMA_JOBS:-$(nproc)}"
 CACHE="${RUSCALLAMA_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/ruscalinux/ruscallama-engine}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
 
-TAG="v${LLAMA_CPP_VERSION}"
-ARCHIVE="llama.cpp-${TAG}.tar.gz"
-URL="https://codeload.github.com/ggml-org/llama.cpp/tar.gz/refs/tags/${TAG}"
-PIN="$SRC_DIR/checksums/${ARCHIVE}.sha256"
 LIBDIR="usr/lib/${PKG}"            # binari e librerie private
 PROFILE="usr.lib.ruscallama-engine.llama-server"
 
@@ -67,8 +92,10 @@ KEEP_BINARIES="llama-server llama-cli llama-bench"
 die() { echo "ERRORE: $*" >&2; exit 1; }
 say() { echo "==> $*"; }
 
+avviso() { echo "ATTENZIONE: $*" >&2; }
+
 case "$BACKEND" in vulkan|cpu) ;; *) die "RUSCALLAMA_BACKEND deve essere vulkan o cpu";; esac
-[ -f "$PIN" ] || die "manca l'impronta checksums/${ARCHIVE}.sha256"
+[ -x ultima-versione.sh ] || [ -f ultima-versione.sh ] || die "manca ultima-versione.sh"
 [ -f "apparmor/$PROFILE" ] || die "manca il profilo apparmor/$PROFILE"
 
 # ── Controllo delle dipendenze, prima di scaricare o compilare ──────────────
@@ -77,6 +104,8 @@ for c in dpkg-deb dpkg-shlibdeps cmake g++ make pkg-config strip; do
     command -v "$c" >/dev/null || MANCA="$MANCA $c"
 done
 command -v wget >/dev/null || command -v curl >/dev/null || MANCA="$MANCA wget"
+# git serve a leggere il commit dentro l'archivio e quello del tag su GitHub.
+command -v git >/dev/null || MANCA="$MANCA git"
 if [ "$BACKEND" = vulkan ]; then
     pkg-config --exists vulkan 2>/dev/null || MANCA="$MANCA libvulkan-dev"
     command -v glslc >/dev/null || MANCA="$MANCA glslc"
@@ -85,7 +114,7 @@ if [ "$BACKEND" = vulkan ]; then
 fi
 if [ -n "$MANCA" ]; then
     echo "ERRORE: mancano strumenti per compilare llama.cpp:$MANCA" >&2
-    echo "  sudo apt install build-essential cmake pkg-config dpkg-dev wget \\" >&2
+    echo "  sudo apt install build-essential cmake pkg-config dpkg-dev wget git \\" >&2
     echo "                   libvulkan-dev glslc spirv-headers" >&2
     exit 1
 fi
@@ -97,7 +126,31 @@ mkdir -p "$OUT_DIR"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# ── Sorgente: cache locale, poi download, sempre con verifica dell'impronta ─
+# ── Quale versione ───────────────────────────────────────────────────────────
+PUBBLICATA=""
+if RIGA=$(bash ./ultima-versione.sh); then
+    TAG="${RIGA%% *}"
+    [ "$RIGA" != "$TAG" ] && PUBBLICATA="${RIGA#* }"
+else
+    [ $? -eq 2 ] && die "versione di llama.cpp non valida (RUSCALLAMA_LLAMA_VERSION)"
+    # Niente rete: si usa la versione piu' recente gia' scaricata e
+    # registrata, cosi' una build senza connessione resta possibile.
+    TAG=$(ls "$CACHE/src" 2>/dev/null \
+          | sed -n 's/^llama\.cpp-\(v[0-9]*\.[0-9]*\.[0-9]*\)\.tar\.gz$/\1/p' \
+          | while read -r t; do [ -f "checksums/llama.cpp-$t.tar.gz.sha256" ] && echo "$t"; done \
+          | sort -V | tail -1) || true
+    [ -n "$TAG" ] || die "non so quale llama.cpp costruire: niente rete e niente in cache"
+    avviso "non riesco a sapere quale sia l'ultima release di llama.cpp:
+            uso $TAG, gia' scaricata. Potrebbe non essere l'ultima."
+fi
+LLAMA_CPP_VERSION="${TAG#v}"
+ARCHIVE="llama.cpp-${TAG}.tar.gz"
+URL="https://codeload.github.com/ggml-org/llama.cpp/tar.gz/refs/tags/${TAG}"
+GIT_URL="https://github.com/ggml-org/llama.cpp.git"
+PIN="$SRC_DIR/checksums/${ARCHIVE}.sha256"
+say "llama.cpp $TAG"
+
+# ── Sorgente: cache locale o download, poi due controlli ────────────────────
 CACHED="$CACHE/src/$ARCHIVE"
 if [ ! -f "$CACHED" ]; then
     say "Scarico llama.cpp $TAG"
@@ -108,22 +161,87 @@ if [ ! -f "$CACHED" ]; then
     fi
     mv "$TMP/$ARCHIVE" "$CACHED"
 fi
-ATTESO=$(cut -d' ' -f1 < "$PIN")
+
+# 1. Il commit dentro l'archivio (GitHub lo scrive nell'intestazione del tar)
+#    deve essere quello a cui punta il tag. Per un tag annotato conta il
+#    commit puntato (riga ^{}), non l'oggetto tag.
+COMMIT=$(gzip -dc "$CACHED" | git get-tar-commit-id 2>/dev/null || true)
+[ -n "$COMMIT" ] || { rm -f "$CACHED"; die "l'archivio di llama.cpp $TAG non contiene il commit: scaricato male?"; }
+REMOTO=$(timeout 60 git ls-remote "$GIT_URL" "refs/tags/$TAG" "refs/tags/$TAG^{}" 2>/dev/null || true)
+COMMIT_TAG=$(printf '%s\n' "$REMOTO" | awk '/\^\{\}$/ {print $1}')
+[ -n "$COMMIT_TAG" ] || COMMIT_TAG=$(printf '%s\n' "$REMOTO" | awk 'NF {print $1; exit}')
+if [ -n "$COMMIT_TAG" ]; then
+    if [ "$COMMIT" != "$COMMIT_TAG" ]; then
+        rm -f "$CACHED"
+        die "l'archivio di llama.cpp $TAG non corrisponde al tag su GitHub
+        commit nell'archivio: $COMMIT
+        commit del tag:       $COMMIT_TAG
+        Il file e' stato cancellato dalla cache: rilancia per riscaricarlo."
+    fi
+elif [ ! -f "$PIN" ]; then
+    die "non riesco a leggere il tag $TAG su GitHub, e la versione non e' registrata
+        in checksums/: non posso verificare il sorgente."
+fi
+
+# 2. Impronta: registrata la prima volta, confrontata le volte successive.
 OTTENUTO=$(sha256sum "$CACHED" | cut -d' ' -f1)
-if [ "$ATTESO" != "$OTTENUTO" ]; then
-    rm -f "$CACHED"
-    die "l'archivio di llama.cpp $TAG non corrisponde all'impronta registrata
+if [ -f "$PIN" ]; then
+    ATTESO=$(cut -d' ' -f1 < "$PIN")
+    if [ "$ATTESO" != "$OTTENUTO" ]; then
+        rm -f "$CACHED"
+        die "l'archivio di llama.cpp $TAG non corrisponde all'impronta registrata
         atteso:   $ATTESO
         ottenuto: $OTTENUTO
-        Il file e' stato cancellato dalla cache: rilancia per riscaricarlo."
+        Il file e' stato cancellato dalla cache: rilancia per riscaricarlo.
+        Se si ripete, il tag $TAG e' stato cambiato su GitHub: controlla prima
+        di cancellare checksums/$ARCHIVE.sha256."
+    fi
+else
+    echo "$OTTENUTO  $ARCHIVE" > "$PIN"
+    avviso "llama.cpp $TAG e' una versione nuova: impronta registrata in
+            tools/ruscallama-engine/checksums/$ARCHIVE.sha256
+            Aggiungila al repository (git add) insieme alla prossima modifica."
 fi
-say "Sorgente llama.cpp $TAG verificato"
+say "Sorgente llama.cpp $TAG verificato (commit ${COMMIT:0:12})"
+
+# Eta' della release: data di pubblicazione se nota, altrimenti la data del
+# commit, che il tar porta in ogni file.
+if [ -n "$PUBBLICATA" ]; then
+    DATA_RELEASE=$(date -u -d "$PUBBLICATA" +%Y-%m-%d 2>/dev/null || true)
+else
+    DATA_RELEASE=$(TZ=UTC tar -tvzf "$CACHED" --full-time 2>/dev/null | awk 'NR==1 {print $4}')
+fi
+if [ -n "$DATA_RELEASE" ]; then
+    GIORNI=$(( ( $(date -u +%s) - $(date -u -d "$DATA_RELEASE" +%s) ) / 86400 ))
+    say "Release del $DATA_RELEASE ($GIORNI giorni fa)"
+    if [ "$GIORNI" -lt "$GIORNI_MINIMI" ]; then
+        avviso "llama.cpp $TAG e' uscita da $GIORNI giorni (meno di $GIORNI_MINIMI).
+            Prova RuscaLLama e RuscaTranslator prima di pubblicare la ISO;
+            per costruire la versione precedente:
+            RUSCALLAMA_LLAMA_VERSION=<versione> ./make-deb.sh"
+    fi
+fi
 
 # ── Compilazione (o riuso della cache) ───────────────────────────────────────
 # GGML_NATIVE=OFF: il binario deve girare su qualunque x86-64, non solo sulla
 #   macchina che costruisce la ISO.
-# LLAMA_CURL=OFF: il motore non sa scaricare nulla da internet; i modelli
-#   arrivano solo dai file scelti dall'utente (specifiche, privacy).
+# Niente download (specifiche, privacy): i modelli arrivano solo dai file
+#   scelti dall'utente. Da quando llama.cpp ha abbandonato libcurl
+#   (LLAMA_CURL non fa piu' nulla) i download passano da cpp-httplib con
+#   OpenSSL, attivo per default se libssl-dev e' installata. Quindi:
+#   LLAMA_OPENSSL=OFF        niente HTTPS: il motore non puo' scaricare da
+#                            Hugging Face ne' da altri siti HTTPS;
+#   LLAMA_USE_PREBUILT_UI=OFF e LLAMA_BUILD_UI=OFF
+#                            la compilazione non scarica l'interfaccia web
+#                            (i programmi usano --no-webui);
+#   LLAMA_CONNECT=OFF        niente strumento che scarica binari.
+#   Dopo la compilazione si controlla che i binari non usino OpenSSL o curl.
+# LLAMA_BUILD_IS_DEV=OFF e LLAMA_BUILD_COMMIT: l'archivio non e' un
+#   repository git, e senza queste llama-server --version direbbe
+#   "X.Y.Z-dev" e "commit unknown" (upstream chiede IS_DEV=OFF per i tag).
+# La compilazione gira senza rete quando il sistema lo permette (unshare):
+#   se una release nuova provasse a scaricare qualcosa, la build fallirebbe
+#   invece di includerlo di nascosto.
 # Flag di hardening di Debian da dpkg-buildflags.
 CFLAGS_DEB="$(dpkg-buildflags --get CFLAGS)"
 CXXFLAGS_DEB="$(dpkg-buildflags --get CXXFLAGS)"
@@ -133,7 +251,7 @@ VULKAN_FLAG=$([ "$BACKEND" = vulkan ] && echo ON || echo OFF)
 # La firma della cache non dipende dalla cartella in cui si lavora
 # (dpkg-buildflags aggiunge -ffile-prefix-map=<cartella corrente>=.).
 FLAGS_FIRMA=$(printf '%s %s' "$CFLAGS_DEB" "$LDFLAGS_DEB" | sed 's/-ffile-prefix-map=[^ ]*//g')
-OPZIONI="tag=$TAG backend=$BACKEND native=OFF curl=OFF shared=ON flags=$FLAGS_FIRMA"
+OPZIONI="tag=$TAG commit=$COMMIT backend=$BACKEND native=OFF openssl=OFF ui=OFF shared=ON flags=$FLAGS_FIRMA"
 FIRMA=$(printf '%s' "$OPZIONI" | sha256sum | cut -c1-16)
 STAGE_CACHE="$CACHE/stage-${LLAMA_CPP_VERSION}-${BACKEND}-${FIRMA}"
 
@@ -147,19 +265,43 @@ else
     tar -xzf "$CACHED" -C "$BUILD"
     SORG=$(find "$BUILD" -maxdepth 2 -name CMakeLists.txt -printf '%h\n' | head -1)
     [ -n "$SORG" ] || die "CMakeLists.txt non trovato nell'archivio"
+
+    # Librerie incluse: devono essere tutte dichiarate nel file copyright.
+    if [ -d "$SORG/vendor" ]; then
+        for v in $(find "$SORG/vendor" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort); do
+            case " $VENDOR_DICHIARATI " in
+                *" $v "*) ;;
+                *) die "llama.cpp $TAG include una libreria nuova: vendor/$v
+        Aggiungila al file copyright in make-deb.sh, alle specifiche
+        (sezione 6) e a VENDOR_DICHIARATI, poi rilancia." ;;
+            esac
+        done
+    fi
+
+    SENZA_RETE=()
+    if unshare -rn true 2>/dev/null; then
+        SENZA_RETE=(unshare -rn)
+    else
+        avviso "unshare non disponibile: compilo senza isolare la rete"
+    fi
     CFLAGS="$CFLAGS_DEB $CPPFLAGS_DEB" CXXFLAGS="$CXXFLAGS_DEB $CPPFLAGS_DEB" \
-    LDFLAGS="$LDFLAGS_DEB" cmake -S "$SORG" -B "$SORG/build" \
+    LDFLAGS="$LDFLAGS_DEB" "${SENZA_RETE[@]}" cmake -S "$SORG" -B "$SORG/build" \
         -DCMAKE_BUILD_TYPE=Release \
         -DGGML_VULKAN="$VULKAN_FLAG" \
         -DGGML_NATIVE=OFF \
         -DBUILD_SHARED_LIBS=ON \
-        -DLLAMA_CURL=OFF \
+        -DLLAMA_OPENSSL=OFF \
+        -DLLAMA_BUILD_UI=OFF \
+        -DLLAMA_USE_PREBUILT_UI=OFF \
+        -DLLAMA_CONNECT=OFF \
         -DLLAMA_BUILD_TESTS=OFF \
         -DLLAMA_BUILD_EXAMPLES=OFF \
+        -DLLAMA_BUILD_IS_DEV=OFF \
+        -DLLAMA_BUILD_COMMIT="${COMMIT:0:7}" \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_INSTALL_RPATH="/${LIBDIR}"
     # shellcheck disable=SC2086
-    cmake --build "$SORG/build" --config Release -j"$JOBS" --target $KEEP_BINARIES
+    "${SENZA_RETE[@]}" cmake --build "$SORG/build" --config Release -j"$JOBS" --target $KEEP_BINARIES
 
     BIN=$(find "$SORG/build" -type f -name llama-server -printf '%h\n' | head -1)
     [ -n "$BIN" ] || die "llama-server non trovato dopo la compilazione"
@@ -178,6 +320,28 @@ else
     rm -rf "$BUILD"
 fi
 [ -f "$STAGE_CACHE/bin/llama-server" ] || die "llama-server mancante nella compilazione"
+
+# Niente OpenSSL ne' curl nei binari: senza, il motore non scarica via HTTPS.
+RETE=$(cd "$STAGE_CACHE/bin" && for f in *; do [ -L "$f" ] && continue
+    LD_LIBRARY_PATH=. ldd "./$f" 2>/dev/null; done \
+    | grep -oE 'lib(ssl|crypto|curl)[^ ]*' | sort -u || true)
+[ -z "$RETE" ] || die "il motore e' collegato a librerie di rete: $RETE"
+
+# Le opzioni che i programmi passano a llama-server devono esistere.
+AIUTO=$(LD_LIBRARY_PATH="$STAGE_CACHE/bin" VK_ICD_FILENAMES=/dev/null \
+        VK_DRIVER_FILES=/dev/null timeout 60 "$STAGE_CACHE/bin/llama-server" --help 2>&1 || true)
+MANCANO=""
+for o in $OPZIONI_USATE; do
+    # Here-string e non "printf | grep -q": con pipefail, grep -q che esce
+    # alla prima riga trovata fa fallire printf (SIGPIPE) e l'opzione
+    # risulterebbe mancante a caso.
+    grep -qE -- "(^|[ ,])$o([ ,=]|\$)" <<< "$AIUTO" || MANCANO="$MANCANO $o"
+done
+[ -z "$MANCANO" ] || die "llama-server di llama.cpp $TAG non riconosce opzioni usate
+        da RuscaLLama o RuscaTranslator:$MANCANO
+        Adatta i programmi, oppure costruisci la versione precedente:
+        RUSCALLAMA_LLAMA_VERSION=<versione> ./make-deb.sh"
+say "llama-server accetta tutte le opzioni usate dai programmi"
 # Le librerie si cercano solo nella cartella privata del pacchetto: un
 # percorso della macchina di build nei binari sarebbe un errore.
 if command -v readelf >/dev/null; then
@@ -226,10 +390,14 @@ modifiche al codice.
 
 | Voce | Valore |
 |---|---|
-| Versione di llama.cpp | $LLAMA_CPP_VERSION |
+| Versione di llama.cpp | $LLAMA_CPP_VERSION (ultima release stabile al momento della build) |
+| Data della release | ${DATA_RELEASE:-non nota} |
+| Commit | $COMMIT |
+| SHA-256 dell'archivio sorgente | $OTTENUTO |
 | Backend | $BACKEND |
 | Ottimizzazioni per CPU specifica | no (GGML_NATIVE=OFF) |
-| Download da internet (libcurl) | no (LLAMA_CURL=OFF) |
+| HTTPS / download dei modelli | no (LLAMA_OPENSSL=OFF, nessuna libreria TLS) |
+| Interfaccia web | no (LLAMA_BUILD_UI=OFF, LLAMA_USE_PREBUILT_UI=OFF) |
 | Percorso | /$LIBDIR |
 | Programmi | $KEEP_BINARIES |
 
@@ -341,14 +509,16 @@ install -m 644 "$STAGE_CACHE/licenses/LICENSE.llama.cpp" "$DOC/LICENSE.llama.cpp
 cat <<CHANGELOG | gzip -9n > "$DOC/changelog.gz"
 $PKG ($VER) unstable; urgency=medium
 
-  * llama.cpp $TAG compilato dal sorgente (backend $BACKEND),
-    senza libcurl.
-  * Binari e librerie in /$LIBDIR
-    (prima in /opt/ruscallama/bin).
-  * Versione del pacchetto allineata a RuscaLinux; un solo .deb in
-    build-deb/ con SHA256SUMS.
-  * Compilazione in cache tra una build e l'altra.
-  * Profilo AppArmor aggiornato al nuovo percorso, sempre in complain.
+  * llama.cpp $TAG (ultima release stabile, commit ${COMMIT:0:12})
+    compilato dal sorgente (backend $BACKEND).
+  * La versione di llama.cpp non e' piu' fissata: make-deb.sh costruisce
+    l'ultima release stabile, verificando il commit del tag e registrando
+    l'impronta dell'archivio in checksums/.
+  * Compilazione senza OpenSSL e senza interfaccia web: LLAMA_CURL non
+    ha piu' effetto e i download ora passano da OpenSSL.
+  * Controllo che llama-server accetti le opzioni usate da RuscaLLama e
+    RuscaTranslator.
+  * Binari e librerie in /$LIBDIR; profilo AppArmor in complain.
 
  -- $MAINT  $(LC_ALL=C date -Ru -d "@$SOURCE_DATE_EPOCH")
 CHANGELOG
@@ -384,8 +554,9 @@ Description: language model engine for RuscaLLama and RuscaTranslator
  .
  This is llama.cpp $TAG, an external component (MIT license,
  $UPSTREAM), built from unmodified source with the
- $BACKEND backend and without network download support. Vulkan covers
- NVIDIA, AMD and Intel graphics with one binary and falls back to the CPU.
+ $BACKEND backend and without HTTPS support, so it cannot download
+ models. Vulkan covers NVIDIA, AMD and Intel graphics with one binary and
+ falls back to the CPU.
 CONTROL
 
 cat > "$ROOT/DEBIAN/conffiles" <<CONFFILES
@@ -415,6 +586,11 @@ DEB_FILE="${PKG}-ruscalinux_${VER}_${ARCH}.deb"
 dpkg-deb --root-owner-group -Zxz --build "$ROOT" "$OUT_DIR/$DEB_FILE" >/dev/null
 ( cd "$OUT_DIR" && sha256sum "$DEB_FILE" > SHA256SUMS )
 say "Pronto: build-deb/$DEB_FILE ($(du -h "$OUT_DIR/$DEB_FILE" | cut -f1)), llama.cpp $TAG, $BACKEND"
+
+# Cache: restano solo sorgente e compilazione della versione appena usata.
+find "$CACHE/src" -maxdepth 1 -name 'llama.cpp-v*.tar.gz' ! -name "$ARCHIVE" -delete 2>/dev/null || true
+find "$CACHE" -maxdepth 1 -type d \( -name 'stage-*' -o -name 'build-*' \) \
+     ! -name "stage-${LLAMA_CPP_VERSION}-*" -exec rm -rf {} + 2>/dev/null || true
 if command -v lintian >/dev/null 2>&1; then
     lintian --suppress-tags dir-or-file-in-opt "$OUT_DIR/$DEB_FILE" || true
 fi

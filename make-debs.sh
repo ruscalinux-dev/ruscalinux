@@ -40,8 +40,10 @@ done
 # e con un semplice "> /dev/null" sparirebbero.
 esegui() {                        # esegui  DESCRIZIONE  COMANDO...
     local descr="$1"; shift
+    local inizio
     echo "==> $descr"
     echo "===== $descr =====" >> "$LOG"
+    inizio=$(wc -l < "$LOG")
     if ! "$@" >> "$LOG" 2>&1; then
         echo
         echo "ERRORE: $descr non e' andato a buon fine. Ultime righe:"
@@ -50,6 +52,12 @@ esegui() {                        # esegui  DESCRIZIONE  COMANDO...
         echo "Log completo: local/make-debs.log"
         exit 1
     fi
+    # Gli avvisi (righe "ATTENZIONE:" e quelle rientrate che seguono) si
+    # mostrano anche a schermo: nel log nessuno li leggerebbe.
+    tail -n +"$((inizio + 1))" "$LOG" | awk '
+        /^ATTENZIONE:/ { a = 1; print "    " $0; next }
+        a && /^[ \t]/  { print "    " $0; next }
+        { a = 0 }'
 }
 
 

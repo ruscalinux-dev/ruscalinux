@@ -99,9 +99,10 @@ ISO entra solo il certificato pubblico,
   i rilasci.
 
 Le versioni disponibili si vedono nell'indice del repository
-(`NVIDIA_REPO`), cercando i file `nvidia-driver-pinning-*`. Come per
-llama.cpp: si sceglie una versione pubblicata da almeno due settimane e
-provata su hardware vero.
+(`NVIDIA_REPO`), cercando i file `nvidia-driver-pinning-*`. Si sceglie una
+versione pubblicata da almeno due settimane e provata su hardware vero.
+(llama.cpp invece segue da solo l'ultima release stabile: vedi
+`tools/ruscallama-engine/README.md`.)
 
 ## Componente CUDA e nvidia-smi
 

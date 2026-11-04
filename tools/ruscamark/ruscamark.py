@@ -10,7 +10,7 @@ Resa live della formattazione, pagina centrata che segue la larghezza
 della finestra, controllo ortografico live (libspelling / GSpell 2) con
 elisioni it/fr, motore Markdown integrato (tabelle, immagini, liste di
 attività, note a piè di pagina, link a riferimento, evidenziato), export
-HTML e PDF nello stile delle guide RuscaLinux, interfaccia nelle 15 lingue
+HTML e PDF nello stile delle guide RuscaLinux, interfaccia nelle 26 lingue
 ufficiali RuscaLinux tramite la cartella lang/ (i18n integrato in questo
 file: niente più i18n.py).
 

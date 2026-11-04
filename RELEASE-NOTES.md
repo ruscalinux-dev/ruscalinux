@@ -19,8 +19,8 @@
 - **RuscaHub**, a new AppImage manager: import an AppImage by drag and drop,
   add it to the GNOME menu with its original icon, run it or remove it.
 - **RuscaCleaner** has been rewritten. It removes activity traces from the
-  home folder, lists everything it does and does not do, and is now
-  translated into 15 languages, with a user manual in English and Italian.
+  home folder, lists everything it does and does not do, and has a user
+  manual in English and Italian.
 - **One look for the in-house tools.** RuscaCleaner, RuscaHub and RuscaMark
   are now native GNOME (libadwaita) applications in the RuscaLinux plum and
   pink colours. They follow the system light or dark style, share the same
@@ -31,15 +31,28 @@
   (chapters, notes, Markdown, typesetting and export to PDF, EPUB, ODT,
   DOCX…) now has the same GNOME look as the other tools, page themes with
   verified contrast, and opens `.rwr` projects with a double click.
-- **Local AI tools.** RuscaLLama (chat) and RuscaTranslator (translation of
-  Markdown documents, with Italian ↔ English linguistic knowledge) run
-  language models on your own computer through ruscallama-engine, a build of
-  llama.cpp. Nothing is sent over the internet; models are not included:
-  copy a GGUF file into `~/.local/share/ruscallama/models/`.
+- **26 languages everywhere.** All in-house tools follow the system language
+  and are translated into the same 26 languages, now including Traditional
+  Chinese and European Portuguese.
+- **Local AI tools.** RuscaLLama (chat) and RuscaTranslator run language
+  models on your own computer. RuscaTranslator translates Markdown documents
+  between all 26 languages, with Italian ↔ English linguistic knowledge, and
+  detects the source language on its own, telling apart close variants
+  (Ukrainian and Russian, Simplified and Traditional Chinese, European and
+  Brazilian Portuguese). Models are not included: copy a GGUF file into
+  `~/.local/share/ruscallama/models/`.
+- **ruscallama-engine** is llama.cpp 0.8.0, the latest stable release, built
+  from source with Vulkan for NVIDIA, AMD and Intel graphics. It is built
+  without HTTPS support and without its web interface, so it cannot download
+  anything: nothing is sent over the internet.
 - **SMPlayer** replaces VLC as the video player.
 - **Python virtual environments** work out of the box: `python3 -m venv`.
+- **Larger text in the graphical installer.** Text now scales with the
+  screen, so the installer is just as readable on a 4K monitor as on a
+  Full HD one. To choose the size yourself, add `ruscalinux.dpi=150` (or any
+  value from 72 to 384) to the installer's boot line.
 - New boot splash.
-- Removed: RuscaWriter and the uBlock Origin extension for Firefox.
+- Removed: the uBlock Origin extension for Firefox.
 
 ## The image
 

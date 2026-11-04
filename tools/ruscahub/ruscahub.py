@@ -18,7 +18,7 @@ Funzioni:
   * Interfaccia GNOME (libadwaita) con il tema comune RuscaLinux (style.css),
     modalità chiara/scura automatica, scorciatoie da tastiera
   * Eliminazione con conferma: il file AppImage va nel cestino
-  * Internazionalizzazione: 15 lingue in lang/*.json, fallback en.json
+  * Internazionalizzazione: 26 lingue in lang/*.json, fallback en.json
     (override con variabile d'ambiente RUSCAHUB_LANG)
 
 Requisiti: Python 3.10+, PyGObject, GTK 4.18+, libadwaita 1.7+

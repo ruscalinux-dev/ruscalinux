@@ -181,8 +181,8 @@ APP_ID = "org.ruscalinux.RuscaWriter"
 # RuscaWriter fa parte dei RuscaLinux OS Tools: sito, sorgenti e
 # segnalazioni sono quelli di RuscaLinux (non c'e' piu' un progetto separato).
 APP_WEBSITE = "https://www.ruscalinux.org/"
-APP_SOURCE = "https://github.com/ruscalinux-dev/ruscalinux"
-APP_ISSUES = "https://github.com/ruscalinux-dev/ruscalinux/issues"
+APP_SOURCE = "https://github.com/ruscalinux/ruscalinux"
+APP_ISSUES = "https://github.com/ruscalinux/ruscalinux/issues"
 STYLE_SRC = os.path.join(ASSETS_DIR, "style.css")    # tema comune RuscaLinux
 # Componenti esterni inclusi (specifiche, sezioni 3.10 e 6)
 COMPONENTS = (

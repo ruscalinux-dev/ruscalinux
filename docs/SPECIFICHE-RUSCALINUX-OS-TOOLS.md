@@ -14,7 +14,7 @@ Si trova nel repository in `docs/SPECIFICHE-RUSCALINUX-OS-TOOLS.md`. In caso di 
 | Progetto | RuscaLinux OS Tools |
 | Sistema operativo | RuscaLinux |
 | Sito web | https://www.ruscalinux.org |
-| Repository | https://github.com/ruscalinux-dev/ruscalinux |
+| Repository | https://github.com/ruscalinux/ruscalinux |
 | Download | https://sourceforge.net/projects/ruscalinux/ |
 | Email | info@ruscalinux.org |
 | Distro base | Debian Stable (attualmente Debian 13 “trixie”) |

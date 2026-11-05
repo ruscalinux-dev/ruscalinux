@@ -135,7 +135,7 @@ $(cat "$TMP/description")
   </description>
   <launchable type="desktop-id">$APP_ID.desktop</launchable>
   <url type="homepage">$HOMEPAGE</url>
-  <url type="bugtracker">https://github.com/ruscalinux-dev/ruscalinux/issues</url>
+  <url type="bugtracker">https://github.com/ruscalinux/ruscalinux/issues</url>
   <provides>
     <binary>$PKG</binary>
   </provides>

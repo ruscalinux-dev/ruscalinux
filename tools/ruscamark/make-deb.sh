@@ -182,7 +182,7 @@ $(cat "${TEXTS}/description")
     <id>${OLD_APP_ID}</id>
   </replaces>
   <url type="homepage">${HOMEPAGE}</url>
-  <url type="bugtracker">https://github.com/ruscalinux-dev/ruscalinux/issues</url>
+  <url type="bugtracker">https://github.com/ruscalinux/ruscalinux/issues</url>
   <provides>
     <binary>ruscamark</binary>
     <mediatype>text/markdown</mediatype>

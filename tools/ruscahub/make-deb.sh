@@ -138,7 +138,7 @@ $(cat "$TEXTS_DIR/description")
     <binary>ruscahub</binary>
   </provides>
   <url type="homepage">$HOMEPAGE</url>
-  <url type="bugtracker">https://github.com/ruscalinux-dev/ruscalinux/issues</url>
+  <url type="bugtracker">https://github.com/ruscalinux/ruscalinux/issues</url>
   <branding>
     <color type="primary" scheme_preference="light">#f8d7e6</color>
     <color type="primary" scheme_preference="dark">#2d0a1d</color>

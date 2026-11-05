@@ -6,7 +6,7 @@
 | Versione | 1.99.2 |
 | Progetto | RuscaLinux OS Tools |
 | Sito | https://www.ruscalinux.org |
-| Sorgenti | https://github.com/ruscalinux-dev/ruscalinux (cartella `tools/ruscawriter`) |
+| Sorgenti | https://github.com/ruscalinux/ruscalinux (cartella `tools/ruscawriter`) |
 | Contatti | info@ruscalinux.org |
 | Autore | Nunzio Curcuruto (ruscalinux-dev) |
 | Licenza | GPL-3.0 o successiva |

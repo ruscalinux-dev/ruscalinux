@@ -150,7 +150,7 @@ $(cat "$TMP/description")
   </description>
   <launchable type="desktop-id">$APP_ID.desktop</launchable>
   <url type="homepage">$HOMEPAGE</url>
-  <url type="bugtracker">https://github.com/ruscalinux-dev/ruscalinux/issues</url>
+  <url type="bugtracker">https://github.com/ruscalinux/ruscalinux/issues</url>
   <provides>
     <binary>$PKG</binary>
     <mediatype>application/x-ruscawriter</mediatype>
@@ -200,7 +200,7 @@ cat > "$DOC/copyright" <<'COPYRIGHT'
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: RuscaWriter
 Upstream-Contact: Nunzio Curcuruto <info@ruscalinux.org>
-Source: https://github.com/ruscalinux-dev/ruscalinux
+Source: https://github.com/ruscalinux/ruscalinux
 
 Files: *
 Copyright: 2026 Nunzio Curcuruto

@@ -121,7 +121,7 @@ git tag -a v2.0 -m "RuscaLinux 2.0"
 git push origin main --tags
 ```
 
-**3. GitHub** — <https://github.com/ruscalinux-dev/ruscalinux/releases/new>
+**3. GitHub** — <https://github.com/ruscalinux/ruscalinux/releases/new>
 Tag `v2.0`, titolo `RuscaLinux 2.0`, e nel testo incolla il contenuto di
 `RELEASE-NOTES-2.0.md`. Allega `SHA256SUMS`, non la ISO: quella sta su
 SourceForge.

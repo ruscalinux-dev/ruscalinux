@@ -71,6 +71,7 @@ Questo modulo e' stato portato da GTK 3 a GTK 4. Differenze principali:
 """
 
 import os
+import re
 import sys
 import json
 import locale
@@ -164,6 +165,9 @@ from .model import (
 # Le regole del Markdown, in comune con tutti gli export: anteprima ed
 # evidenziazione devono mostrare cio' che gli export produrranno.
 from .model import render_math, table_at
+from .rusca_markdown import (latex_to_pango, display_math_at, has_inline_math,
+                             sub_inline_math)
+from . import rusca_liveblocks
 from .model import (classify_md_line, parse_inline, inline_spans,
                     wrapped_runs, unwrap_hard_breaks)
 from .i18n import apply_toolkit_language
@@ -2260,6 +2264,14 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 "wrapmark", paragraph_background=pal["wrapmark"]),
         }
         self.text_buffer.connect("changed", self.on_text_changed)
+        # EN: tables and formulas shown rendered while writing (see
+        #     rusca_liveblocks.py): recomputed after edits and cursor moves.
+        # IT: tabelle e formule mostrate rese mentre si scrive (vedi
+        #     rusca_liveblocks.py): ricalcolate dopo le modifiche e quando si
+        #     sposta il cursore.
+        self._liveblocks = None
+        self._lb_id = 0
+        self.text_buffer.connect("mark-set", self._on_insert_moved)
         self._install_dict_mouse()
         self._block_file_drops_on_editor()
         self._autocap_busy = False
@@ -2709,6 +2721,116 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._highlight_markdown()
         self._update_wordcount()
 
+    # ---- tabelle e formule rese nell'editor ---------------------------------
+    def _on_insert_moved(self, buf, _it, mark):
+        if mark is buf.get_insert():
+            self._schedule_live_blocks()
+
+    def _schedule_live_blocks(self):
+        if not self._lb_id:
+            self._lb_id = GLib.timeout_add(90, self._live_blocks_refresh)
+        return False
+
+    def _live_blocks_refresh(self):
+        """Tabelle, formule su riga propria e righe con formule nella frase,
+        mostrate rese quando il cursore è altrove. Il testo del capitolo non
+        cambia: solo tag e widget sovrapposti (vedi rusca_liveblocks.py)."""
+        self._lb_id = 0
+        buf = self.text_buffer
+        if self._liveblocks is None:
+            self._liveblocks = rusca_liveblocks.LiveBlocks(
+                self.text_view, self._live_block_widget, self._schedule_live_blocks)
+        text = buf.get_text(*buf.get_bounds(), True)
+        lines = text.split("\n")
+        offs, o = [], 0
+        for ln in lines:
+            offs.append(o)
+            o += len(ln) + 1
+        blocks, i, n, fence = [], 0, len(lines), False
+
+        def add(a, b, kind, data):
+            blocks.append((offs[a], offs[b] + len(lines[b]), offs[b], kind, data))
+        while i < n:
+            if lines[i].lstrip().startswith(("```", "~~~")):
+                fence = not fence
+                i += 1
+                continue
+            if fence:
+                i += 1
+                continue
+            tbl = table_at(lines, i)
+            if tbl:
+                aligns, header, rows, j = tbl
+                add(i, j - 1, "table", (tuple(aligns), tuple(header),
+                                        tuple(tuple(r) for r in rows)))
+                i = j
+                continue
+            math = display_math_at(lines, i)
+            if math:
+                add(i, math[1] - 1, "math", math[0])
+                i = math[1]
+                continue
+            if has_inline_math(lines[i]):
+                add(i, i, "line", lines[i])
+            i += 1
+        cur = buf.get_iter_at_mark(buf.get_insert()).get_offset()
+        sel = buf.get_selection_bounds()
+        self._liveblocks.update(blocks, cur,
+                                (sel[0].get_offset(), sel[1].get_offset()) if sel else None)
+        return False
+
+    def _md_markup(self, text):
+        """Markdown in linea -> markup Pango: formule in simboli (con apici e
+        pedici veri), grassetto, corsivo e codice dal parser comune."""
+        keep = []
+        code = []
+        # il codice in linea si mette da parte prima: un $ dentro `…` non
+        # apre una formula; poi torna com'era, per parse_inline
+        text = re.sub(r"(`+)(.+?)\1", lambda m: (code.append(m.group(0)),
+                                                 f"\ue002{len(code) - 1}\ue003")[1], text)
+
+        def stash(src, _big):
+            keep.append(latex_to_pango(src))
+            # segnaposto in caratteri d'uso privato: un NUL troncherebbe la
+            # stringa in GLib.markup_escape_text
+            return f"\ue000{len(keep) - 1}\ue001"
+        text = sub_inline_math(text, stash)
+        text = re.sub("\ue002(\\d+)\ue003", lambda m: code[int(m.group(1))], text)
+        wrap = {"bold": ("<b>", "</b>"), "italic": ("<i>", "</i>"),
+                "bolditalic": ("<b><i>", "</i></b>"), "code": ("<tt>", "</tt>"),
+                "regular": ("", "")}
+        out = "".join(f"{wrap[st][0]}{GLib.markup_escape_text(t)}{wrap[st][1]}"
+                      for t, st in parse_inline(text))
+        return re.sub("\ue000(\\d+)\ue001", lambda m: keep[int(m.group(1))], out)
+
+    def _live_block_widget(self, kind, data):
+        pal = self.palette()
+        fg, head = pal["editor_fg"], pal["head"]
+        if kind == "table":
+            aligns, header, rows = data
+            return rusca_liveblocks.table_widget(
+                list(aligns),
+                [f'<span foreground="{head}">{self._md_markup(h)}</span>' for h in header],
+                [[f'<span foreground="{fg}">{self._md_markup(v)}</span>' for v in r]
+                 for r in rows])
+        if kind == "math":
+            return rusca_liveblocks.math_widget(
+                f'<span foreground="{fg}">{latex_to_pango(data)}</span>')
+        kind_l, body, extra = classify_md_line(data)
+        if kind_l == "heading":
+            scale = {1: 160, 2: 135}.get(extra, 118)
+            markup = (f'<span size="{scale}%" weight="bold" foreground="{head}">'
+                      f'{self._md_markup(body)}</span>')
+        elif kind_l in ("bullet", "number"):
+            mark = "•" if kind_l == "bullet" else f"{extra}."
+            markup = (f'<span foreground="{pal["marker"]}">{mark}</span>  '
+                      f'<span foreground="{fg}">{self._md_markup(body)}</span>')
+        elif kind_l == "quote":
+            markup = f'<span foreground="{fg}"><i>{self._md_markup(body)}</i></span>'
+        else:
+            markup = f'<span foreground="{fg}">{self._md_markup(data)}</span>'
+        return rusca_liveblocks.text_widget(markup)
+
     def _highlight_markdown(self):
         """Colora il Markdown mentre si scrive. Usa le stesse regole degli
         export (model.classify_md_line / model.inline_spans): ciò che qui
@@ -2747,6 +2869,7 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             for first, last in wrapped_runs(text):
                 apply("wrapmark", starts[first],
                       starts[last] + len(lines[last]))
+        self._schedule_live_blocks()
 
     def on_note_changed(self, buf):
         if self._loading or self.current is None:

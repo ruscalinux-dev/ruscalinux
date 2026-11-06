@@ -38,8 +38,15 @@ from gi.repository import Adw, Gtk, Gdk, Gio, GLib, Pango, GdkPixbuf
 # RuscaLLama, identico nei due programmi (si modifica una volta e si copia).
 try:
     from rusca_markdown import latex_to_pango, plain_text as _pango_plain
+    from rusca_markdown import table_at, display_math_at, has_inline_math, sub_inline_math
 except ImportError:                          # modulo mancante: formule come testo
     latex_to_pango = _pango_plain = None
+# Tabelle e formule rese mentre si scrive (resa live): modulo comune con
+# RuscaWriter, identico nei due programmi.
+try:
+    import rusca_liveblocks
+except ImportError:
+    rusca_liveblocks = None
 # Export PDF: GtkPrintOperation + PangoCairo (pacchetto python3-gi-cairo).
 try:
     gi.require_foreign("cairo")
@@ -1074,19 +1081,19 @@ class MarkdownDoc:
             return keep(body)
         text = re.sub(r"(`+)(.+?)(?<!`)\1(?!`)", code, text)
 
-        def math(m):
-            markup = latex_to_pango(m.group(1) or m.group(2) or m.group(3))
+        def math(src, big):
+            markup = latex_to_pango(src)
             if mode == "plain":
                 return keep(_pango_plain(markup))
-            if m.group(1) is not None:           # $$…$$: formula in evidenza
+            if big:                              # $$…$$: formula in evidenza
                 markup = (f'<span size="large">{markup}</span>' if mode == "pango"
                           else f'<span style="font-size: 1.2em">{markup}</span>')
             return keep(markup)
         if latex_to_pango is not None:
             # $$…$$, \(…\) e $…$ (ma non «$5 e $10»), prima delle sequenze
-            # con barra rovesciata, perché il LaTeX ne è pieno.
-            text = re.sub(r"\$\$([\s\S]+?)\$\$|\\\((.+?)\\\)"
-                          r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])", math, text)
+            # con barra rovesciata, perché il LaTeX ne è pieno. Le regole
+            # sono quelle comuni di rusca_markdown.sub_inline_math.
+            text = sub_inline_math(text, math)
         text = re.sub(r"\\([\\`*_{}\[\]()#+\-.!|~>=<^])", lambda m: keep(esc(m.group(1))), text)
 
         def link_out(label_markup, url, title=None):
@@ -3529,9 +3536,11 @@ class RuscaWindow(Adw.ApplicationWindow):
         for t in self.lv.values():
             buf.remove_tag(t, b, e)
         if not self.cfg.get("live", True):
+            self._live_blocks_clear()
             return
         text = self._get_text()
         if len(text) > self.LIVE_MAX_CHARS:
+            self._live_blocks_clear()
             return
         cur = buf.get_iter_at_mark(buf.get_insert()).get_offset()
         selb = buf.get_selection_bounds()
@@ -3721,6 +3730,89 @@ class RuscaWindow(Adw.ApplicationWindow):
                     inline(ct, body)
                 continue
             inline(a, s)
+        self._live_blocks_refresh(lines, offs, line_block, cur, (sa, sb) if sa is not None else None)
+
+    # ------------------------------------------------------- tabelle e formule rese
+    def _live_blocks_clear(self):
+        if getattr(self, "_liveblocks", None) is not None:
+            self._liveblocks.clear()
+
+    def _live_blocks_refresh(self, lines, offs, code_lines, cur, sel):
+        """Tabelle, formule su riga propria e righe con formule nella frase,
+        mostrate rese quando il cursore è altrove (vedi rusca_liveblocks.py).
+        Il testo del documento non cambia: solo tag e widget sovrapposti."""
+        if rusca_liveblocks is None or latex_to_pango is None:
+            return
+        if getattr(self, "_liveblocks", None) is None:
+            self._liveblocks = rusca_liveblocks.LiveBlocks(
+                self.view, self._live_block_widget, self._schedule_live)
+        blocks, i, n = [], 0, len(lines)
+
+        def add(a, b, kind, data):
+            blocks.append((offs[a], offs[b] + len(lines[b]), offs[b], kind, data))
+        while i < n:
+            if i in code_lines:
+                i += 1
+                continue
+            tbl = table_at(lines, i)
+            if tbl:
+                aligns, header, rows, j = tbl
+                add(i, j - 1, "table", (tuple(aligns), tuple(header),
+                                        tuple(tuple(r) for r in rows)))
+                i = j
+                continue
+            math = display_math_at(lines, i)
+            if math:
+                add(i, math[1] - 1, "math", math[0])
+                i = math[1]
+                continue
+            if has_inline_math(lines[i]):
+                add(i, i, "line", lines[i])
+            i += 1
+        self._liveblocks.update(blocks, cur, sel)
+
+    def _live_inline(self, text):
+        """Formattazione in linea in markup Pango, con i colori dell'editor:
+        la stessa dell'anteprima (MarkdownDoc), formule comprese."""
+        doc = MarkdownDoc("")
+        doc._colors = self._palette()
+        return doc._inline(text, "pango")
+
+    def _live_block_widget(self, kind, data):
+        c = self._palette()
+        fg = c["fg"]
+        if kind == "table":
+            aligns, header, rows = data
+            cell = lambda v: self._live_inline(v).replace("\n", " ")
+            return rusca_liveblocks.table_widget(
+                list(aligns), [f'<span foreground="{c["heading"]}">{cell(h)}</span>' for h in header],
+                [[f'<span foreground="{fg}">{cell(v)}</span>' for v in r] for r in rows])
+        if kind == "math":
+            return rusca_liveblocks.math_widget(
+                f'<span foreground="{fg}">{latex_to_pango(data)}</span>')
+        return rusca_liveblocks.text_widget(self._live_line_markup(data, c))
+
+    def _live_line_markup(self, line, c):
+        """Una riga con formule, come la mostra la resa live: titoli, elenchi
+        e citazioni con lo stesso aspetto, formule in simboli."""
+        m = _RE_ATX.match(line)
+        if m:
+            level = len(m.group(1))
+            scale = (180, 155, 132, 115, 105, 100)[level - 1]
+            color = c["subtle"] if level == 6 else c["heading"]
+            body = m.group(2) or ""
+            return (f'<span size="{scale}%" weight="bold" foreground="{color}">'
+                    f'{self._live_inline(body)}</span>')
+        m = re.match(r"^(\s*)([-*+]|\d+[.)])\s+(.*)$", line)
+        if m:
+            mark = "•" if m.group(2) in "-*+" else m.group(2)
+            return (f'{m.group(1)}<span foreground="{c["accent2"]}" weight="bold">{mark}</span>'
+                    f'  <span foreground="{c["fg"]}">{self._live_inline(m.group(3))}</span>')
+        m = re.match(r"^\s*>\s?(.*)$", line)
+        if m:
+            return (f'<span foreground="{c["quote"]}"><i>'
+                    f'{self._live_inline(m.group(1))}</i></span>')
+        return f'<span foreground="{c["fg"]}">{self._live_inline(line)}</span>'
 
     # ------------------------------------------------------- comandi di scrittura
     def _toggle_wrap(self, marker):

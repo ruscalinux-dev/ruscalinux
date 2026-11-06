@@ -18,6 +18,10 @@ Per chi non usa Pango (RuscaWriter: PDF, EPUB, ODT, DOCX, testo):
     math_to_text(markdown)   sostituisce le formule $…$, $$…$$, \\(…\\), \\[…\\]
                              in un testo Markdown, fuori dal codice
     table_at(righe, i)       tabella che comincia alla riga i, o None
+    display_math_at(righe, i)  formula su riga propria che comincia alla riga i
+    has_inline_math(riga)    True se la riga contiene una formula nella frase
+    sub_inline_math(testo, f)  sostituisce ogni formula nella frase con
+                             f(sorgente, in_evidenza)
 
 File identico in RuscaLLama, RuscaMark e RuscaWriter: si modifica una volta e
 si copia.
@@ -26,7 +30,8 @@ si copia.
 import re
 
 __all__ = ["parse_blocks", "inline_to_pango", "latex_to_pango", "escape", "plain_text",
-           "latex_to_text", "math_to_text", "table_at"]
+           "latex_to_text", "math_to_text", "table_at", "display_math_at",
+           "has_inline_math", "sub_inline_math"]
 
 
 def escape(s):
@@ -253,6 +258,46 @@ def latex_to_pango(src):
         return escape(src)
 
 
+_RE_MATH_CANDIDATE = re.compile(
+    r"\$\$([\s\S]+?)\$\$|\\\((.+?)\\\)"
+    r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])")
+_RE_WORD = re.compile(r"[^\W\d_]{3,}")
+
+
+def _looks_like_math(src, dollar):
+    """«$5 e $10, poi $x$»: fra due $ può finire della prosa. Tolti i comandi
+    LaTeX e il contenuto di \\text{…}, una formula ha variabili di una o due
+    lettere: se restano due parole di almeno tre lettere, è prosa."""
+    if not dollar:
+        return True
+    if re.search(r"\\[A-Za-z]", src) and ", " not in src:
+        return True                         # comandi LaTeX: è una formula
+    bare = re.sub(r"\\(?:text\w*|math\w+|operatorname|mbox)\{[^{}]*\}", " ", src)
+    bare = re.sub(r"\\[A-Za-z]+", " ", bare)
+    return len(_RE_WORD.findall(bare)) < 2
+
+
+def sub_inline_math(text, repl):
+    """Sostituisce le formule nella frase ($…$, $$…$$, \\(…\\)) con
+    repl(sorgente, in_evidenza). Un tratto scartato (vedi _looks_like_math)
+    non consuma nulla: la ricerca riprende dal carattere dopo il suo $."""
+    out, pos = [], 0
+    while True:
+        m = _RE_MATH_CANDIDATE.search(text, pos)
+        if not m:
+            break
+        src = m.group(1) or m.group(2) or m.group(3)
+        if m.group(3) is not None and not _looks_like_math(src, True):
+            out.append(text[pos:m.start() + 1])
+            pos = m.start() + 1
+            continue
+        out.append(text[pos:m.start()])
+        out.append(repl(src, m.group(1) is not None))
+        pos = m.end()
+    out.append(text[pos:])
+    return "".join(out)
+
+
 def latex_to_text(src):
     """Formula LaTeX -> testo Unicode semplice, per i formati senza markup.
 
@@ -276,10 +321,6 @@ def latex_to_text(src):
 
 
 _RE_FENCE_LINE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
-_RE_TEXT_MATH = re.compile(
-    r"\$\$(.+?)\$\$|\\\((.+?)\\\)"
-    r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])")
-
 
 def math_to_text(text):
     """Sostituisce le formule di un testo Markdown con testo Unicode.
@@ -317,8 +358,7 @@ def math_to_text(text):
             keep.append(m.group(0))
             return f"\x00{len(keep) - 1}\x00"
         line = _RE_CODE_SPAN.sub(stash, line)
-        line = _RE_TEXT_MATH.sub(
-            lambda m: latex_to_text(m.group(1) or m.group(2) or m.group(3)), line)
+        line = sub_inline_math(line, lambda src, _big: latex_to_text(src))
         out.append(re.sub(r"\x00(\d+)\x00", lambda m: keep[int(m.group(1))], line))
         i += 1
     return "\n".join(out)
@@ -340,11 +380,21 @@ def table_at(lines, i):
     return aligns, header, rows, j
 
 
+def display_math_at(lines, i):
+    """Formula su riga propria ($$…$$ o \\[…\\], anche su più righe) che
+    comincia alla riga i: (sorgente LaTeX, indice della riga dopo), o None."""
+    return _display_math(lines, i)
+
+
+def has_inline_math(line):
+    """True se la riga contiene una formula $…$, $$…$$ o \\(…\\) fuori dal
+    codice in linea."""
+    found = []
+    sub_inline_math(_RE_CODE_SPAN.sub("", line), lambda src, _big: found.append(src) or "")
+    return bool(found)
+
+
 # ── Testo in linea ──────────────────────────────────────────────────────────
-_RE_INLINE_MATH = re.compile(
-    r"\$\$(.+?)\$\$"                                # $$…$$ dentro una frase
-    r"|\\\((.+?)\\\)"                               # \(…\)
-    r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])")   # $…$ (non $5 e $10)
 _RE_CODE_SPAN = re.compile(r"(`+)(.+?)\1")
 _RE_ESCAPED = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|>~$])")
 
@@ -361,8 +411,7 @@ def inline_to_pango(text):
         return f"\x00{len(keep) - 1}\x00"
 
     text = _RE_CODE_SPAN.sub(lambda m: stash(f"<tt>{escape(m.group(2).strip())}</tt>"), text)
-    text = _RE_INLINE_MATH.sub(
-        lambda m: stash(latex_to_pango(m.group(1) or m.group(2) or m.group(3))), text)
+    text = sub_inline_math(text, lambda src, _big: stash(latex_to_pango(src)))
     text = _RE_ESCAPED.sub(lambda m: stash(escape(m.group(1))), text)
     s = escape(text)
     s = re.sub(r"\*\*\*(?=\S)(.+?)(?<=\S)\*\*\*", r"<b><i>\1</i></b>", s)

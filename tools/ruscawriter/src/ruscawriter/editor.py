@@ -163,6 +163,7 @@ from .model import (
 # live highlighting must show what the exports will produce.
 # Le regole del Markdown, in comune con tutti gli export: anteprima ed
 # evidenziazione devono mostrare cio' che gli export produrranno.
+from .model import render_math, table_at
 from .model import (classify_md_line, parse_inline, inline_spans,
                     wrapped_runs, unwrap_hard_breaks)
 from .i18n import apply_toolkit_language
@@ -2300,6 +2301,15 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         sw_preview.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sw_preview.set_vexpand(True)
         sw_preview.set_child(self.preview_view)
+        # EN: preview tables are as wide as the page: when the width changes,
+        #     the preview is laid out again (once, when resizing settles).
+        # IT: le tabelle dell'anteprima sono larghe quanto la pagina: se la
+        #     larghezza cambia, l'anteprima si ricompone (una volta, a
+        #     ridimensionamento finito).
+        self._pv_has_table = False
+        self._pv_width = 0
+        self._pv_relayout_id = 0
+        sw_preview.get_hadjustment().connect("notify::page-size", self._on_preview_width)
 
         self.center_stack = Gtk.Stack()
         self.center_stack.add_named(sw_center, "editor")
@@ -4614,6 +4624,7 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
     def _render_preview(self):
         buf = self.preview_buffer
         buf.set_text("")
+        self._pv_has_table = False
         if getattr(self, "_preview_whole", False):
             chapters = self.project._ordered_chapters()
             for i, (ch_title, text) in enumerate(chapters):
@@ -4630,12 +4641,69 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             text = self.current.text if self.current is not None else ""
             self._render_markdown_into(text)
 
+    def _preview_text_width(self):
+        return max(200, self.preview_view.get_width()
+                   - self.preview_view.get_left_margin()
+                   - self.preview_view.get_right_margin() - 4)
+
+    def _on_preview_width(self, *_a):
+        if (not getattr(self, "_preview_mode", False) or not self._pv_has_table
+                or self._pv_relayout_id
+                or abs(self._preview_text_width() - self._pv_width) <= 4):
+            return
+
+        def relayout():
+            self._pv_relayout_id = 0
+            if self._preview_mode:
+                self._render_preview()
+            return False
+        self._pv_relayout_id = GLib.timeout_add(150, relayout)
+
+    def _preview_table(self, aligns, header, rows):
+        """EN: A Markdown table in the preview: a real grid as wide as the
+        page, cells that wrap, bold header, rows separated like GNOME lists.
+        IT: Una tabella Markdown nell'anteprima: griglia vera larga quanto la
+        pagina, celle che vanno a capo, intestazione in grassetto, righe
+        separate come nelle liste di GNOME."""
+        wrap = {"bold": ("<b>", "</b>"), "italic": ("<i>", "</i>"),
+                "bolditalic": ("<b><i>", "</i></b>"), "code": ("<tt>", "</tt>"),
+                "regular": ("", "")}
+
+        def markup(text, head):
+            m = "".join(f"{wrap[st][0]}{GLib.markup_escape_text(t)}{wrap[st][1]}"
+                        for t, st in parse_inline(text))
+            return f"<b>{m}</b>" if head else m
+        grid = Gtk.Grid(hexpand=True)
+        xalign = {"right": 1.0, "center": 0.5}
+        for r, cells in enumerate([header] + rows):
+            for c, cell in enumerate(cells):
+                label = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                  selectable=True, hexpand=True, valign=Gtk.Align.START,
+                                  margin_start=12, margin_end=12,
+                                  margin_top=8, margin_bottom=8,
+                                  xalign=xalign.get(aligns[c], 0.0))
+                # larghezza naturale = contenuto (al massimo 50 caratteri):
+                # le colonne si dividono lo spazio in proporzione al testo
+                label.set_max_width_chars(min(max(len(cell), 4), 50))
+                label.set_markup(markup(cell, r == 0))
+                grid.attach(label, c, 2 * r, 1, 1)
+            if r < len(rows):
+                grid.attach(Gtk.Separator(), 0, 2 * r + 1, len(header), 1)
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        card.add_css_class("card")
+        card.append(grid)
+        # un figlio del TextView prende la sua larghezza naturale: si fissa qui
+        card.set_size_request(self._preview_text_width(), -1)
+        return card
+
     def _render_markdown_into(self, text):
         """Riversa il Markdown nel buffer dell'anteprima. Riconoscimento delle
         righe e della formattazione inline: entrambi dal parser condiviso in
         model.py, così l'anteprima mostra esattamente ciò che finirà negli
-        export."""
+        export. Formule e tabelle come negli export: formule in simboli
+        Unicode, tabelle come griglia vera."""
         buf = self.preview_buffer
+        self._pv_width = self._preview_text_width()
 
         def insert_inline(line, base_tags):
             for seg, style in parse_inline(line):
@@ -4643,7 +4711,19 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 tags = ([tag] if tag is not None else []) + list(base_tags)
                 buf.insert_with_tags(buf.get_end_iter(), seg, *tags)
 
-        for raw in text.split("\n"):
+        lines = render_math(text).split("\n")
+        i = 0
+        while i < len(lines):
+            tbl = table_at(lines, i)
+            if tbl:
+                anchor = buf.create_child_anchor(buf.get_end_iter())
+                self.preview_view.add_child_at_anchor(self._preview_table(*tbl[:3]), anchor)
+                buf.insert(buf.get_end_iter(), "\n")
+                self._pv_has_table = True
+                i = tbl[3]
+                continue
+            raw = lines[i]
+            i += 1
             kind, body, extra = classify_md_line(raw)
             end = buf.get_end_iter
             if kind == "heading":

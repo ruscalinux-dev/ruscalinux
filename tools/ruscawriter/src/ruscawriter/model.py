@@ -44,6 +44,12 @@ import shutil
 import tarfile
 import tempfile
 
+# EN: formulas and tables, shared with RuscaLLama and RuscaMark (identical
+#     file in the three programs).
+# IT: formule e tabelle, in comune con RuscaLLama e RuscaMark (file identico
+#     nei tre programmi).
+from .rusca_markdown import math_to_text as render_math, table_at
+
 # EN: optional hyphenation support via Pyphen. Two things are needed and both
 #     are OPTIONAL: (1) the Pyphen library (Debian "python3-pyphen") and (2) a
 #     hyphenation DICTIONARY for the language. The Debian package of Pyphen
@@ -400,12 +406,9 @@ def _text_width(s, font_size, advance1000=None, widths_by_code=None):
         total = 0.0
         default = advance1000 if advance1000 is not None else 500
         for ch in s:
-            try:
-                code = ord(ch.encode("cp1252", "replace").decode("cp1252"))
-            except Exception:
-                code = None
-            w = widths_by_code.get(code, default) if code is not None else default
-            total += w
+            # chiavi = codepoint Unicode (uni_widths) o, per le mappe WinAnsi,
+            # gli stessi codepoint nell'intervallo Latin-1
+            total += widths_by_code.get(ord(ch), default)
         return total / 1000.0 * font_size
     if advance1000 is not None:
         return len(s) * advance1000 / 1000.0 * font_size
@@ -669,6 +672,21 @@ def read_ttf_metrics(path):
         except Exception:
             widths_by_code = None
 
+        # EN: Unicode metrics for the Type0 (Identity-H) PDF fonts: every
+        #     character the font has, so Greek, Cyrillic and formula symbols
+        #     are no longer turned into "?" by the single-byte WinAnsi.
+        # IT: metriche Unicode per i font PDF Type0 (Identity-H): ogni
+        #     carattere presente nel font, cosi' greco, cirillico e simboli
+        #     delle formule non diventano piu' "?" come con WinAnsi a un byte.
+        uni2gid = {}
+        try:
+            if b"cmap" in tables:
+                uni2gid = _parse_cmap_unicode(data, tables[b"cmap"][0]) or {}
+        except Exception:
+            uni2gid = {}
+        uni_widths = {cp: int(round(glyph_advance(g) * scale))
+                      for cp, g in uni2gid.items() if g}
+
         result = {
             "data": data,
             "units_per_em": units_per_em,
@@ -680,6 +698,9 @@ def read_ttf_metrics(path):
         }
         if widths_by_code is not None:
             result["widths_by_code"] = widths_by_code
+        if uni2gid:
+            result["uni2gid"] = {cp: g for cp, g in uni2gid.items() if g}
+            result["uni_widths"] = uni_widths
         return result
     except Exception:
         return None
@@ -730,6 +751,42 @@ def _to_winansi(s):
     """Codifica una stringa in byte per WinAnsiEncoding (cp1252).
     I caratteri non rappresentabili vengono sostituiti con '?'."""
     return s.encode("cp1252", "replace")
+
+
+def _tables_to_text(text):
+    """EN: Markdown tables -> columns aligned with spaces, for plain text.
+    IT: Tabelle Markdown -> colonne allineate con spazi, per il testo
+    semplice."""
+    lines = text.split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        tbl = table_at(lines, i)
+        if not tbl:
+            out.append(lines[i])
+            i += 1
+            continue
+        aligns, header, rows, i = tbl
+        grid = [[_strip_inline_md(c) for c in r] for r in [header] + rows]
+        widths = [max(len(r[c]) for r in grid) for c in range(len(header))]
+
+        def fmt(r):
+            cells = [v.rjust(w) if a == "right" else v.center(w) if a == "center"
+                     else v.ljust(w) for v, w, a in zip(r, widths, aligns)]
+            return "  ".join(cells).rstrip()
+        out.append(fmt(grid[0]))
+        out.append("  ".join("-" * w for w in widths))
+        out.extend(fmt(r) for r in grid[1:])
+    return "\n".join(out)
+
+
+def _pdf_text_string(s):
+    """Stringa di testo PDF (titoli dell'indice di navigazione): in WinAnsi
+    quando basta, come prima, altrimenti UTF-16 con BOM, che ogni lettore
+    capisce (greco, cirillico, cinese, simboli)."""
+    try:
+        return b"(" + _pdf_escape_bytes(s.encode("cp1252")) + b")"
+    except UnicodeEncodeError:
+        return b"<FEFF" + s.encode("utf-16-be").hex().upper().encode("ascii") + b">"
 
 
 def _winansi_to_unicode(code):
@@ -1675,7 +1732,7 @@ def write_pdf(path, chapters, title="",
     adv = reg["advance1000"] if reg else None
     # mappa larghezze per carattere (font proporzionali, es. EB Garamond):
     # se presente, l'impaginazione usa la larghezza reale di ogni glifo.
-    widths_map = reg.get("widths_by_code") if reg else None
+    widths_map = (reg.get("uni_widths") or reg.get("widths_by_code")) if reg else None
     # mappa stile -> chiave font PDF (/F1=regular, /F2=bold, ...)
     style_to_fid = {"regular": "F1", "bold": "F2",
                     "italic": "F3", "bolditalic": "F4"}
@@ -2030,6 +2087,79 @@ def write_pdf(path, chapters, title="",
     # solo le pagine di contenuto (le pagine "plain" come copertina, indice e
     # colophon non sono numerate), quindi l'indice non altera la numerazione.
     pages_before_chapters = list(pages)   # cover + frontespizio
+    def layout_table(aligns, header, rows):
+        """EN: Lay out a Markdown table in book style (booktabs): a thick
+        rule above and below, a thin one under the header, no vertical
+        lines. The table spans the text width; columns share it in
+        proportion to their content and cells wrap. Returns how many pages
+        were started.
+        IT: Impagina una tabella Markdown in stile libro (booktabs): filetto
+        spesso sopra e sotto, sottile sotto l'intestazione, niente linee
+        verticali. La tabella occupa la larghezza del testo; le colonne se
+        la dividono in proporzione al contenuto e le celle vanno a capo.
+        Restituisce quante pagine nuove sono state aperte."""
+        nonlocal y
+        new_pages = 0
+        sz = font_size * 0.9
+        lead = leading * 0.9
+        pad = sz * 0.5
+        ncol = len(header)
+
+        def segs_of(text, head):
+            segs = _parse_inline_md(text)
+            if head:
+                segs = [(t, "bolditalic" if "italic" in st else "bold") for t, st in segs]
+            return segs
+        table = ([[segs_of(c, True) for c in header]]
+                 + [[segs_of(c, False) for c in r] for r in rows])
+        nat, least = [0.0] * ncol, [0.0] * ncol
+        for r in table:
+            for c, segs in enumerate(r):
+                nat[c] = max(nat[c], sum(seg_w(t, sz) for t, _ in segs))
+                words = [seg_w(w, sz) for t, _ in segs for w in t.split()]
+                least[c] = max(least[c], max(words, default=0.0))
+        avail = usable_w - 2 * pad * ncol
+        if sum(nat) <= avail:
+            total = sum(nat) or 1.0
+            widths = [n + (avail - sum(nat)) * n / total for n in nat]
+        else:
+            base = [min(m, avail / ncol) for m in least]
+            flex = [max(n - b, 0.0) for n, b in zip(nat, base)]
+            total = sum(flex) or 1.0
+            widths = [b + (avail - sum(base)) * f / total for b, f in zip(base, flex)]
+        col_x, x = [], left_margin
+        for w in widths:
+            col_x.append(x)
+            x += w + 2 * pad
+        x1, x2 = left_margin, left_margin + usable_w
+        first_on_page = True
+        bottom = y
+        for ri, r in enumerate(table):
+            wrapped = [wrap_segments(segs, sz, widths[c]) for c, segs in enumerate(r)]
+            n = max(len(w) for w in wrapped)
+            if y - n * lead < bottom_y and cur_lines:
+                if not first_on_page:
+                    cur_lines.append(("rule", x1, bottom, x2, 0.8))
+                flush_page()
+                new_pages += 1
+                first_on_page = True
+            if first_on_page:
+                cur_lines.append(("rule", x1, y + lead * 0.8, x2, 0.8))
+                first_on_page = False
+            for c, lines_c in enumerate(wrapped):
+                for k, run_line in enumerate(lines_c):
+                    lw = sum(seg_w(t, sz) for t, _ in run_line)
+                    shift = {"right": 1.0, "center": 0.5}.get(aligns[c], 0.0)
+                    cur_lines.append((col_x[c] + pad + (widths[c] - lw) * shift,
+                                      y - k * lead, run_line, sz))
+            bottom = y - (n - 1) * lead - lead * 0.45
+            if ri == 0:
+                cur_lines.append(("rule", x1, bottom, x2, 0.4))
+            y = bottom - lead * 0.85
+        cur_lines.append(("rule", x1, bottom, x2, 0.8))
+        y = bottom - leading
+        return new_pages
+
     pages = []                            # qui finiranno SOLO le pagine capitoli
 
     chapter_start_page = []   # numero di pagina visibile d'inizio per capitolo
@@ -2043,7 +2173,18 @@ def write_pdf(path, chapters, title="",
         # all'inizio del capitolo, la sua prima pagina e' (pagine_finora + 1)
         chapter_start_page.append(pages_so_far + 1)
         for para in paragraphs:
-            for raw_line in para.split("\n"):
+            para_lines = para.split("\n")
+            li_para = 0
+            while li_para < len(para_lines):
+                raw_line = para_lines[li_para]
+                li_para += 1
+                # EN: a Markdown table: laid out as a real table.
+                # IT: una tabella Markdown: impaginata come tabella vera.
+                tbl = table_at(para_lines, li_para - 1)
+                if tbl:
+                    pages_so_far += layout_table(*tbl[:3])
+                    li_para = tbl[3]
+                    continue
                 # EN: a line that is ONLY ![caption](name) places the
                 #     attached image, centered and scaled to the text width
                 #     (never upscaled), followed by an italic caption. If the
@@ -2210,7 +2351,19 @@ def write_pdf(path, chapters, title="",
     # mappa "F1".."F4" -> id oggetto font (per le Resources)
     font_ids = {}
 
-    def make_embedded_font(metrics, psname, italic):
+    # EN: fonts with Unicode metrics are written as Type0 / Identity-H: the
+    #     text is a sequence of glyph ids, so any character the font has can
+    #     appear (formulas, Greek, Cyrillic…). Their /W widths and ToUnicode
+    #     map list only the glyphs actually used, so they are filled in after
+    #     the pages: here we reserve the object slots.
+    # IT: i font con metriche Unicode si scrivono come Type0 / Identity-H: il
+    #     testo e' una sequenza di id di glifo, quindi puo' comparire ogni
+    #     carattere presente nel font (formule, greco, cirillico…). Larghezze
+    #     /W e mappa ToUnicode elencano solo i glifi usati, quindi si
+    #     compilano dopo le pagine: qui si prenotano gli oggetti.
+    unicode_fonts = {}            # fid -> dati del font Type0
+
+    def make_embedded_font(metrics, psname, italic, fid=None):
         ttf = metrics["data"]
         fontfile_id = add_obj(
             (f"<< /Length {len(ttf)} /Length1 {len(ttf)} >>\nstream\n").encode("latin-1")
@@ -2232,6 +2385,16 @@ def write_pdf(path, chapters, title="",
              f"/ItalicAngle {ital_angle} /Ascent {metrics['ascent']} "
              f"/Descent {metrics['descent']} /CapHeight {metrics['ascent']} "
              f"/StemV 80 /FontFile2 {fontfile_id} 0 R >>").encode("latin-1"))
+        if metrics.get("uni2gid") and fid is not None:
+            cid_id = add_obj(None)
+            tounicode_id = add_obj(None)
+            unicode_fonts[fid] = {"metrics": metrics, "used": {}, "ps": psname,
+                                  "cid": cid_id, "tounicode": tounicode_id,
+                                  "descriptor": descriptor_id}
+            return add_obj(
+                (f"<< /Type /Font /Subtype /Type0 /BaseFont /{psname} "
+                 f"/Encoding /Identity-H /DescendantFonts [{cid_id} 0 R] "
+                 f"/ToUnicode {tounicode_id} 0 R >>").encode("latin-1"))
         # Array /Widths: larghezza reale per ogni carattere se disponibile
         # (font proporzionale), altrimenti larghezza fissa (monospace).
         if wbc is not None:
@@ -2252,7 +2415,7 @@ def write_pdf(path, chapters, title="",
         for fid, style, italic in defs:
             metrics = embed_fonts.get(style) or reg   # ripiego sul regular
             psname = f"{embed_font_name}-{style}"
-            font_ids[fid] = make_embedded_font(metrics, psname, italic)
+            font_ids[fid] = make_embedded_font(metrics, psname, italic, fid)
     else:
         # font core (fallback senza incorporamento)
         font_ids["F1"] = add_obj(
@@ -2267,6 +2430,35 @@ def write_pdf(path, chapters, title="",
         font_ids["F4"] = add_obj(
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Times-BoldItalic "
             b"/Encoding /WinAnsiEncoding >>")
+
+    def show_text(fid, text, tw=0.0, size=None):
+        """Operatore che mostra 'text' con il font 'fid'. Font Type0: id di
+        glifo a due byte; i caratteri assenti dal font diventano "?". Lo
+        spazio-parola Tw non vale per le codifiche a due byte, quindi con la
+        giustificazione ogni spazio riceve un aggiustamento esplicito in TJ."""
+        info = unicode_fonts.get(fid)
+        if info is None:
+            return b"(" + _pdf_escape_bytes(_to_winansi(text)) + b") Tj"
+        u2g = info["metrics"]["uni2gid"]
+        used = info["used"]
+        q_gid = u2g.get(ord("?"), 0)
+        adj = -tw * 1000.0 / size if tw and size else 0.0
+        chunks, cur = [], []
+        for ch in text:
+            gid = u2g.get(ord(ch))
+            if gid is None:
+                gid, ch = q_gid, "?"
+            used.setdefault(gid, ch)
+            cur.append(f"{gid:04X}")
+            if adj and ch == " ":
+                chunks.append("<" + "".join(cur) + ">")
+                chunks.append(f"{adj:.2f}")
+                cur = []
+        if cur:
+            chunks.append("<" + "".join(cur) + ">")
+        if adj:
+            return ("[" + " ".join(chunks) + "] TJ").encode("latin-1")
+        return ("".join(chunks) + " Tj").encode("latin-1")
 
     pages_obj_id = len(objects) + 1
     objects.append(None)
@@ -2338,6 +2530,13 @@ def write_pdf(path, chapters, title="",
         page_xobjects = {}
         text_lines = []
         for entry in lines:
+            if entry and entry[0] == "rule":
+                # EN/IT: table rule / filetto di tabella: (x1, y, x2, spessore)
+                _tag, rx1, ry, rx2, rw = entry
+                parts.append(f"q {rw:.2f} w 0.2 0.2 0.2 RG {rx1 + page_shift:.2f} "
+                             f"{ry:.2f} m {rx2 + page_shift:.2f} {ry:.2f} l S Q"
+                             .encode("latin-1"))
+                continue
             if entry and entry[0] == "img":
                 _tag, iname, ix, iy, dw, dh = entry
                 oid = image_obj_ids.get(iname)
@@ -2405,7 +2604,7 @@ def write_pdf(path, chapters, title="",
                 if fid != cur_fid or sz != cur_size:
                     parts.append(f"/{fid} {sz:.1f} Tf".encode("latin-1"))
                     cur_fid, cur_size = fid, sz
-                parts.append(b"(" + _pdf_escape_bytes(_to_winansi(text)) + b") Tj")
+                parts.append(show_text(fid, text, tw, sz))
         # ripristina lo spazio-parola normale prima di intestazione/numero
         if cur_tw != 0.0:
             parts.append(b"0 Tw")
@@ -2424,7 +2623,7 @@ def write_pdf(path, chapters, title="",
                 parts.append(b"ET BT")
                 parts.append(b"/F1 10 Tf")
                 parts.append(f"1 0 0 1 {hx:.2f} {hy:.2f} Tm".encode("latin-1"))
-                parts.append(b"(" + _pdf_escape_bytes(_to_winansi(head_txt)) + b") Tj")
+                parts.append(show_text("F1", head_txt))
                 cur_fid = cur_size = None
             label = str(visible_number)
             lw = seg_w(label, 10)
@@ -2433,7 +2632,7 @@ def write_pdf(path, chapters, title="",
             parts.append(b"ET BT")
             parts.append(b"/F1 10 Tf")
             parts.append(f"1 0 0 1 {nx:.2f} {ny:.2f} Tm".encode("latin-1"))
-            parts.append(b"(" + _pdf_escape_bytes(_to_winansi(label)) + b") Tj")
+            parts.append(show_text("F1", label))
         parts.append(b"ET")
         stream = b"\n".join(parts)
         body = (f"<< /Length {len(stream)} >>\nstream\n".encode("latin-1")
@@ -2480,9 +2679,8 @@ def write_pdf(path, chapters, title="",
             nxt = f"/Next {voce_ids[k + 1]} 0 R " if k < len(voci) - 1 else ""
             # /XYZ 0 altezza 0 = apri la pagina in cima, senza cambiare lo zoom
             objects[voce_ids[k] - 1] = (
-                b"<< /Title ("
-                + _pdf_escape_bytes(_to_winansi(titolo))
-                + f") /Parent {outlines_id} 0 R {prev}{nxt}"
+                b"<< /Title " + _pdf_text_string(titolo)
+                + f" /Parent {outlines_id} 0 R {prev}{nxt}"
                   f"/Dest [{pid} 0 R /XYZ 0 {page_h:.0f} 0] >>".encode("latin-1"))
         objects[outlines_id - 1] = (
             f"<< /Type /Outlines /First {voce_ids[0]} 0 R "
@@ -2496,6 +2694,37 @@ def write_pdf(path, chapters, title="",
     catalog_id = add_obj(
         (f"<< /Type /Catalog /Pages {pages_obj_id} 0 R "
          f"{extra_cat}>>").encode("latin-1"))
+
+    # EN: Type0 fonts: widths and ToUnicode map of the glyphs used.
+    # IT: font Type0: larghezze e mappa ToUnicode dei glifi usati.
+    for info in unicode_fonts.values():
+        m = info["metrics"]
+        dw = m.get("advance1000", 500)
+        used = sorted(info["used"].items())
+        w_arr = " ".join(f"{gid} [{m['uni_widths'].get(ord(ch), dw)}]"
+                         for gid, ch in used)
+        objects[info["cid"] - 1] = (
+            f"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /{info['ps']} "
+            f"/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) "
+            f"/Supplement 0 >> /FontDescriptor {info['descriptor']} 0 R "
+            f"/DW {dw} /W [{w_arr}] /CIDToGIDMap /Identity >>").encode("latin-1")
+        lines_tu = []
+        for k in range(0, len(used), 100):
+            part = used[k:k + 100]
+            lines_tu.append(f"{len(part)} beginbfchar")
+            lines_tu += [f"<{gid:04X}> <{ch.encode('utf-16-be').hex().upper()}>"
+                         for gid, ch in part]
+            lines_tu.append("endbfchar")
+        cmap = ("/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n"
+                "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n"
+                "/CMapName /Adobe-Identity-UCS def\n/CMapType 2 def\n"
+                "1 begincodespacerange\n<0000> <FFFF>\nendcodespacerange\n"
+                + "\n".join(lines_tu)
+                + "\nendcmap\nCMapName currentdict /CMap defineresource pop\nend\nend")
+        cmap_b = cmap.encode("latin-1")
+        objects[info["tounicode"] - 1] = (
+            f"<< /Length {len(cmap_b)} >>\nstream\n".encode("latin-1")
+            + cmap_b + b"\nendstream")
 
     # 3) serializza con tabella xref
     out = bytearray()
@@ -3575,7 +3804,7 @@ class Project:
                 body = "\n".join(
                     f"[{(m.group('alt') or m.group('src')).strip()}]"
                     if (m := _IMG_LINE_RE.match(ln.strip())) else ln
-                    for ln in ch.text.split("\n"))
+                    for ln in _tables_to_text(render_math(ch.text)).split("\n"))
                 out.write(body.rstrip("\n"))
                 out.write("\n")
             colo = self._colophon_paragraphs()
@@ -3800,10 +4029,59 @@ class Project:
                 for ln in colo:
                     out.write(f"*{ln}*\n\n")
 
+    # EN: table styles for the ODT export, book style like the PDF: thick
+    #     rule above the header and below the last row, thin under the header.
+    # IT: stili delle tabelle dell'export ODT, in stile libro come il PDF:
+    #     filetto spesso sopra l'intestazione e sotto l'ultima riga, sottile
+    #     sotto l'intestazione.
+    _ODT_TABLE_STYLES = (
+        '<style:style style:name="RwTable" style:family="table">'
+        '<style:table-properties table:align="margins" table:border-model="collapsing" '
+        'fo:margin-top="0.3cm" '
+        'fo:margin-bottom="0.3cm"/></style:style>\n'
+        '<style:style style:name="RwCellHead" style:family="table-cell">'
+        '<style:table-cell-properties fo:padding="0.1cm" '
+        'fo:border-top="0.05cm solid #333333" fo:border-bottom="0.02cm solid #333333" '
+        'fo:border-left="none" fo:border-right="none"/></style:style>\n'
+        '<style:style style:name="RwCell" style:family="table-cell">'
+        '<style:table-cell-properties fo:padding="0.1cm" fo:border="none"/></style:style>\n'
+        '<style:style style:name="RwCellLast" style:family="table-cell">'
+        '<style:table-cell-properties fo:padding="0.1cm" fo:border-top="none" '
+        'fo:border-bottom="0.05cm solid #333333" fo:border-left="none" '
+        'fo:border-right="none"/></style:style>\n'
+        + "".join(
+            f'<style:style style:name="RwP{k}{a[0].upper()}" style:family="paragraph">'
+            f'<style:paragraph-properties fo:text-align="{ {"left": "start", "right": "end"}.get(a, a)}"/>'
+            + ('<style:text-properties fo:font-weight="bold"/>' if k == "H" else "")
+            + '</style:style>\n'
+            for k in ("H", "B") for a in ("left", "center", "right")))
+
+    def _odt_table(self, content, n):
+        """EN: A Markdown table as a native ODT table (editable in Writer).
+        IT: Una tabella Markdown come tabella ODT nativa (modificabile in
+        Writer)."""
+        from xml.sax.saxutils import escape
+        aligns, header, rows = content
+        ncol = len(header)
+
+        def row(values, cell_style, kind):
+            cells = "".join(
+                f'<table:table-cell table:style-name="{cell_style}" office:value-type="string">'
+                f'<text:p text:style-name="RwP{kind}{a[0].upper()}">{escape(v)}</text:p>'
+                '</table:table-cell>' for a, v in zip(aligns, values))
+            return f"<table:table-row>{cells}</table:table-row>"
+        body_rows = "".join(row(r, "RwCellLast" if k == len(rows) - 1 else "RwCell", "B")
+                            for k, r in enumerate(rows))
+        return (f'<table:table table:name="Tabella{n}" table:style-name="RwTable">'
+                f'<table:table-column table:number-columns-repeated="{ncol}"/>'
+                f'<table:table-header-rows>{row(header, "RwCellHead", "H")}'
+                f'</table:table-header-rows>{body_rows}</table:table>')
+
     def _doc_blocks(self, text):
         """EN: Turn a chapter's Markdown into a list of (kind, content)
         blocks shared by the ODT and DOCX exports. Kinds: h1/h2/h3, bullet,
-        quote, p, and image (content = (caption, internal_name)). Inline
+        quote, p, image (content = (caption, internal_name)) and table
+        (content = (alignments, header, rows)). Inline
         formatting is stripped (plain text) to stay simple and robust.
         IT: Trasforma il markdown di un capitolo in una lista di blocchi
         (tipo, contenuto) usata sia da ODT sia da DOCX. Tipi: h1/h2/h3,
@@ -3811,7 +4089,18 @@ class Project:
         La formattazione inline viene rimossa (testo piano) per restare
         semplice e robusta."""
         blocks = []
-        for raw in text.split("\n"):
+        lines = render_math(text).split("\n")
+        i = 0
+        while i < len(lines):
+            raw = lines[i]
+            tbl = table_at(lines, i)
+            if tbl:
+                # EN/IT: ("table", (alignments, header, rows)), plain cells
+                aligns, header, rows, i = tbl
+                blocks.append(("table", (aligns, [_strip_inline_md(c) for c in header],
+                                         [[_strip_inline_md(c) for c in r] for r in rows])))
+                continue
+            i += 1
             kind, body, extra = classify_md_line(raw)
             if kind == "blank":
                 continue
@@ -3876,12 +4165,28 @@ class Project:
                 parts.append(f"{open_t}{esc(seg)}{close_t}")
             return "".join(parts)
 
+        def table_html(aligns, header, rows):
+            def cells(tag, values):
+                out_c = []
+                for a, v in zip(aligns, values):
+                    style = "" if a == "left" else f' style="text-align:{a}"'
+                    out_c.append(f"<{tag}{style}>{inline(v)}</{tag}>")
+                return "".join(out_c)
+            body_rows = "".join(f"<tr>{cells('td', r)}</tr>" for r in rows)
+            return (f"<table><thead><tr>{cells('th', header)}</tr></thead>"
+                    f"<tbody>{body_rows}</tbody></table>")
+
         out = []
-        lines = text.split("\n")
+        lines = render_math(text).split("\n")
         kinds = [classify_md_line(ln) for ln in lines]
         i = 0
         while i < len(lines):
             kind, body, extra = kinds[i]
+            tbl = table_at(lines, i)
+            if tbl:
+                out.append(table_html(*tbl[:3]))
+                i = tbl[3]
+                continue
             if kind == "blank":
                 i += 1
                 continue
@@ -3914,7 +4219,8 @@ class Project:
                 #     a ogni inizio blocco (titolo, elenco, citazione,
                 #     immagine allegata).
                 buf = []
-                while i < len(lines) and kinds[i][0] == "text":
+                while (i < len(lines) and kinds[i][0] == "text"
+                       and not (buf and table_at(lines, i))):
                     buf.append(inline(kinds[i][1]))
                     i += 1
                 out.append("<p>" + "<br/>".join(buf) + "</p>")
@@ -3948,6 +4254,11 @@ class Project:
         "nav.toc a{color:#5C2A55;text-decoration:none;}"
         "nav.toc a:hover{text-decoration:underline;}"
         "code{background:#f0e6ee;padding:0 0.2em;border-radius:3px;}"
+        # EN/IT: tables in book style / tabelle in stile libro
+        "table{border-collapse:collapse;width:100%;margin:1.5em 0;font-size:0.95em;"
+        "border-top:2px solid #333;border-bottom:2px solid #333;}"
+        "th,td{padding:0.35em 0.6em;text-align:left;vertical-align:top;}"
+        "thead th{border-bottom:1px solid #333;}"
         ".chapter-nav{margin-top:3em;border-top:1px solid #d9b8d4;"
         "padding-top:1em;font-size:0.9em;}"
     )
@@ -4222,6 +4533,9 @@ class Project:
                         body.append(f'<text:p text:style-name="Caption">'
                                     f'{escape(alt)}</text:p>')
                     continue
+                if kind == "table":
+                    body.append(self._odt_table(content, len(body)))
+                    continue
                 c = escape(content)
                 if kind.startswith("h"):
                     lvl = kind[1]
@@ -4250,8 +4564,10 @@ class Project:
             'xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" '
             'xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" '
             'xmlns:xlink="http://www.w3.org/1999/xlink" '
+            'xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" '
             'office:version="1.2">\n'
             '<office:automatic-styles>\n'
+            + self._ODT_TABLE_STYLES +
             '<style:style style:name="Title" style:family="paragraph">'
             '<style:paragraph-properties fo:text-align="center"/>'
             '<style:text-properties fo:font-size="24pt" fo:font-weight="bold" '
@@ -4376,6 +4692,39 @@ class Project:
             return (f'<w:p>{ppr_xml}<w:r>{rpr_xml}'
                     f'<w:t xml:space="preserve">{escape(text)}</w:t></w:r></w:p>')
 
+        def docx_table(content):
+            """EN: A Markdown table as a native Word table, book style:
+            thick rules above and below, thin under the header row (which
+            repeats on every page).
+            IT: Una tabella Markdown come tabella Word nativa, in stile
+            libro: filetti spessi sopra e sotto, sottile sotto la riga di
+            intestazione (che si ripete a ogni pagina)."""
+            aligns, header, rows = content
+            ncol = len(header)
+            rule = '<w:{0} w:val="single" w:sz="{1}" w:space="0" w:color="333333"/>'
+
+            def cell(text, align, bold, bottom=None):
+                tcpr = (f'<w:tcPr><w:tcBorders>{rule.format("bottom", bottom)}'
+                        '</w:tcBorders></w:tcPr>' if bottom else "")
+                rpr = "<w:rPr><w:b/></w:rPr>" if bold else ""
+                return (f'<w:tc>{tcpr}<w:p><w:pPr><w:jc w:val="{align}"/></w:pPr>'
+                        f'<w:r>{rpr}<w:t xml:space="preserve">{escape(text)}</w:t></w:r>'
+                        '</w:p></w:tc>')
+            head = ('<w:tr><w:trPr><w:tblHeader/></w:trPr>'
+                    + "".join(cell(v, a, True, 6) for a, v in zip(aligns, header))
+                    + "</w:tr>")
+            body_rows = "".join(
+                "<w:tr>" + "".join(cell(v, a, False) for a, v in zip(aligns, r)) + "</w:tr>"
+                for r in rows)
+            grid = "".join(f'<w:gridCol w:w="{9000 // ncol}"/>' for _ in range(ncol))
+            return ('<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/>'
+                    f'<w:tblBorders>{rule.format("top", 12)}{rule.format("bottom", 12)}'
+                    '</w:tblBorders><w:tblCellMar><w:top w:w="40" w:type="dxa"/>'
+                    '<w:left w:w="100" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/>'
+                    '<w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr>'
+                    f'<w:tblGrid>{grid}</w:tblGrid>{head}{body_rows}</w:tbl>'
+                    + para(""))
+
         # EN: pictures shipped inside word/media/: (relationship id,
         #     file name, bytes). Word cannot display WebP, so WebP data is
         #     converted to JPEG with Pillow when possible; if the conversion
@@ -4483,6 +4832,9 @@ class Project:
                     if alt.strip():
                         paras.append(para(alt, size=10, align="center",
                                           color="666666"))
+                    continue
+                if kind == "table":
+                    paras.append(docx_table(content))
                     continue
                 if kind == "h1":
                     paras.append(para(content, bold=True, size=18, color="5C2A55"))
@@ -4638,7 +4990,7 @@ class Project:
         chapter_titles = []
         n = 0
         for ch in self.chapters:
-            text = ch.text.rstrip("\n")
+            text = render_math(ch.text).rstrip("\n")
             paras = list(text.split("\n\n")) if text else [""]
             if ch.is_cover:
                 # la copertina grafica ora si costruisce dai CAMPI del
@@ -4925,7 +5277,12 @@ class Project:
                "nav.toc ol{list-style:none;padding-left:0;}"
                "nav.toc li{margin:0.4em 0;}"
                "nav.toc a{color:#5C2A55;text-decoration:none;}"
-               "code{font-family:monospace;}")
+               "code{font-family:monospace;}"
+               # EN/IT: tables in book style / tabelle in stile libro
+               "table{border-collapse:collapse;width:100%;margin:1.5em 0;font-size:0.95em;"
+               "border-top:2px solid #333;border-bottom:2px solid #333;}"
+               "th,td{padding:0.35em 0.6em;text-align:left;vertical-align:top;}"
+               "thead th{border-bottom:1px solid #333;}")
 
         # --- immagine di copertina (SVG, sobria come il PDF) --------------
         cl = cover_lines or [title]

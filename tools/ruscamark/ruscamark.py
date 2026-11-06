@@ -3339,8 +3339,12 @@ class RuscaWindow(Adw.ApplicationWindow):
                 markup = f"<b>{cell}</b>" if r == 0 else cell
                 label = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True, hexpand=True, valign=Gtk.Align.START,
-                                  max_width_chars=8, margin_start=12, margin_end=12,
+                                  margin_start=12, margin_end=12,
                                   margin_top=8, margin_bottom=8)
+                # larghezza naturale = contenuto (al massimo 50 caratteri):
+                # le colonne si dividono lo spazio in proporzione al testo
+                label.set_max_width_chars(
+                    min(max(len(re.sub(r"<[^>]+>", "", markup)), 4), 50))
                 label.set_xalign(xalign.get(aligns[ci] if ci < len(aligns) else None, 0.0))
                 try:
                     Pango.parse_markup(markup, -1, "\0")

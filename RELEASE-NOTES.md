@@ -33,7 +33,9 @@
 - **RuscaWriter joins the in-house tools.** The book-writing program
   (chapters, notes, Markdown, typesetting and export to PDF, EPUB, ODT,
   DOCX…) now has the same GNOME look as the other tools, page themes with
-  verified contrast, and opens `.rwr` projects with a double click.
+  verified contrast, and opens `.rwr` projects with a double click. Tables
+  and formulas appear in the preview and in every export, and the PDF prints
+  Greek, Cyrillic and every other script the chosen font contains.
 - **26 languages everywhere.** All in-house tools follow the system language
   and are translated into the same 26 languages, now including Traditional
   Chinese and European Portuguese.

@@ -12,11 +12,21 @@ Blocchi restituiti da parse_blocks():
 
 Le formule LaTeX diventano testo Unicode (², ≈, √, α, ⁄ …) con <sup>/<sub>
 di Pango dove Unicode non basta: nessuna dipendenza in più.
+
+Per chi non usa Pango (RuscaWriter: PDF, EPUB, ODT, DOCX, testo):
+    latex_to_text(formula)   formula -> testo Unicode senza markup
+    math_to_text(markdown)   sostituisce le formule $…$, $$…$$, \\(…\\), \\[…\\]
+                             in un testo Markdown, fuori dal codice
+    table_at(righe, i)       tabella che comincia alla riga i, o None
+
+File identico in RuscaLLama, RuscaMark e RuscaWriter: si modifica una volta e
+si copia.
 """
 
 import re
 
-__all__ = ["parse_blocks", "inline_to_pango", "latex_to_pango", "escape", "plain_text"]
+__all__ = ["parse_blocks", "inline_to_pango", "latex_to_pango", "escape", "plain_text",
+           "latex_to_text", "math_to_text", "table_at"]
 
 
 def escape(s):
@@ -226,6 +236,11 @@ class _Latex:
             self._group_src()                       # nome dell'ambiente
             return ""
         if name in _SYMBOLS:
+            # Come in LaTeX, lo spazio dopo una lettera greca non conta:
+            # \Delta E è «ΔE».
+            if name[0].isalpha() and _SYMBOLS[name].isalpha():
+                while self.s[self.i:self.i + 1] == " ":
+                    self.i += 1
             return _SYMBOLS[name]
         return escape(name)                         # \sin, \log, \max …
 
@@ -236,6 +251,93 @@ def latex_to_pango(src):
         return _Latex(src.strip()).run().strip()
     except Exception:                               # mai far sparire il testo
         return escape(src)
+
+
+def latex_to_text(src):
+    """Formula LaTeX -> testo Unicode semplice, per i formati senza markup.
+
+    Apici e pedici usano i caratteri Unicode (², ₀) quando esistono per tutti
+    i caratteri, altrimenti si scrivono ^(…) e _(…)."""
+    markup = latex_to_pango(src)
+
+    def script(m):
+        tag, body = m.group(1), plain_text(m.group(2))
+        table = _SUP if tag == "sup" else _SUB
+        if body and all(c in table for c in body):
+            return "".join(table[c] for c in body)
+        mark = "^" if tag == "sup" else "_"
+        return f"{mark}{body}" if len(body) == 1 else f"{mark}({body})"
+    for _ in range(3):                              # apici annidati
+        markup = re.sub(r"<(sup|sub)>((?:(?!<(?:sup|sub)>).)*?)</\1>", script, markup)
+    # Spazi sottili come spazi normali: non tutti i caratteri tipografici dei
+    # libri hanno il glifo, e «299 792 458» resta leggibile.
+    text = plain_text(markup).replace("\u2009", " ")
+    return re.sub(r"[ \u00a0]{2,}", " ", text).strip()
+
+
+_RE_FENCE_LINE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
+_RE_TEXT_MATH = re.compile(
+    r"\$\$(.+?)\$\$|\\\((.+?)\\\)"
+    r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])")
+
+
+def math_to_text(text):
+    """Sostituisce le formule di un testo Markdown con testo Unicode.
+
+    Una formula su riga propria ($$…$$ o \\[…\\], anche su più righe) diventa
+    una riga a sé; quelle nella frase restano nella frase. Blocchi e frammenti
+    di codice restano intatti."""
+    lines = text.split("\n")
+    out, i, fence = [], 0, None
+    while i < len(lines):
+        line = lines[i]
+        f = _RE_FENCE_LINE.match(line)
+        if fence:
+            out.append(line)
+            if f and f.group(1)[0] == fence[0] and len(f.group(1)) >= len(fence):
+                fence = None
+            i += 1
+            continue
+        if f:
+            fence = f.group(1)
+            out.append(line)
+            i += 1
+            continue
+        block = _display_math(lines, i)
+        if block:
+            indent = line[:len(line) - len(line.lstrip())]
+            out.append(indent + latex_to_text(block[0]))
+            i = block[1]
+            continue
+        # Il codice in linea si mette da parte prima: un $ dentro `…` non
+        # deve aprire una formula.
+        keep = []
+
+        def stash(m):
+            keep.append(m.group(0))
+            return f"\x00{len(keep) - 1}\x00"
+        line = _RE_CODE_SPAN.sub(stash, line)
+        line = _RE_TEXT_MATH.sub(
+            lambda m: latex_to_text(m.group(1) or m.group(2) or m.group(3)), line)
+        out.append(re.sub(r"\x00(\d+)\x00", lambda m: keep[int(m.group(1))], line))
+        i += 1
+    return "\n".join(out)
+
+
+def table_at(lines, i):
+    """Tabella Markdown che comincia alla riga i: (allineamenti, intestazione,
+    righe, indice della riga dopo la tabella), celle come testo Markdown.
+    None se lì non comincia una tabella."""
+    if not _is_table(lines, i):
+        return None
+    header = _split_row(lines[i])
+    ncol = len(header)
+    aligns = (_aligns(lines[i + 1]) + ["left"] * ncol)[:ncol]
+    rows, j = [], i + 2
+    while j < len(lines) and lines[j].strip() and "|" in lines[j]:
+        rows.append((_split_row(lines[j]) + [""] * ncol)[:ncol])
+        j += 1
+    return aligns, header, rows, j
 
 
 # ── Testo in linea ──────────────────────────────────────────────────────────

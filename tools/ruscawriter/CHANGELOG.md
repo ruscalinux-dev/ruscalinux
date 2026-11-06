@@ -45,6 +45,14 @@ repository (`tools/ruscawriter`) and follows its specifications.
 - **Added** — `.rwr` projects open with a double click, or as `ruscawriter file.rwr`
 - **Changed** — the package is `ruscawriter`, architecture `all`; it replaces
   `ruscawriter-ruscalinux`
+- **Added** — Markdown tables in the preview and in every export: book-style
+  rules in the PDF, real tables in HTML, EPUB and AZW3, native tables in ODT
+  and DOCX, aligned columns in plain text
+- **Added** — formulas (`$E = mc^2$`, `$$…$$`) appear as readable symbols
+  (E = mc², ≈, √, α) in the preview and in every export except Markdown,
+  which keeps the LaTeX source
+- **Fixed** — the PDF uses Unicode fonts: Greek, Cyrillic and every other
+  character in the chosen font are printed, instead of becoming "?"
 
 ---
 

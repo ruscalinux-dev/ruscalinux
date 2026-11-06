@@ -497,7 +497,9 @@ class Message(Gtk.Box):
                 label.set_xalign(xalign.get(aligns[c], 0.0))
                 label.set_valign(Gtk.Align.START)
                 label.set_hexpand(True)
-                label.set_max_width_chars(36)
+                # larghezza naturale = contenuto (al massimo 50 caratteri):
+                # le colonne si dividono lo spazio in proporzione al testo
+                label.set_max_width_chars(min(max(len(md.plain_text(cell)), 4), 50))
                 label.set_margin_start(12)
                 label.set_margin_end(12)
                 label.set_margin_top(8)

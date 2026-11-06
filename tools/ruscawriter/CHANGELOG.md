@@ -49,8 +49,8 @@ repository (`tools/ruscawriter`) and follows its specifications.
   rules in the PDF, real tables in HTML, EPUB and AZW3, native tables in ODT
   and DOCX, aligned columns in plain text
 - **Added** — the preview shows the pictures, not only their captions
-- **Changed** — the preview button is a toggle: an eye while writing, a
-  pressed pencil ("Back to editing") in the preview, where the subtitle says
+- **Changed** — the preview button is a toggle: the eye stays pressed while
+  the preview is shown (tooltip "Back to editing"), and the subtitle says
   "Preview" too
 - **Added** — importing a Markdown file copies the pictures it cites from
   next to it into the project; a picture missing from the project shows a

@@ -2147,10 +2147,11 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 header.pack_end(self.menu_button)
                 continue
             if action == "win.preview":
-                # EN: a toggle: pressed and with a pencil while the preview is
-                #     shown, so the mode is always visible.
-                # IT: un interruttore: premuto e con la matita mentre è
-                #     mostrata l'anteprima, così la modalità si vede sempre.
+                # EN: a toggle: pressed while the preview is shown, so the
+                #     mode is always visible (same icon, as in GNOME).
+                # IT: un interruttore: premuto mentre è mostrata l'anteprima,
+                #     così la modalità si vede sempre (stessa icona, come in
+                #     GNOME).
                 b = Gtk.ToggleButton(icon_name=icon)
                 b.connect("toggled", self._on_preview_button)
                 self.preview_button = b
@@ -4732,12 +4733,12 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             self._toggle_preview(whole=False)
 
     def _sync_preview_button(self):
-        """EN: The preview button shows the mode: eye = writing (click to see
-        the preview), pressed pencil = preview (click to go back to writing).
-        The subtitle says "Preview" too.
-        IT: Il pulsante dell'anteprima mostra la modalità: occhio = scrittura
-        (clic per vedere l'anteprima), matita premuta = anteprima (clic per
-        tornare a scrivere). Anche il sottotitolo dice «Anteprima»."""
+        """EN: The preview button shows the mode: released eye = writing,
+        pressed eye = preview; the tooltip says what a click does and the
+        subtitle says "Preview" too.
+        IT: Il pulsante dell'anteprima mostra la modalità: occhio normale =
+        scrittura, occhio premuto = anteprima; il suggerimento dice cosa fa
+        il clic e anche il sottotitolo dice «Anteprima»."""
         b = getattr(self, "preview_button", None)
         if b is None:
             return
@@ -4745,7 +4746,6 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._syncing_preview = True
         b.set_active(on)
         self._syncing_preview = False
-        b.set_icon_name("document-edit-symbolic" if on else "view-reveal-symbolic")
         tip = self.t("mi_edit_mode") if on else self.t("mi_preview")
         b.set_tooltip_text(tip)
         b.update_property([Gtk.AccessibleProperty.LABEL], [tip])

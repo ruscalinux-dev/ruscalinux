@@ -91,7 +91,28 @@ DEFAULTS = {
     "model": "", "gpu": False, "gpu_device": "", "threads": engine.physical_cores(),
     "context": 8192, "rag": True, "domain": "generale", "src": "auto",
     "tgt": "en", "font_size": 0, "width": 1200, "height": 800, "maximized": False,
+    "theme": "system",
 }
+THEMES = ("system", "light", "dark")         # ordine delle voci nel menu
+
+
+def set_source_scheme(buf):
+    """Schema dei colori del testo: Adwaita o Adwaita-dark secondo il tema.
+    Senza, GtkSourceView usa «classic», bianco anche in modalità scura."""
+    if GtkSource is None or not isinstance(buf, GtkSource.Buffer):
+        return
+    scheme = GtkSource.StyleSchemeManager.get_default().get_scheme(
+        "Adwaita-dark" if Adw.StyleManager.get_default().get_dark() else "Adwaita")
+    if scheme:
+        buf.set_style_scheme(scheme)
+
+
+def apply_color_scheme(theme):
+    """Tema chiaro/scuro: segue GNOME (predefinito) o è scelto dall'utente."""
+    Adw.StyleManager.get_default().set_color_scheme({
+        "light": Adw.ColorScheme.FORCE_LIGHT,
+        "dark": Adw.ColorScheme.FORCE_DARK,
+    }.get(theme, Adw.ColorScheme.DEFAULT))
 
 # Rilevamento delle lingue in alfabeto latino: parole frequenti e lettere
 # tipiche. "pt" e' il portoghese comune; la variante si sceglie dopo
@@ -644,6 +665,7 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
             lang = GtkSource.LanguageManager.get_default().get_language("markdown")
             if lang:
                 buf.set_language(lang)
+            set_source_scheme(buf)
             view = GtkSource.View(buffer=buf)
         else:
             buf = Gtk.TextBuffer()
@@ -1024,9 +1046,15 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
     # ── preferenze ────────────────────────────────────────────────────────
     def show_preferences(self):
         page = Adw.PreferencesPage()
-        text = Adw.PreferencesGroup(title=_("group_text"))
-        text.add(self.font_size_row())
-        page.add(text)
+        look = Adw.PreferencesGroup(title=_("group_look"))
+        theme_row = Adw.ComboRow(title=_("theme"), model=Gtk.StringList.new(
+            [_(f"theme_{t}") for t in THEMES]))
+        theme = self.cfg.get("theme", "system")
+        theme_row.set_selected(THEMES.index(theme) if theme in THEMES else 0)
+        theme_row.connect("notify::selected", self._on_theme)
+        look.add(theme_row)
+        look.add(self.font_size_row())
+        page.add(look)
         group = Adw.PreferencesGroup(title=_("group_model"))
         self.models = engine.find_models()
         if self.cfg["model"] and self.cfg["model"] not in self.models:
@@ -1098,6 +1126,10 @@ class TranslatorWindow(FontSizeMixin, Adw.ApplicationWindow):
             fd.open(self, None, done)
         choose.connect("activated", choose_file)
         dialog.present(self)
+
+    def _on_theme(self, row, _pspec):
+        self._set("theme", THEMES[row.get_selected()])
+        apply_color_scheme(self.cfg["theme"])
 
     def _set(self, key, value):
         self.cfg[key] = value
@@ -1225,6 +1257,9 @@ class TranslatorApp(Adw.Application):
             provider.load_from_path(STYLE_SRC)
             Gtk.StyleContext.add_provider_for_display(
                 Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        # Tema scelto nelle preferenze (predefinito: segue il sistema), applicato
+        # prima della finestra per non mostrarla nel tema sbagliato.
+        apply_color_scheme(load_settings().get("theme", "system"))
         Adw.StyleManager.get_default().connect("notify::dark", lambda *_a: self.update_theme())
         self.connect("window-added", lambda *_a: self.update_theme())
         quit_action = Gio.SimpleAction.new("quit", None)
@@ -1247,6 +1282,8 @@ class TranslatorApp(Adw.Application):
         for window in self.get_windows():
             window.remove_css_class("rusca-light" if dark else "rusca-dark")
             window.add_css_class("rusca-dark" if dark else "rusca-light")
+            for buf in (getattr(window, "src_buf", None), getattr(window, "dst_buf", None)):
+                set_source_scheme(buf)
 
     def do_activate(self):
         (self.props.active_window or TranslatorWindow(self)).present()

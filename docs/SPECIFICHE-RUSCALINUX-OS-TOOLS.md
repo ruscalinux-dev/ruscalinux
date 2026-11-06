@@ -67,6 +67,7 @@ RuscaLLama e RuscaTranslator usano modelli linguistici in formato GGUF che giran
 - Il pacchetto del motore non ha interfaccia, quindi non ha traduzioni, icona né finestra Informazioni: lo dichiarano le finestre Informazioni di RuscaLLama e RuscaTranslator, nel gruppo “Componenti esterni”.
 - I modelli non fanno parte dei pacchetti: l’utente li copia in `~/.local/share/ruscallama/models/` o l’amministratore in `/usr/share/ruscallama/models/`. Ogni modello ha la propria licenza, che l’utente deve rispettare.
 - Il modulo `rusca_engine.py`, che avvia e interroga il motore, è identico nei due programmi, come `style.css` (si modifica una volta e si copia).
+- Il modulo `rusca_markdown.py` (Markdown e formule LaTeX in markup Pango, senza GTK) è identico in RuscaLLama e RuscaMark, con la stessa regola.
 
 Gli identificatori di ogni tool devono coincidere tra loro (vedi sezione 5.2).
 

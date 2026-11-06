@@ -33,6 +33,13 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Gdk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gtk, Gdk, Gio, GLib, Pango, GdkPixbuf
+
+# Formule LaTeX -> simboli Unicode (E = mc², ≈, √…): modulo comune con
+# RuscaLLama, identico nei due programmi (si modifica una volta e si copia).
+try:
+    from rusca_markdown import latex_to_pango, plain_text as _pango_plain
+except ImportError:                          # modulo mancante: formule come testo
+    latex_to_pango = _pango_plain = None
 # Export PDF: GtkPrintOperation + PangoCairo (pacchetto python3-gi-cairo).
 try:
     gi.require_foreign("cairo")
@@ -1066,6 +1073,20 @@ class MarkdownDoc:
                             f'foreground="{c["code_fg"]}">{html.escape(body)}</span>')
             return keep(body)
         text = re.sub(r"(`+)(.+?)(?<!`)\1(?!`)", code, text)
+
+        def math(m):
+            markup = latex_to_pango(m.group(1) or m.group(2) or m.group(3))
+            if mode == "plain":
+                return keep(_pango_plain(markup))
+            if m.group(1) is not None:           # $$…$$: formula in evidenza
+                markup = (f'<span size="large">{markup}</span>' if mode == "pango"
+                          else f'<span style="font-size: 1.2em">{markup}</span>')
+            return keep(markup)
+        if latex_to_pango is not None:
+            # $$…$$, \(…\) e $…$ (ma non «$5 e $10»), prima delle sequenze
+            # con barra rovesciata, perché il LaTeX ne è pieno.
+            text = re.sub(r"\$\$([\s\S]+?)\$\$|\\\((.+?)\\\)"
+                          r"|(?<![\\$\w])\$(?=\S)([^$\n]+?)(?<=\S)\$(?![\d$])", math, text)
         text = re.sub(r"\\([\\`*_{}\[\]()#+\-.!|~>=<^])", lambda m: keep(esc(m.group(1))), text)
 
         def link_out(label_markup, url, title=None):

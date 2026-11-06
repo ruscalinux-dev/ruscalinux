@@ -119,6 +119,7 @@ mkdir -p "${ROOT}/DEBIAN" \
 
 # ---- programma + lanciatore --------------------------------------------------
 install -m 755 ruscamark.py "${ROOT}/usr/share/${APP}/ruscamark.py"
+install -m 644 rusca_markdown.py "${ROOT}/usr/share/${APP}/rusca_markdown.py"
 # Tema comune e icona accanto al programma (li cerca in /usr/share/ruscamark).
 install -m 644 style.css "${ROOT}/usr/share/${APP}/style.css"
 install -m 644 ruscamark.svg "${ROOT}/usr/share/${APP}/ruscamark.svg"

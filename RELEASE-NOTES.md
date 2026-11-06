@@ -16,7 +16,8 @@
 
 - **RuscaMark**, a new Markdown editor: formatting appears as you type, the
   page stays centred like a sheet of paper, spelling is checked live, and
-  the preview shows real tables whose cells wrap to the page width.
+  the preview shows real tables whose cells wrap to the page width, and
+  formulas as readable symbols.
 - **RuscaHub**, a new AppImage manager: import an AppImage by drag and drop,
   add it to the GNOME menu with its original icon, run it or remove it.
 - **RuscaCleaner** has been rewritten. It removes activity traces from the

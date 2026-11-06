@@ -18,7 +18,10 @@ modifica e le posizioni restano quelli di sempre. Quando il cursore (o la
 selezione) entra nel blocco, il sorgente ricompare e si modifica come prima;
 un clic sulla resa porta il cursore all'inizio del blocco.
 
-File identico in RuscaMark e RuscaWriter: si modifica una volta e si copia.
+Oggi RuscaWriter ne usa i riquadri delle immagini (image_widget) per
+l'anteprima: gli editor mostrano il Markdown sorgente, perché la resa
+sovrapposta mentre si scrive si è rivelata instabile con i clic e le
+selezioni.
 """
 
 import gi

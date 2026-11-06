@@ -753,6 +753,110 @@ def _to_winansi(s):
     return s.encode("cp1252", "replace")
 
 
+# ---------------------------------------------------------------------------
+# EN: fallback fonts for the PDF. The book font (EB Garamond, Courier Prime)
+#     has no emoji and few symbols: for each character it lacks, fontconfig
+#     finds a system font that has it, as typesetting programs do. Only
+#     TrueType fonts with real outlines can be embedded (colour bitmap emoji
+#     fonts cannot); a character no font can draw is left out rather than
+#     printed as "?". Invisible emoji helpers (variation selectors, joiners,
+#     skin tones) are never printed.
+# IT: font di riserva per il PDF. Il font del libro (EB Garamond, Courier
+#     Prime) non ha emoji e ha pochi simboli: per ogni carattere che manca,
+#     fontconfig trova un font del sistema che lo contiene, come fanno i
+#     programmi di impaginazione. Si incorporano solo font TrueType con
+#     contorni veri (non i font di emoji a colori bitmap); un carattere che
+#     nessun font sa disegnare viene omesso invece di stampare "?". I
+#     caratteri invisibili delle emoji (selettori di variante, unioni,
+#     tonalita' della pelle) non si stampano mai.
+# ---------------------------------------------------------------------------
+_FALLBACK_CACHE = {}          # percorso -> metriche (o None se inutilizzabile)
+_FALLBACK_MAX_FONTS = 6
+
+
+# EN/IT: a Markdown thematic break (---, ***, ___) / linea di separazione
+_HR_RE = re.compile(r"^\s{0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+
+
+def _is_invisible_mark(cp):
+    # anche le lettere delle bandiere (🇮🇹 = I + T regionali): una bandiera
+    # esiste solo nei font a colori, in bianco e nero sarebbero due lettere
+    # in un riquadro
+    return (cp in (0x200B, 0x200C, 0x200D, 0x2060, 0xFE0E, 0xFE0F, 0x20E3)
+            or 0x1F3FB <= cp <= 0x1F3FF or 0xE0020 <= cp <= 0xE007F
+            or 0x1F1E6 <= cp <= 0x1F1FF)
+
+
+def _outline_font_metrics(path):
+    """Metriche di un font TrueType con contorni, o None (CFF, emoji a colori
+    in bitmap, collezioni .ttc, file illeggibili)."""
+    if path in _FALLBACK_CACHE:
+        return _FALLBACK_CACHE[path]
+    metrics = None
+    try:
+        if path.lower().endswith((".ttf", ".otf")):
+            with open(path, "rb") as f:
+                head = f.read(12)
+                num = struct.unpack(">H", head[4:6])[0]
+                tags = {f.read(16)[:4] for _ in range(num)}
+            if b"glyf" in tags and not tags & {b"CBDT", b"sbix", b"SVG ", b"COLR"}:
+                metrics = read_ttf_metrics(path)
+                if metrics and not metrics.get("uni2gid"):
+                    metrics = None
+    except (OSError, struct.error, ValueError):
+        metrics = None
+    _FALLBACK_CACHE[path] = metrics
+    return metrics
+
+
+def _fontconfig_files(cp):
+    """File dei font del sistema che contengono il carattere cp (fontconfig)."""
+    import shutil
+    import subprocess
+    exe = shutil.which("fc-list")
+    if not exe:
+        return []
+    try:
+        out = subprocess.run([exe, "--format", "%{file}\n", f":charset={cp:x}"],
+                             capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    # Unifont e LastResort disegnano riquadri o pixel: meglio omettere
+    files = [ln.strip() for ln in out.splitlines()
+             if ln.strip() and not re.search(r"unifont|lastresort", ln, re.I)]
+    # prima i font «normali» (Regular/Book), poi gli altri
+    files.sort(key=lambda f: (not re.search(r"(Regular|Book|-R)\.", f), len(f)))
+    return files
+
+
+def pdf_fallback_fonts(primary, texts):
+    """EN/IT: (char -> index of the fallback font, list of fallback metrics,
+    set of invisible or undrawable chars). primary = metrics of the book
+    font; texts = all the strings the PDF will print."""
+    have = primary.get("uni2gid", {})
+    chars = {ch for t in texts for ch in t if ord(ch) >= 32}
+    # i segni invisibili e le lettere delle bandiere si omettono anche se il
+    # font del libro li ha (EB Garamond ha le lettere regionali in riquadro)
+    drop = {ch for ch in chars if _is_invisible_mark(ord(ch))}
+    missing = sorted(ch for ch in chars - drop if ord(ch) not in have)
+    use, fonts = {}, []
+    for ch in missing:
+        cp = ord(ch)
+        idx = next((i for i, m in enumerate(fonts) if cp in m["uni2gid"]), None)
+        if idx is None and len(fonts) < _FALLBACK_MAX_FONTS:
+            for path in _fontconfig_files(cp):
+                m = _outline_font_metrics(path)
+                if m and cp in m["uni2gid"]:
+                    fonts.append(m)
+                    idx = len(fonts) - 1
+                    break
+        if idx is None:
+            drop.add(ch)
+        else:
+            use[ch] = idx
+    return use, fonts, drop
+
+
 def _tables_to_text(text):
     """EN: Markdown tables -> columns aligned with spaces, for plain text.
     IT: Tabelle Markdown -> colonne allineate con spazi, per il testo
@@ -1733,6 +1837,24 @@ def write_pdf(path, chapters, title="",
     # mappa larghezze per carattere (font proporzionali, es. EB Garamond):
     # se presente, l'impaginazione usa la larghezza reale di ogni glifo.
     widths_map = (reg.get("uni_widths") or reg.get("widths_by_code")) if reg else None
+    # EN/IT: fallback fonts for characters the book font lacks (see
+    #        pdf_fallback_fonts) / font di riserva per i caratteri che il
+    #        font del libro non ha
+    fb_use, fb_fonts, fb_drop = {}, [], set()
+    if reg and reg.get("uni2gid"):
+        texts = [title or ""] + [t for t in (chapter_titles or []) if isinstance(t, str)]
+        for ch_paras in chapters:
+            for para in ch_paras:
+                if isinstance(para, str):
+                    texts.append(para)
+        fb_use, fb_fonts, fb_drop = pdf_fallback_fonts(reg, texts)
+        if fb_use or fb_drop:
+            widths_map = dict(widths_map)
+            for ch in fb_drop:
+                widths_map[ord(ch)] = 0
+            for ch, i in fb_use.items():
+                m = fb_fonts[i]
+                widths_map[ord(ch)] = m["uni_widths"].get(ord(ch), m.get("advance1000", 1000))
     # mappa stile -> chiave font PDF (/F1=regular, /F2=bold, ...)
     style_to_fid = {"regular": "F1", "bold": "F2",
                     "italic": "F3", "bolditalic": "F4"}
@@ -2180,6 +2302,17 @@ def write_pdf(path, chapters, title="",
                 li_para += 1
                 # EN: a Markdown table: laid out as a real table.
                 # IT: una tabella Markdown: impaginata come tabella vera.
+                if _HR_RE.match(raw_line):
+                    # EN/IT: a short centred rule, as in books / un filetto
+                    #        corto e centrato, come nei libri
+                    if y - leading < bottom_y and cur_lines:
+                        flush_page()
+                        pages_so_far += 1
+                    mid = left_margin + usable_w / 2.0
+                    cur_lines.append(("rule", mid - usable_w * 0.15, y + leading * 0.3,
+                                      mid + usable_w * 0.15, 0.5))
+                    y -= leading
+                    continue
                 tbl = table_at(para_lines, li_para - 1)
                 if tbl:
                     pages_so_far += layout_table(*tbl[:3])
@@ -2416,6 +2549,9 @@ def write_pdf(path, chapters, title="",
             metrics = embed_fonts.get(style) or reg   # ripiego sul regular
             psname = f"{embed_font_name}-{style}"
             font_ids[fid] = make_embedded_font(metrics, psname, italic, fid)
+        for i, m in enumerate(fb_fonts):
+            font_ids[f"FB{i + 1}"] = make_embedded_font(m, f"Fallback{i + 1}", False,
+                                                        f"FB{i + 1}")
     else:
         # font core (fallback senza incorporamento)
         font_ids["F1"] = add_obj(
@@ -2431,18 +2567,13 @@ def write_pdf(path, chapters, title="",
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Times-BoldItalic "
             b"/Encoding /WinAnsiEncoding >>")
 
-    def show_text(fid, text, tw=0.0, size=None):
-        """Operatore che mostra 'text' con il font 'fid'. Font Type0: id di
-        glifo a due byte; i caratteri assenti dal font diventano "?". Lo
-        spazio-parola Tw non vale per le codifiche a due byte, quindi con la
-        giustificazione ogni spazio riceve un aggiustamento esplicito in TJ."""
-        info = unicode_fonts.get(fid)
-        if info is None:
-            return b"(" + _pdf_escape_bytes(_to_winansi(text)) + b") Tj"
+    def encode_run(fid, text, adj):
+        """Testo in un solo font Type0: id di glifo a due byte; con adj, uno
+        spostamento dopo ogni spazio (giustificazione)."""
+        info = unicode_fonts[fid]
         u2g = info["metrics"]["uni2gid"]
         used = info["used"]
         q_gid = u2g.get(ord("?"), 0)
-        adj = -tw * 1000.0 / size if tw and size else 0.0
         chunks, cur = [], []
         for ch in text:
             gid = u2g.get(ord(ch))
@@ -2457,8 +2588,40 @@ def write_pdf(path, chapters, title="",
         if cur:
             chunks.append("<" + "".join(cur) + ">")
         if adj:
-            return ("[" + " ".join(chunks) + "] TJ").encode("latin-1")
-        return ("".join(chunks) + " Tj").encode("latin-1")
+            return "[" + " ".join(chunks) + "] TJ"
+        return "".join(chunks) + " Tj"
+
+    def show_text(fid, text, tw=0.0, size=None):
+        """Operatori che mostrano 'text' con il font 'fid'. Font Type0: id di
+        glifo a due byte. I caratteri che il font non ha passano ai font di
+        riserva (cambio di font solo per quei caratteri), quelli invisibili o
+        che nessun font disegna vengono omessi. Lo spazio-parola Tw non vale
+        per le codifiche a due byte: con la giustificazione ogni spazio
+        riceve un aggiustamento esplicito in TJ."""
+        if fid not in unicode_fonts:
+            return b"(" + _pdf_escape_bytes(_to_winansi(text)) + b") Tj"
+        size = size or 10
+        adj = -tw * 1000.0 / size if tw else 0.0
+        out, run, run_font = [], [], fid
+        for ch in text:
+            if ch in fb_drop:
+                continue
+            font = f"FB{fb_use[ch] + 1}" if ch in fb_use else fid
+            if font != run_font and run:
+                out.append((run_font, "".join(run)))
+                run = []
+            run_font = font
+            run.append(ch)
+        if run:
+            out.append((run_font, "".join(run)))
+        ops = []
+        for font, chunk in out:
+            if font == fid:
+                ops.append(encode_run(fid, chunk, adj))
+            else:
+                ops.append(f"/{font} {size:.1f} Tf {encode_run(font, chunk, 0.0)} "
+                           f"/{fid} {size:.1f} Tf")
+        return " ".join(ops).encode("latin-1") if ops else b""
 
     pages_obj_id = len(objects) + 1
     objects.append(None)
@@ -2623,7 +2786,7 @@ def write_pdf(path, chapters, title="",
                 parts.append(b"ET BT")
                 parts.append(b"/F1 10 Tf")
                 parts.append(f"1 0 0 1 {hx:.2f} {hy:.2f} Tm".encode("latin-1"))
-                parts.append(show_text("F1", head_txt))
+                parts.append(show_text("F1", head_txt, 0.0, 10))
                 cur_fid = cur_size = None
             label = str(visible_number)
             lw = seg_w(label, 10)
@@ -2632,7 +2795,7 @@ def write_pdf(path, chapters, title="",
             parts.append(b"ET BT")
             parts.append(b"/F1 10 Tf")
             parts.append(f"1 0 0 1 {nx:.2f} {ny:.2f} Tm".encode("latin-1"))
-            parts.append(show_text("F1", label))
+            parts.append(show_text("F1", label, 0.0, 10))
         parts.append(b"ET")
         stream = b"\n".join(parts)
         body = (f"<< /Length {len(stream)} >>\nstream\n".encode("latin-1")
@@ -4146,6 +4309,9 @@ class Project:
                                          [[_strip_inline_md(c) for c in r] for r in rows])))
                 continue
             i += 1
+            if _HR_RE.match(raw):
+                blocks.append(("rule", None))     # EN/IT: separator / separatore
+                continue
             kind, body, extra = classify_md_line(raw)
             if kind == "blank":
                 continue
@@ -4232,6 +4398,10 @@ class Project:
                 out.append(table_html(*tbl[:3]))
                 i = tbl[3]
                 continue
+            if _HR_RE.match(lines[i]):
+                out.append("<hr/>")
+                i += 1
+                continue
             if kind == "blank":
                 i += 1
                 continue
@@ -4265,7 +4435,7 @@ class Project:
                 #     immagine allegata).
                 buf = []
                 while (i < len(lines) and kinds[i][0] == "text"
-                       and not (buf and table_at(lines, i))):
+                       and not (buf and (table_at(lines, i) or _HR_RE.match(lines[i])))):
                     buf.append(inline(kinds[i][1]))
                     i += 1
                 out.append("<p>" + "<br/>".join(buf) + "</p>")
@@ -4304,6 +4474,7 @@ class Project:
         "border-top:2px solid #333;border-bottom:2px solid #333;}"
         "th,td{padding:0.35em 0.6em;text-align:left;vertical-align:top;}"
         "thead th{border-bottom:1px solid #333;}"
+        "hr{border:none;border-top:1px solid #888;width:30%;margin:1.5em auto;}"
         ".chapter-nav{margin-top:3em;border-top:1px solid #d9b8d4;"
         "padding-top:1em;font-size:0.9em;}"
     )
@@ -4580,6 +4751,9 @@ class Project:
                     continue
                 if kind == "table":
                     body.append(self._odt_table(content, len(body)))
+                    continue
+                if kind == "rule":
+                    body.append('<text:p text:style-name="RwPBC">*   *   *</text:p>')
                     continue
                 c = escape(content)
                 if kind.startswith("h"):
@@ -4881,6 +5055,9 @@ class Project:
                 if kind == "table":
                     paras.append(docx_table(content))
                     continue
+                if kind == "rule":
+                    paras.append(para("*   *   *", align="center"))
+                    continue
                 if kind == "h1":
                     paras.append(para(content, bold=True, size=18, color="5C2A55"))
                 elif kind == "h2":
@@ -5036,6 +5213,9 @@ class Project:
         n = 0
         for ch in self.chapters:
             text = render_math(ch.text).rstrip("\n")
+            # le bandiere non si stampano (vedi _is_invisible_mark): via anche
+            # lo spazio che le segue, per non lasciare un rientro
+            text = re.sub("[\U0001F1E6-\U0001F1FF]{2}[ \t]?", "", text)
             paras = list(text.split("\n\n")) if text else [""]
             if ch.is_cover:
                 # la copertina grafica ora si costruisce dai CAMPI del
@@ -5327,7 +5507,8 @@ class Project:
                "table{border-collapse:collapse;width:100%;margin:1.5em 0;font-size:0.95em;"
                "border-top:2px solid #333;border-bottom:2px solid #333;}"
                "th,td{padding:0.35em 0.6em;text-align:left;vertical-align:top;}"
-               "thead th{border-bottom:1px solid #333;}")
+               "thead th{border-bottom:1px solid #333;}"
+               "hr{border:none;border-top:1px solid #888;width:30%;margin:1.5em auto;}")
 
         # --- immagine di copertina (SVG, sobria come il PDF) --------------
         cl = cover_lines or [title]

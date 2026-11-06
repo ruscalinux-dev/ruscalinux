@@ -457,12 +457,12 @@ class Message(Gtk.Box):
         k = 0
         while k < min(len(blocks), len(self._shown)) and blocks[k] == self._shown[k][0]:
             k += 1
-        # Paragrafo che cresce: si aggiorna l'etichetta senza ricrearla.
-        if (k == len(self._shown) - 1 and k == len(blocks) - 1
-                and blocks[k][0] == "text" == self._shown[k][0][0]):
-            self._set_label(self._shown[k][1], blocks[k][1])
-            self._shown[k] = (blocks[k], self._shown[k][1])
-            return
+        # Il primo blocco cambiato, se è dello stesso tipo, si aggiorna sul
+        # posto invece di ricrearlo: un paragrafo cambia il testo
+        # dell'etichetta, un blocco di codice riceve solo il testo nuovo in
+        # coda (ricrearlo a ogni aggiornamento lo faceva lampeggiare).
+        if k < len(self._shown) and k < len(blocks) and self._update_in_place(k, blocks[k]):
+            k += 1
         for _block, widget in self._shown[k:]:
             self.body.remove(widget)
         del self._shown[k:]
@@ -470,6 +470,23 @@ class Message(Gtk.Box):
             widget = self._block_widget(block)
             self.body.append(widget)
             self._shown.append((block, widget))
+
+    def _update_in_place(self, k, new):
+        old, widget = self._shown[k]
+        if new[0] == "text" == old[0]:
+            self._set_label(widget, new[1])
+        elif new[0] == "code" == old[0] and new[1] == old[1] \
+                and getattr(widget, "code_buffer", None) is not None:
+            buf = widget.code_buffer
+            before, after = old[2].rstrip("\n"), new[2].rstrip("\n")
+            if after.startswith(before):
+                buf.insert(buf.get_end_iter(), after[len(before):])
+            else:
+                buf.set_text(after)
+        else:
+            return False
+        self._shown[k] = (new, widget)
+        return True
 
     def _block_widget(self, block):
         kind = block[0]
@@ -578,13 +595,17 @@ class Message(Gtk.Box):
         label.add_css_class("dim-label")
         copy = Gtk.Button(icon_name="edit-copy-symbolic", tooltip_text=_("copy_code"))
         copy.add_css_class("flat")
-        copy.connect("clicked", lambda _b: self.window.copy_text(code))
+        buf = view.get_buffer()
+        # il testo attuale del blocco: durante lo streaming cresce
+        copy.connect("clicked", lambda _b: self.window.copy_text(
+            buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False)))
         head.append(label)
         head.append(copy)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.add_css_class("card")
         box.append(head)
         box.append(scroller)
+        box.code_buffer = buf
         return box
 
     @staticmethod

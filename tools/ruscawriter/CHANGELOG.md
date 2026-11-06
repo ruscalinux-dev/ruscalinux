@@ -60,6 +60,11 @@ repository (`tools/ruscawriter`) and follows its specifications.
   which keeps the LaTeX source
 - **Fixed** — the PDF uses Unicode fonts: Greek, Cyrillic and every other
   character in the chosen font are printed, instead of becoming "?"
+- **Added** — characters the book font lacks (emoji, symbols, Greek in
+  Courier Prime) are taken from a system font that has them, in black and
+  white as in printed books; flags and invisible emoji marks are left out
+- **Added** — `---` is a short centred rule in the PDF and the preview, a
+  line in HTML, EPUB and AZW3, and "* * *" in ODT and DOCX
 
 ---
 

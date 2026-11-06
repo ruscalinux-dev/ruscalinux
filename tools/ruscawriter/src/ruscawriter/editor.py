@@ -164,7 +164,7 @@ from .model import (
 # live highlighting must show what the exports will produce.
 # Le regole del Markdown, in comune con tutti gli export: anteprima ed
 # evidenziazione devono mostrare cio' che gli export produrranno.
-from .model import render_math, table_at
+from .model import render_math, table_at, _HR_RE
 # EN/IT: picture boxes for the preview / riquadri delle immagini nell'anteprima
 from . import rusca_liveblocks
 from .model import (classify_md_line, parse_inline, inline_spans,
@@ -4854,6 +4854,19 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 continue
             raw = lines[i]
             i += 1
+            if _HR_RE.match(raw):
+                # separatore: filetto corto e centrato, come nei libri
+                width = self._preview_text_width()
+                row = Gtk.Box(halign=Gtk.Align.START)
+                row.set_size_request(width, 24)
+                sep = Gtk.Separator(hexpand=True, valign=Gtk.Align.CENTER,
+                                    margin_start=int(width * 0.35), margin_end=int(width * 0.35))
+                row.append(sep)
+                anchor = buf.create_child_anchor(buf.get_end_iter())
+                self.preview_view.add_child_at_anchor(row, anchor)
+                buf.insert(buf.get_end_iter(), "\n")
+                self._pv_has_table = True
+                continue
             kind, body, extra = classify_md_line(raw)
             end = buf.get_end_iter
             if kind == "heading":

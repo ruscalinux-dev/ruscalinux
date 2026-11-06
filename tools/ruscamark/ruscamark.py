@@ -533,7 +533,7 @@ DEFAULT_CONFIG = {
     # Stile: "system" segue GNOME, "light"/"dark" lo forzano.
     "style": "system", "font": "Sans", "font_size": 13,
     "goal": 0, "lang": "it_IT", "show_preview": False,
-    "live": True, "center_page": True, "page_chars": 68,
+    "live": True, "center_page": True, "page_chars": 80,
     "line_spacing": "normal",      # interlinea dell'editor: compact | normal | airy
     "html_embed_images": False,    # export HTML autonomo (immagini in base64)
     "spell_on": True,              # persiste lo stato del controllo ortografico
@@ -1234,7 +1234,8 @@ class MarkdownDoc:
 
     # ------------------------------------------------------------ anteprima
     def to_preview(self, colors, t=None):
-        """Elementi per l'anteprima: ("m", markup, nowrap) o ("img", src, alt, prefisso).
+        """Elementi per l'anteprima: ("m", markup, nowrap), ("img", src, alt, prefisso)
+        o ("table", allineamenti, intestazione, righe) con celle in markup.
         L'export PDF usa invece to_print(), con elementi semantici."""
         self._colors = colors
         self._fn_num = {}
@@ -1327,57 +1328,13 @@ class MarkdownDoc:
                     if loose and idx < len(items) - 1:
                         out.append(("m", "", False))
             elif k == "table":
-                out += self._pv_table(b)
+                # Tabella vera (Gtk.Grid nell'anteprima): le celle vanno a capo.
+                _, aligns, header, rows = b
+                out.append(("table", aligns, [self._inline(h, "pango") for h in header],
+                            [[self._inline(cell, "pango").replace("\n", " ") for cell in r]
+                             for r in rows]))
         return out
 
-    def _pv_table(self, b):
-        c = self._colors
-        _, aligns, header, rows = b
-        ncol = len(header)
-        grid = [header] + rows
-        plain = [[self._inline(cell, "plain").replace("\n", " ") for cell in r] for r in grid]
-        widths = [max(1, *(_display_width(r[i]) for r in plain)) for i in range(ncol)]
-        bc = c["subtle"]
-
-        def border(l, mid, r, ch="─"):
-            return (f'<span foreground="{bc}">{l}' + mid.join(ch * (w + 2) for w in widths)
-                    + f"{r}</span>")
-
-        def row(ri):
-            cells = []
-            for i in range(ncol):
-                txt = self._inline(grid[ri][i], "pango").replace("\n", " ")
-                if ri == 0:
-                    txt = f"<b>{txt}</b>"
-                gap = widths[i] - _display_width(plain[ri][i])
-                al = aligns[i] if i < len(aligns) else None
-                if al == "right":
-                    txt = " " * gap + txt
-                elif al == "center":
-                    txt = " " * (gap // 2) + txt + " " * (gap - gap // 2)
-                else:
-                    txt = txt + " " * gap
-                cells.append(f" {txt} ")
-            sep = f'<span foreground="{bc}">│</span>'
-            return sep + sep.join(cells) + sep
-        # Direzione unica per tutta la tabella (dal primo carattere "forte"
-        # delle celle): senza, l'algoritmo bidi decide riga per riga e con
-        # testo arabo misto a "Ctrl+B" la griglia si spezza.
-        rtl = False
-        for ch in "".join("".join(r) for r in plain):
-            bd = unicodedata.bidirectional(ch)
-            if bd in ("L", "R", "AL"):
-                rtl = bd != "L"
-                break
-        mark = "\u200f" if rtl else "\u200e"
-        mono = lambda s: f'<span font_family="monospace">{mark}{s}</span>'
-        out = [("m", mono(border("┌", "┬", "┐")), True), ("m", mono(row(0)), True),
-               ("m", mono(border("╞", "╪", "╡", "═")), True)]
-        for ri in range(1, len(grid)):
-            out.append(("m", mono(row(ri)), True))
-        out.append(("m", mono(border("└", "┴", "┘")), True))
-        return out
-    # ------------------------------------------------------------ stampa (PDF)
     _PR_BEFORE = {"h1": 22.0, "h2": 22.0, "h3": 14.0, "h4": 12.0, "h5": 11.0, "h6": 11.0,
                   "hr": 17.0}
     _PR_AFTER = {"h1": 18.0, "h2": 12.0, "h3": 7.0, "h4": 6.0, "h5": 6.0, "h6": 6.0,
@@ -2820,7 +2777,7 @@ class RuscaWindow(Adw.ApplicationWindow):
         if not self.view.get_realized():
             return False      # ci pensano realize e la prima allocazione
         centred = self.cfg.get("center_page", True)
-        chars = int(self.cfg.get("page_chars", 68))
+        chars = int(self.cfg.get("page_chars", 80))
         page = int(self._char_width() * chars) if centred else 0
         if HAS_GSV:
             # Pagina libera: guida verticale alla larghezza di pagina scelta.
@@ -2832,6 +2789,12 @@ class RuscaWindow(Adw.ApplicationWindow):
                 continue
             side, vert = self._page_margins(avail, page)
             self._set_margins(view, side, vert)
+        # Le tabelle dell'anteprima hanno la larghezza della pagina: se questa
+        # cambia si ricompone l'anteprima (una volta, a ridimensionamento finito).
+        if (getattr(self, "_pv_has_table", False) and self.cfg.get("show_preview", False)
+                and abs(self._preview_text_width() - getattr(self, "_pv_width", 0)) > 4
+                and not getattr(self, "_pv_rerender_id", 0)):
+            self._pv_rerender_id = GLib.timeout_add(150, self._pv_rerender)
         if os.environ.get("RUSCA_DEBUG"):
             print(f"[center] ew={self._viewport_width(self.editor_sw)} page={page} "
                   f"char={self._char_width():.2f} margin={self.view.get_left_margin()}")
@@ -3316,9 +3279,16 @@ class RuscaWindow(Adw.ApplicationWindow):
             pb.set_text(self._get_text())
             return
         c = self._preview_palette()
+        self._pv_width = self._preview_text_width()
+        self._pv_has_table = False
         for idx, it in enumerate(items):
             if idx:
                 pb.insert(pb.get_end_iter(), "\n")
+            if it[0] == "table":
+                anchor = pb.create_child_anchor(pb.get_end_iter())
+                self.preview_view.add_child_at_anchor(self._pv_table_widget(*it[1:]), anchor)
+                self._pv_has_table = True
+                continue
             if it[0] == "m":
                 start = pb.get_char_count()
                 self._insert_markup(pb, it[1])
@@ -3334,6 +3304,44 @@ class RuscaWindow(Adw.ApplicationWindow):
             else:
                 self._insert_markup(pb, f'<span foreground="{c["subtle"]}" style="italic">'
                                         f'🖼 {html.escape(msg)}</span>')
+
+    def _pv_table_widget(self, aligns, header, rows):
+        """Tabella dell'anteprima: griglia larga quanto la pagina, celle che
+        vanno a capo, intestazione in grassetto, righe separate come nelle
+        liste di GNOME. Prima era testo a spaziatura fissa senza a capo:
+        con celle lunghe la riga usciva dalla pagina."""
+        ncol = len(header)
+        grid = Gtk.Grid(hexpand=True)
+        xalign = {"right": 1.0, "center": 0.5}
+        for r, cells in enumerate([header] + rows):
+            for ci, cell in enumerate(cells):
+                markup = f"<b>{cell}</b>" if r == 0 else cell
+                label = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                  selectable=True, hexpand=True, valign=Gtk.Align.START,
+                                  max_width_chars=8, margin_start=12, margin_end=12,
+                                  margin_top=8, margin_bottom=8)
+                label.set_xalign(xalign.get(aligns[ci] if ci < len(aligns) else None, 0.0))
+                try:
+                    Pango.parse_markup(markup, -1, "\0")
+                    label.set_markup(markup)
+                except GLib.Error:
+                    label.set_text(re.sub(r"<[^>]+>", "", markup))
+                grid.attach(label, ci, 2 * r, 1, 1)
+            if r < len(rows):
+                grid.attach(Gtk.Separator(), 0, 2 * r + 1, ncol, 1)
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        card.add_css_class("card")
+        card.append(grid)
+        # Larghezza della pagina: un figlio del TextView prende la sua
+        # larghezza naturale, quindi la si fissa qui (si ricalcola quando la
+        # pagina cambia larghezza, vedi _center_page).
+        card.set_size_request(max(200, self._preview_text_width() - 2), -1)
+        return card
+
+    def _pv_rerender(self):
+        self._pv_rerender_id = 0
+        self._refresh_preview()
+        return False
 
     @staticmethod
     def _insert_markup(buf, markup):
@@ -4314,7 +4322,7 @@ class RuscaWindow(Adw.ApplicationWindow):
                                    active=bool(self.cfg.get("center_page", True)))
         width_row = Adw.SpinRow.new_with_range(40, 140, 2)
         width_row.set_title(t("pref_width"))
-        width_row.set_value(int(self.cfg.get("page_chars", 68)))
+        width_row.set_value(int(self.cfg.get("page_chars", 80)))
 
         def on_center(r, _p):
             self.cfg["center_page"] = r.get_active()

@@ -400,7 +400,7 @@ Regole:
 
 1. Non aggiungere regole CSS che cambiano forma, dimensione o bordi dei widget standard.
 2. Le uniche classi personalizzate ammesse sono quelle con prefisso `rusca-`.
-3. Non forzare la modalità scura o chiara: lasciare `Adw.StyleManager` sul valore predefinito (segue il sistema).
+3. La modalità chiara/scura segue il sistema per impostazione predefinita. Ogni tool offre nelle preferenze la riga “Tema” (`Adw.ComboRow`: “Segui il sistema”, “Chiaro”, “Scuro”), salvata in `~/.config/ruscafoo/`; la scelta si applica con `Adw.StyleManager.set_color_scheme()` all’avvio, prima di mostrare la finestra. Le classi `rusca-light`/`rusca-dark` seguono `Adw.StyleManager:dark`, quindi valgono anche per il tema scelto.
 4. Se `style.css` manca, il programma deve partire comunque, con i colori standard di GNOME.
 
 ### 4.6 Caricamento del tema e struttura minima dell’app
@@ -851,7 +851,7 @@ Un tool è pronto quando:
 2. Usa `Adw.Application`, `Adw.ApplicationWindow`, `Adw.ToolbarView` e `Adw.HeaderBar`.
 3. Non ha barra dei menu classica; il menu principale contiene Scorciatoie, Informazioni ed eventualmente Preferenze.
 4. Carica `style.css` RuscaLinux, applica `rusca-light`/`rusca-dark` alle finestre e non contiene altro CSS che modifichi i widget standard.
-5. È leggibile in modalità chiara, scura e a contrasto elevato.
+5. È leggibile in modalità chiara, scura e a contrasto elevato, e ha la riga “Tema” nelle preferenze (sezione 4.5, regola 3).
 6. Usa il gradiente solo dove ammesso dalla sezione 4.3.
 7. Funziona a 360 × 294 px e da sola tastiera.
 8. Mostra stati vuoti con `Adw.StatusPage` e conferme con `Adw.AlertDialog`.

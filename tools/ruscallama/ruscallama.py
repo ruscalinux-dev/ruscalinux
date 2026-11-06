@@ -35,6 +35,7 @@ except (ValueError, ImportError):
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, BASE_DIR)
 import rusca_engine as engine  # noqa: E402
+import rusca_markdown as md  # noqa: E402
 
 APP_ID = "org.ruscalinux.RuscaLLama"
 APP_NAME = "RuscaLLama"
@@ -85,8 +86,17 @@ DEFAULTS = {
     "speculative": False, "reasoning": False, "effort": "low",
     "preset": "balanced", "sampling": dict(PRESETS["balanced"]), "seed": -1,
     "system": "", "font_size": 0, "width": 1100, "height": 780, "maximized": False,
-    "sidebar": True,
+    "sidebar": True, "theme": "system",
 }
+THEMES = ("system", "light", "dark")         # ordine delle voci nel menu
+
+
+def apply_color_scheme(theme):
+    """Tema chiaro/scuro: segue GNOME (predefinito) o è scelto dall'utente."""
+    Adw.StyleManager.get_default().set_color_scheme({
+        "light": Adw.ColorScheme.FORCE_LIGHT,
+        "dark": Adw.ColorScheme.FORCE_DARK,
+    }.get(theme, Adw.ColorScheme.DEFAULT))
 
 
 # ── Traduzioni (lang/xx.json, ripiego en.json, specifiche sezione 9) ─────────
@@ -195,28 +205,6 @@ def strip_think(text):
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
     text = re.sub(r"<think>.*\Z", "", text, flags=re.S)
     return text.strip(), think
-
-
-def markdown_to_pango(text):
-    """Markdown essenziale -> markup Pango per le etichette: titoli, grassetto,
-    corsivo, codice in linea, link, elenchi. Il testo viene prima protetto
-    (escape), quindi il markup del modello non può rompere l'etichetta."""
-    out = []
-    for line in text.split("\n"):
-        esc = GLib.markup_escape_text(line)
-        m = re.match(r"^(#{1,6})\s+(.*)$", esc)
-        if m:
-            size = ("x-large", "large", "large", "medium", "medium", "medium")[len(m.group(1)) - 1]
-            out.append(f'<span size="{size}" weight="bold">{m.group(2)}</span>')
-            continue
-        esc = re.sub(r"^(\s*)[-*+]\s+", lambda mm: mm.group(1) + "•  ", esc)
-        esc = re.sub(r"`([^`]+)`", r"<tt>\1</tt>", esc)
-        esc = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc)
-        esc = re.sub(r"__(.+?)__", r"<b>\1</b>", esc)
-        esc = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<i>\1</i>", esc)
-        esc = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r'<a href="\2">\1</a>', esc)
-        out.append(esc)
-    return "\n".join(out)
 
 
 def text_of(content):
@@ -375,10 +363,20 @@ class FontSizeMixin:
         return row
 
 
+def set_source_scheme(buf):
+    scheme = GtkSource.StyleSchemeManager.get_default().get_scheme(
+        "Adwaita-dark" if Adw.StyleManager.get_default().get_dark() else "Adwaita")
+    if scheme:
+        buf.set_style_scheme(scheme)
+
+
 # ── Un messaggio della conversazione ─────────────────────────────────────────
 class Message(Gtk.Box):
-    """Durante lo streaming il testo arriva in un TextView semplice; alla fine
-    viene ricomposto in paragrafi e blocchi di codice evidenziati."""
+    """Il testo è formattato mentre arriva: ogni 120 ms si ricompongono solo i
+    blocchi cambiati (di solito l'ultimo paragrafo). Paragrafi, codice
+    evidenziato, tabelle, formule e linee: vedi rusca_markdown.py."""
+
+    RENDER_MS = 120
 
     def __init__(self, window, role):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -412,8 +410,10 @@ class Message(Gtk.Box):
             head.append(self.actions)
         self.append(head)
         self.think_expander = None
-        self.stream_label = self._label(markup=False)
-        self.append(self.stream_label)
+        self.body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.append(self.body)
+        self._shown = []                     # [(blocco, widget)] già visibili
+        self._render_id = 0
 
     def _on_menu(self, button, _pspec):
         if button.get_active():
@@ -425,15 +425,92 @@ class Message(Gtk.Box):
         (sfondo trasparente, al contrario di un TextView)."""
         label = Gtk.Label(xalign=0, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                           selectable=True, use_markup=markup)
-        if markup:
-            label.set_markup(text)
-        else:
-            label.set_text(text)
+        Message._set_label(label, text, markup)
         return label
+
+    @staticmethod
+    def _set_label(label, text, markup=True):
+        """Markup non valido (tag accavallati, testo a metà durante lo
+        streaming) farebbe sparire l'intera etichetta: si mostra il testo."""
+        if markup:
+            try:
+                Pango.parse_markup(text, -1, "\0")
+                label.set_markup(text)
+                return
+            except GLib.Error:
+                text = md.plain_text(text)
+        label.set_use_markup(False)
+        label.set_text(text)
 
     def add_stream(self, text):
         self.text += text
-        self.stream_label.set_text(self.text)
+        if not self._render_id:
+            self._render_id = GLib.timeout_add(self.RENDER_MS, self._render_tick)
+
+    def _render_tick(self):
+        self._render_id = 0
+        self._render(md.parse_blocks(strip_think(self.text)[0]))
+        return False
+
+    def _render(self, blocks):
+        """Ricompone solo dal primo blocco cambiato in poi."""
+        k = 0
+        while k < min(len(blocks), len(self._shown)) and blocks[k] == self._shown[k][0]:
+            k += 1
+        # Paragrafo che cresce: si aggiorna l'etichetta senza ricrearla.
+        if (k == len(self._shown) - 1 and k == len(blocks) - 1
+                and blocks[k][0] == "text" == self._shown[k][0][0]):
+            self._set_label(self._shown[k][1], blocks[k][1])
+            self._shown[k] = (blocks[k], self._shown[k][1])
+            return
+        for _block, widget in self._shown[k:]:
+            self.body.remove(widget)
+        del self._shown[k:]
+        for block in blocks[k:]:
+            widget = self._block_widget(block)
+            self.body.append(widget)
+            self._shown.append((block, widget))
+
+    def _block_widget(self, block):
+        kind = block[0]
+        if kind == "code":
+            return self._code_block(block[1], block[2].rstrip("\n"))
+        if kind == "table":
+            return self._table(*block[1:])
+        if kind == "hr":
+            return Gtk.Separator(margin_top=6, margin_bottom=6)
+        if kind == "math":
+            label = self._label(f'<span size="large">{block[1]}</span>')
+            label.set_xalign(0.5)
+            label.set_justify(Gtk.Justification.CENTER)
+            return label
+        return self._label(block[1])
+
+    def _table(self, aligns, header, rows):
+        """Tabella vera: celle che vanno a capo, intestazione in grassetto,
+        righe separate come nelle liste di GNOME."""
+        grid = Gtk.Grid(hexpand=True)
+        xalign = {"left": 0.0, "center": 0.5, "right": 1.0}
+        for r, cells in enumerate([header] + rows):
+            for c, cell in enumerate(cells):
+                label = self._label(f"<b>{cell}</b>" if r == 0 else cell)
+                label.set_xalign(xalign.get(aligns[c], 0.0))
+                label.set_valign(Gtk.Align.START)
+                label.set_hexpand(True)
+                label.set_max_width_chars(36)
+                label.set_margin_start(12)
+                label.set_margin_end(12)
+                label.set_margin_top(8)
+                label.set_margin_bottom(8)
+                grid.attach(label, c, 2 * r, 1, 1)
+            if r < len(rows):
+                grid.attach(Gtk.Separator(), 0, 2 * r + 1, len(header), 1)
+        # Niente ScrolledWindow: misurerebbe l'altezza alla larghezza minima
+        # e la tabella diventerebbe altissima. Le celle vanno a capo da sole.
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        card.add_css_class("card")
+        card.append(grid)
+        return card
 
     def add_reasoning(self, text):
         self.reasoning += text
@@ -453,7 +530,10 @@ class Message(Gtk.Box):
         self.images.append((data_url, name))
 
     def finish(self):
-        """Ricompone il messaggio: testo, codice evidenziato, immagini."""
+        """Ultima composizione: testo completo, ragionamento, immagini."""
+        if self._render_id:
+            GLib.source_remove(self._render_id)
+            self._render_id = 0
         self.text, think = strip_think(self.text)
         if think and not self.reasoning:
             self.reasoning = think
@@ -461,14 +541,9 @@ class Message(Gtk.Box):
             self.think_label.set_text(think)
         elif self.think_expander is not None:
             self.think_expander.set_expanded(False)
-        self.remove(self.stream_label)
-        for kind, lang, body in split_code(self.text):
-            if kind == "code":
-                self.append(self._code_block(lang, body))
-            else:
-                self.append(self._label(markdown_to_pango(body)))
+        self._render(md.parse_blocks(self.text))
         for data_url, name in self.images:
-            self.append(self._picture(data_url, name))
+            self.body.append(self._picture(data_url, name))
         if self.role == "assistant":
             self.actions.set_visible(bool(self.text))
 
@@ -485,10 +560,7 @@ class Message(Gtk.Box):
                                          "sh": "sh", "bash": "sh"}.get(lang, lang)) if lang else None
         if language:
             buf.set_language(language)
-        scheme = GtkSource.StyleSchemeManager.get_default().get_scheme(
-            "Adwaita-dark" if Adw.StyleManager.get_default().get_dark() else "Adwaita")
-        if scheme:
-            buf.set_style_scheme(scheme)
+        set_source_scheme(buf)
         buf.set_text(code)
         view = GtkSource.View(buffer=buf, editable=False, monospace=True,
                               show_line_numbers=True, wrap_mode=Gtk.WrapMode.NONE,
@@ -715,9 +787,15 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
         cfg = self.cfg
 
         # Modello
-        text = Adw.PreferencesGroup(title=_("group_text"))
-        text.add(self.font_size_row())
-        page.add(text)
+        look = Adw.PreferencesGroup(title=_("group_look"))
+        theme_row = Adw.ComboRow(title=_("theme"), model=Gtk.StringList.new(
+            [_(f"theme_{t}") for t in THEMES]))
+        theme_row.set_selected(THEMES.index(cfg.get("theme", "system"))
+                               if cfg.get("theme") in THEMES else 0)
+        theme_row.connect("notify::selected", self._on_theme)
+        look.add(theme_row)
+        look.add(self.font_size_row())
+        page.add(look)
 
         model_group = Adw.PreferencesGroup(title=_("group_model"))
         self.model_row = Adw.ComboRow(title=_("model"), use_subtitle=True)
@@ -827,6 +905,10 @@ class RuscaLLamaWindow(FontSizeMixin, Adw.ApplicationWindow):
         return page
 
     # ── impostazioni ──────────────────────────────────────────────────────
+    def _on_theme(self, row, _pspec):
+        self._set("theme", THEMES[row.get_selected()])
+        apply_color_scheme(self.cfg["theme"])
+
     def _set(self, key, value):
         self.cfg[key] = value
         save_settings(self.cfg)
@@ -1427,6 +1509,9 @@ class RuscaLLamaApp(Adw.Application):
             provider.load_from_path(STYLE_SRC)
             Gtk.StyleContext.add_provider_for_display(
                 Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        # Tema scelto nel pannello (predefinito: segue il sistema), applicato
+        # prima della finestra per non mostrarla nel tema sbagliato.
+        apply_color_scheme(load_settings().get("theme", "system"))
         Adw.StyleManager.get_default().connect("notify::dark", lambda *_a: self.update_theme())
         self.connect("window-added", lambda *_a: self.update_theme())
         quit_action = Gio.SimpleAction.new("quit", None)
@@ -1447,6 +1532,17 @@ class RuscaLLamaApp(Adw.Application):
         for window in self.get_windows():
             window.remove_css_class("rusca-light" if dark else "rusca-dark")
             window.add_css_class("rusca-dark" if dark else "rusca-light")
+        if GtkSource is not None:                # blocchi di codice già mostrati
+            for window in self.get_windows():
+                stack = [window]
+                while stack:
+                    widget = stack.pop()
+                    if isinstance(widget, GtkSource.View):
+                        set_source_scheme(widget.get_buffer())
+                    child = widget.get_first_child()
+                    while child is not None:
+                        stack.append(child)
+                        child = child.get_next_sibling()
 
     def do_activate(self):
         (self.props.active_window or RuscaLLamaWindow(self)).present()

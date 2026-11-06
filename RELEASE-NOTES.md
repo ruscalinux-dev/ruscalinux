@@ -15,7 +15,8 @@
 <!-- Rewrite this section for each release. Everything else is automatic. -->
 
 - **RuscaMark**, a new Markdown editor: formatting appears as you type, the
-  page stays centred like a sheet of paper, and spelling is checked live.
+  page stays centred like a sheet of paper, spelling is checked live, and
+  the preview shows real tables whose cells wrap to the page width.
 - **RuscaHub**, a new AppImage manager: import an AppImage by drag and drop,
   add it to the GNOME menu with its original icon, run it or remove it.
 - **RuscaCleaner** has been rewritten. It removes activity traces from the
@@ -23,8 +24,9 @@
   manual in English and Italian.
 - **One look for the in-house tools.** RuscaCleaner, RuscaHub and RuscaMark
   are now native GNOME (libadwaita) applications in the RuscaLinux plum and
-  pink colours. They follow the system light or dark style, share the same
-  About window and keyboard shortcuts, and RuscaHub asks before deleting an
+  pink colours. They follow the system light or dark style, or the one you
+  choose in their preferences, share the same About window and keyboard
+  shortcuts, and RuscaHub asks before deleting an
   AppImage and moves it to the trash. RuscaMark's app ID is now
   `org.ruscalinux.RuscaMark`: if you pinned it to the dash, pin it again.
 - **RuscaWriter joins the in-house tools.** The book-writing program
@@ -35,7 +37,9 @@
   and are translated into the same 26 languages, now including Traditional
   Chinese and European Portuguese.
 - **Local AI tools.** RuscaLLama (chat) and RuscaTranslator run language
-  models on your own computer. RuscaTranslator translates Markdown documents
+  models on your own computer. RuscaLLama formats answers while they are
+  being written, with tables and formulas shown as readable symbols
+  (E = mc²). RuscaTranslator translates Markdown documents
   between all 26 languages, with Italian ↔ English linguistic knowledge, and
   detects the source language on its own, telling apart close variants
   (Ukrainian and Russian, Simplified and Traditional Chinese, European and

@@ -55,6 +55,9 @@
   without HTTPS support and without its web interface, so it cannot download
   anything: nothing is sent over the internet.
 - **SMPlayer** replaces VLC as the video player.
+- **Disk repair tools**, also in the live session: `fsck` for ext4, FAT,
+  exFAT, NTFS, XFS and Btrfs, `smartctl` for disk health, `ddrescue` to copy
+  a failing disk, and `testdisk`/`photorec` to recover partitions and files.
 - **Python virtual environments** work out of the box: `python3 -m venv`.
 - **Larger text in the graphical installer.** Text now scales with the
   screen, so the installer is just as readable on a 4K monitor as on a

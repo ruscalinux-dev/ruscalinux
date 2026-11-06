@@ -66,6 +66,21 @@ fastfetch
 pdftk
 tree
 
+# Dischi e recupero: controllo e riparazione dei filesystem (fsck), stato dei
+# dischi (smartctl), copia di dischi danneggiati (ddrescue), recupero di
+# partizioni e file cancellati (testdisk, photorec). GNOME Dischi arriva gia'
+# con gnome-core. Utili anche dalla sessione live, per riparare il disco di
+# sistema senza montarlo.
+e2fsprogs
+dosfstools
+exfatprogs
+ntfs-3g
+xfsprogs
+btrfs-progs
+smartmontools
+gddrescue
+testdisk
+
 # Linux e sviluppo
 build-essential
 pkg-config

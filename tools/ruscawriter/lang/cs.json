@@ -178,6 +178,8 @@
   "mi_insert_image": "Vložit obrázek…",
   "img_only_chapter": "Obrázky lze přikládat jen ke kapitolám s obsahem. Pro obálku použijte Soubor → Redakční části.",
   "err_img_format": "Nepodporovaný formát obrázku: použijte PNG, JPEG nebo WebP.",
+  "img_not_in_project": "Obrázek není v projektu: {src}",
+  "img_choose": "Vybrat obrázek…",
   "dlg_pdf_justify": "Zarovnat text do bloku",
   "dlg_pdf_hyphenate": "Dělit slova na konci řádku",
   "dlg_pdf_hyphenate_hint": "Pro dělení slov nainstalujte Pyphen a slovník:\nsudo apt install python3-pyphen hyphen-cs",

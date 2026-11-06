@@ -178,6 +178,8 @@
   "mi_insert_image": "Infoga bild…",
   "img_only_chapter": "Bilder kan bara bifogas till innehållskapitel. Använd Arkiv → Redaktionella avsnitt för omslaget.",
   "err_img_format": "Bildformatet stöds inte: använd PNG, JPEG eller WebP.",
+  "img_not_in_project": "Bilden finns inte i projektet: {src}",
+  "img_choose": "Välj bilden…",
   "dlg_pdf_justify": "Marginaljustera texten",
   "dlg_pdf_hyphenate": "Avstava ord i radslut",
   "dlg_pdf_hyphenate_hint": "Installera Pyphen och en ordlista för att avstava:\nsudo apt install python3-pyphen hyphen-sv",

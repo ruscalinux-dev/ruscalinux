@@ -3451,6 +3451,47 @@ class Project:
         self.images[name] = data
         return name
 
+    # EN/IT: largest picture copied in from a Markdown file / immagine piu'
+    #        grande copiata da un file Markdown
+    IMPORT_IMAGE_MAX_BYTES = 30 * 1024 * 1024
+
+    def import_md_images(self, text, base_dir):
+        """EN: Markdown imported from a file may point to pictures next to it
+        (![Map](italia.jpg)). Each local picture that exists and is PNG, JPEG
+        or WebP is copied INTO the project and the line is rewritten to its
+        internal name, so the preview, the editor and every export show it.
+        Remote addresses and missing files are left as they are.
+        IT: Il Markdown importato da un file puo' citare immagini accanto al
+        file (![Mappa](italia.jpg)). Ogni immagine locale che esiste ed e'
+        PNG, JPEG o WebP viene copiata DENTRO il progetto e la riga viene
+        riscritta con il suo nome interno, cosi' anteprima, editor ed export
+        la mostrano. Indirizzi remoti e file mancanti restano come sono."""
+        done = {}
+
+        def repl(line):
+            m = _IMG_LINE_RE.match(line.strip())
+            if not m:
+                return line
+            src = m.group("src")
+            if src in self.images or re.match(r"^[a-z][\w+.-]*://", src, re.I):
+                return line
+            if src not in done:
+                done[src] = None
+                path = os.path.expanduser(src)
+                if not os.path.isabs(path):
+                    path = os.path.join(base_dir or ".", path)
+                try:
+                    if os.path.isfile(path) and \
+                            os.path.getsize(path) <= self.IMPORT_IMAGE_MAX_BYTES:
+                        with open(path, "rb") as f:
+                            done[src] = self.add_image(f.read())
+                except (OSError, ValueError):
+                    done[src] = None
+            if not done[src]:
+                return line
+            return line.replace(f"]({src})", f"]({done[src]})", 1)
+        return "\n".join(repl(ln) for ln in text.split("\n"))
+
     def image_mime(self, name):
         """EN: MIME type of an attached image (from its content).
         IT: Tipo MIME di un'immagine allegata (dal suo contenuto)."""
@@ -3535,6 +3576,10 @@ class Project:
         self.colophon_fields = {k: "" for k in COLO_FIELDS}
         cover = Chapter(0, self._make_cover_text(title), "", is_cover=True)
         self.chapters = [cover]
+        if is_md:
+            # EN/IT: pictures next to the file come into the project too /
+            #        le immagini accanto al file entrano nel progetto
+            raw = self.import_md_images(raw, os.path.dirname(os.path.abspath(path)))
 
         # suddivisione in capitoli
         chunks = []   # lista di (titolo_opzionale, testo)

@@ -178,6 +178,8 @@
   "mi_insert_image": "插入圖片…",
   "img_only_chapter": "圖片只能附加到正文章節。封面請使用 檔案 → 扉頁與版權頁。",
   "err_img_format": "不支援的圖片格式：請使用 PNG、JPEG 或 WebP。",
+  "img_not_in_project": "專案中沒有此圖片：{src}",
+  "img_choose": "選擇圖片…",
   "dlg_pdf_justify": "兩端對齊文字",
   "dlg_pdf_hyphenate": "行尾連字斷詞",
   "dlg_pdf_hyphenate_hint": "要啟用連字斷詞，請安裝 Pyphen 和詞典：\nsudo apt install python3-pyphen hyphen-en-us",

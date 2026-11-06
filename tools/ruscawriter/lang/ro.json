@@ -178,6 +178,8 @@
   "mi_insert_image": "Inserează imagine…",
   "img_only_chapter": "Imaginile pot fi atașate doar capitolelor cu conținut. Pentru copertă, folosiți Fișier → Secțiuni editoriale.",
   "err_img_format": "Format de imagine neacceptat: folosiți PNG, JPEG sau WebP.",
+  "img_not_in_project": "Imaginea nu este în proiect: {src}",
+  "img_choose": "Alege imaginea…",
   "dlg_pdf_justify": "Aliniază textul la ambele margini",
   "dlg_pdf_hyphenate": "Desparte cuvintele în silabe la capăt de rând",
   "dlg_pdf_hyphenate_hint": "Pentru despărțirea în silabe, instalați Pyphen și un dicționar:\nsudo apt install python3-pyphen hyphen-ro",

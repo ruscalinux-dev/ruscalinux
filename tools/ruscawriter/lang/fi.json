@@ -178,6 +178,8 @@
   "mi_insert_image": "Lisää kuva…",
   "img_only_chapter": "Kuvia voi liittää vain sisältölukuihin. Kantta varten käytä valikkoa Tiedosto → Toimitukselliset osat.",
   "err_img_format": "Kuvamuotoa ei tueta: käytä PNG-, JPEG- tai WebP-muotoa.",
+  "img_not_in_project": "Kuvaa ei ole projektissa: {src}",
+  "img_choose": "Valitse kuva…",
   "dlg_pdf_justify": "Tasaa teksti molempiin reunoihin",
   "dlg_pdf_hyphenate": "Tavuta sanat rivin lopussa",
   "dlg_pdf_hyphenate_hint": "Asenna tavutusta varten Pyphen ja sanakirja:\nsudo apt install python3-pyphen hyphen-en-us",

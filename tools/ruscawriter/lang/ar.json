@@ -178,6 +178,8 @@
   "mi_insert_image": "إدراج صورة…",
   "img_only_chapter": "يمكن إرفاق الصور بفصول المحتوى فقط. للغلاف، استخدم ملف ← الأقسام التحريرية.",
   "err_img_format": "تنسيق صورة غير مدعوم: استخدم PNG أو JPEG أو WebP.",
+  "img_not_in_project": "الصورة غير موجودة في المشروع: {src}",
+  "img_choose": "اختر الصورة…",
   "dlg_pdf_justify": "ضبط النص",
   "dlg_pdf_hyphenate": "تقطيع الكلمات في نهاية السطر",
   "dlg_pdf_hyphenate_hint": "للتقطيع اللفظي، ثبّت Pyphen وقاموسًا:\nsudo apt install python3-pyphen hyphen-en-us",

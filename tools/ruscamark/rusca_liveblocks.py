@@ -26,7 +26,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk, Pango  # noqa: E402
 
-__all__ = ["LiveBlocks", "table_widget", "math_widget", "text_widget"]
+__all__ = ["LiveBlocks", "table_widget", "math_widget", "text_widget", "image_widget"]
 
 
 def _label(markup, xalign=0.0):
@@ -76,6 +76,41 @@ def math_widget(markup):
     return label
 
 
+def image_widget(texture, caption_markup, max_width, missing_markup=None):
+    """Immagine: figura centrata, ridotta alla larghezza del testo e mai
+    ingrandita, con la didascalia sotto. Se texture è None, un riquadro con
+    il messaggio missing_markup (immagine assente o non leggibile)."""
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+    box.set_margin_top(6)
+    box.set_margin_bottom(6)
+    if texture is None:
+        box.add_css_class("card")
+        icon = Gtk.Image.new_from_icon_name("image-missing-symbolic")
+        icon.set_pixel_size(32)
+        icon.set_margin_top(12)
+        box.append(icon)
+        msg = _label(missing_markup or "", 0.5)
+        msg.set_justify(Gtk.Justification.CENTER)
+        msg.set_margin_start(12)
+        msg.set_margin_end(12)
+        msg.set_margin_bottom(12)
+        box.append(msg)
+        return box
+    tw, th = texture.get_width(), texture.get_height()
+    w = max(1, min(tw, int(max_width)))
+    h = max(1, int(th * w / max(1, tw)))
+    picture = Gtk.Picture.new_for_paintable(texture)
+    picture.set_can_shrink(True)
+    picture.set_size_request(w, h)
+    picture.set_halign(Gtk.Align.CENTER)
+    box.append(picture)
+    if caption_markup:
+        cap = _label(f"<i>{caption_markup}</i>", 0.5)
+        cap.set_justify(Gtk.Justification.CENTER)
+        box.append(cap)
+    return box
+
+
 def text_widget(markup):
     """Riga di testo con formule nella frase, già in markup Pango."""
     return _label(markup)
@@ -99,6 +134,18 @@ class LiveBlocks:
         # lo lascia al suo posto): i contenitori si creano una volta sola, si
         # riusano cambiandone il contenuto e si nascondono quando non servono.
         self._free = []
+        # EN/IT: overlay coordinates. GTK 4.20 moves overlay children with the
+        # scrolling (buffer coordinates, as documented); GTK 4.14 leaves them
+        # where they are (window coordinates). The first scroll measures
+        # which one this GTK does; until then, a guess by version.
+        # Coordinate degli overlay: GTK 4.20 li sposta con lo scorrimento
+        # (coordinate del buffer, come da documentazione); GTK 4.14 li lascia
+        # fermi (coordinate della finestra). Il primo scorrimento misura
+        # come si comporta questo GTK; fino ad allora, ipotesi per versione.
+        self._window_coords = (Gtk.get_major_version(), Gtk.get_minor_version()) < (4, 16)
+        self._mode_known = False
+        self._probe = None      # (widget, y reale, scorrimento) dopo l'ultima posa
+        self._vadj = None
         self._place_id = 0
         self._width = 0
         view.connect("notify::left-margin", self._on_geometry)
@@ -151,6 +198,11 @@ class LiveBlocks:
         if hadj is not None and hadj is not self._hadj:
             self._hadj = hadj               # la finestra cambia larghezza
             hadj.connect("notify::page-size", self._on_geometry)
+            hadj.connect("value-changed", self._on_scroll)
+        vadj = self.view.get_vadjustment()
+        if vadj is not None and vadj is not self._vadj:
+            self._vadj = vadj
+            vadj.connect("value-changed", self._on_scroll)
         b, e = buf.get_bounds()
         buf.remove_tag(self.hide_tag, b, e)
         if self.view.get_width() < 50:          # vista non ancora disposta
@@ -206,6 +258,41 @@ class LiveBlocks:
         self.buf.place_cursor(self.buf.get_iter_at_offset(item[3][0]))
         self.view.grab_focus()
 
+    # --- scorrimento ----------------------------------------------------------
+    def _offsets(self):
+        h = self._hadj.get_value() if self._hadj is not None else 0.0
+        v = self._vadj.get_value() if self._vadj is not None else 0.0
+        return h, v
+
+    def _on_scroll(self, *_a):
+        if not self._shown:
+            return
+        if self._mode_known:
+            if self._window_coords:
+                self._schedule_place()
+            return
+        # misura dopo che GTK ha ridisposto i figli
+        GLib.timeout_add(40, self._measure_mode)
+
+    def _measure_mode(self):
+        if self._mode_known or self._probe is None:
+            return False
+        widget, y0, v0 = self._probe
+        if widget.get_parent() is None or not widget.get_visible():
+            return False
+        _h, v1 = self._offsets()
+        if abs(v1 - v0) < 3:
+            return False
+        point = widget.translate_coordinates(self.view, 0, 0)
+        y1 = point[-1]
+        moved = y1 - y0
+        if abs(moved + (v1 - v0)) <= 3:          # segue lo scorrimento
+            self._window_coords, self._mode_known = False, True
+        elif abs(moved) <= 3:                    # resta fermo
+            self._window_coords, self._mode_known = True, True
+            self._schedule_place()
+        return False
+
     # --- posizione ------------------------------------------------------------
     def _schedule_place(self):
         if not self._place_id:
@@ -215,8 +302,9 @@ class LiveBlocks:
     def _place(self):
         self._place_id = 0
         again = False
+        last_holder = None
         for key, item in self._shown.items():
-            widget, space, nat, (start, _end, last) = item
+            holder, space, nat, (start, _end, last) = item
             it = self.buf.get_iter_at_offset(last)
             y, h = self.view.get_line_yrange(it)
             # la riga vuota visibile ha una sua altezza: lo spazio sopra si
@@ -227,7 +315,18 @@ class LiveBlocks:
                 space.props.pixels_above_lines = want
                 again = True
                 continue
-            self.view.move_overlay(widget, self.view.get_left_margin(), y)
+            hoff, voff = self._offsets() if self._window_coords else (0.0, 0.0)
+            self.view.move_overlay(holder, int(self.view.get_left_margin() - hoff), int(y - voff))
+            last_holder = holder
         if again:
             self._schedule_place()
+        elif last_holder is not None and not self._mode_known:
+            # campione per il primo scorrimento (vedi _measure_mode)
+            GLib.timeout_add(40, self._take_probe, last_holder)
+        return False
+
+    def _take_probe(self, holder):
+        if holder.get_parent() is not None and holder.get_visible():
+            point = holder.translate_coordinates(self.view, 0, 0)
+            self._probe = (holder, point[-1], self._offsets()[1])
         return False

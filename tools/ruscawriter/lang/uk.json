@@ -178,6 +178,8 @@
   "mi_insert_image": "Вставити зображення…",
   "img_only_chapter": "Зображення можна долучати лише до розділів із вмістом. Для обкладинки скористайтеся Файл → Редакційні розділи.",
   "err_img_format": "Непідтримуваний формат зображення: використовуйте PNG, JPEG або WebP.",
+  "img_not_in_project": "Зображення немає в проєкті: {src}",
+  "img_choose": "Вибрати зображення…",
   "dlg_pdf_justify": "Вирівнювати текст за шириною",
   "dlg_pdf_hyphenate": "Переносити слова в кінці рядка",
   "dlg_pdf_hyphenate_hint": "Щоб переносити слова, встановіть Pyphen і словник:\nsudo apt install python3-pyphen hyphen-en-us",

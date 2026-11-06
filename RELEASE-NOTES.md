@@ -17,8 +17,9 @@
 - **RuscaMark**, a new Markdown editor: formatting appears as you type, the
   page stays centred like a sheet of paper, spelling is checked live, and
   the preview shows real tables whose cells wrap to the page width, and
-  formulas as readable symbols. Live formatting shows them rendered while you
-  write, too: the source comes back as soon as the cursor enters.
+  formulas as readable symbols. Live formatting shows tables, formulas and
+  pictures rendered while you write, too: the source comes back as soon as
+  the cursor enters.
 - **RuscaHub**, a new AppImage manager: import an AppImage by drag and drop,
   add it to the GNOME menu with its original icon, run it or remove it.
 - **RuscaCleaner** has been rewritten. It removes activity traces from the
@@ -34,9 +35,10 @@
 - **RuscaWriter joins the in-house tools.** The book-writing program
   (chapters, notes, Markdown, typesetting and export to PDF, EPUB, ODT,
   DOCX…) now has the same GNOME look as the other tools, page themes with
-  verified contrast, and opens `.rwr` projects with a double click. Tables
-  and formulas appear rendered while you write, in the preview and in every
-  export, and the PDF prints
+  verified contrast, and opens `.rwr` projects with a double click. Tables,
+  formulas and pictures appear in the preview, whose button shows when it is
+  on, and tables and formulas in every export; pictures next to an imported
+  Markdown file come into the project with it, and the PDF prints
   Greek, Cyrillic and every other script the chosen font contains.
 - **26 languages everywhere.** All in-house tools follow the system language
   and are translated into the same 26 languages, now including Traditional

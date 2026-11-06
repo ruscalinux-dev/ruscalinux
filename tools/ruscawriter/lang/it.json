@@ -178,6 +178,8 @@
   "mi_insert_image": "Inserisci immagine…",
   "img_only_chapter": "Le immagini si allegano solo ai capitoli di contenuto. Per la copertina usa File → Sezioni editoriali.",
   "err_img_format": "Formato immagine non supportato: usa PNG, JPEG o WebP.",
+  "img_not_in_project": "Immagine non presente nel progetto: {src}",
+  "img_choose": "Scegli l’immagine…",
   "dlg_pdf_justify": "Giustifica il testo",
   "dlg_pdf_hyphenate": "Sillaba le parole a fine riga",
   "dlg_pdf_hyphenate_hint": "Per sillabare installa Pyphen e un dizionario:\nsudo apt install python3-pyphen hyphen-it",

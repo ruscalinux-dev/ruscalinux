@@ -178,6 +178,8 @@
   "mi_insert_image": "Wstaw obraz…",
   "img_only_chapter": "Obrazy można dołączać tylko do rozdziałów treści. Dla okładki użyj Plik → Sekcje redakcyjne.",
   "err_img_format": "Nieobsługiwany format obrazu: użyj PNG, JPEG lub WebP.",
+  "img_not_in_project": "Brak obrazu w projekcie: {src}",
+  "img_choose": "Wybierz obraz…",
   "dlg_pdf_justify": "Wyjustuj tekst",
   "dlg_pdf_hyphenate": "Dziel wyrazy na końcu wiersza",
   "dlg_pdf_hyphenate_hint": "Aby włączyć dzielenie wyrazów, zainstaluj Pyphen i słownik:\nsudo apt install python3-pyphen hyphen-en-us",

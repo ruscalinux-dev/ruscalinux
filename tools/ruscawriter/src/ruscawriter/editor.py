@@ -165,8 +165,7 @@ from .model import (
 # Le regole del Markdown, in comune con tutti gli export: anteprima ed
 # evidenziazione devono mostrare cio' che gli export produrranno.
 from .model import render_math, table_at
-from .rusca_markdown import (latex_to_pango, display_math_at, has_inline_math,
-                             sub_inline_math)
+# EN/IT: picture boxes for the preview / riquadri delle immagini nell'anteprima
 from . import rusca_liveblocks
 from .model import (classify_md_line, parse_inline, inline_spans,
                     wrapped_runs, unwrap_hard_breaks)
@@ -978,7 +977,11 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             self.set_title(APP_NAME)
         if getattr(self, "window_title", None) is not None:
             self.window_title.set_title(proj or APP_NAME)
-            self.window_title.set_subtitle(APP_NAME if proj else "")
+            subtitle = APP_NAME if proj else ""
+            if getattr(self, "_preview_mode", False):
+                whole = getattr(self, "_preview_whole", False)
+                subtitle = self.t("mi_preview_all" if whole else "mi_preview")
+            self.window_title.set_subtitle(subtitle)
 
     def _autosave_path(self):
         if self.project.path:
@@ -1710,6 +1713,10 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 self._error(self.t("err_open", e=exc))
                 continue
             title = os.path.splitext(os.path.basename(path))[0]
+            if path.lower().endswith((".md", ".markdown")):
+                # le immagini accanto al file entrano nel progetto
+                raw = self.project.import_md_images(
+                    raw, os.path.dirname(os.path.abspath(path)))
             last_ch = self.project.add_chapter_from_text(raw, title=title)
             added += 1
         if added and self.reflow_on_import:
@@ -2139,6 +2146,16 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 self.menu_button = Gtk.MenuButton(icon_name=icon, primary=True)
                 header.pack_end(self.menu_button)
                 continue
+            if action == "win.preview":
+                # EN: a toggle: pressed and with a pencil while the preview is
+                #     shown, so the mode is always visible.
+                # IT: un interruttore: premuto e con la matita mentre è
+                #     mostrata l'anteprima, così la modalità si vede sempre.
+                b = Gtk.ToggleButton(icon_name=icon)
+                b.connect("toggled", self._on_preview_button)
+                self.preview_button = b
+                header.pack_end(b)
+                continue
             b = Gtk.Button(icon_name=icon, action_name=action)
             self._header_buttons.append((b, key))
             if action in ("win.toggle_left", "win.add"):
@@ -2264,14 +2281,6 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 "wrapmark", paragraph_background=pal["wrapmark"]),
         }
         self.text_buffer.connect("changed", self.on_text_changed)
-        # EN: tables and formulas shown rendered while writing (see
-        #     rusca_liveblocks.py): recomputed after edits and cursor moves.
-        # IT: tabelle e formule mostrate rese mentre si scrive (vedi
-        #     rusca_liveblocks.py): ricalcolate dopo le modifiche e quando si
-        #     sposta il cursore.
-        self._liveblocks = None
-        self._lb_id = 0
-        self.text_buffer.connect("mark-set", self._on_insert_moved)
         self._install_dict_mouse()
         self._block_file_drops_on_editor()
         self._autocap_busy = False
@@ -2510,6 +2519,8 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         for b, key in getattr(self, "_header_buttons", ()):
             b.set_tooltip_text(self.t(key))
             b.update_property([Gtk.AccessibleProperty.LABEL], [self.t(key)])
+        if getattr(self, "preview_button", None) is not None:
+            self._sync_preview_button()
         for b, key in ((self.btn_up, "mi_up"), (self.btn_down, "mi_down")):
             b.update_property([Gtk.AccessibleProperty.LABEL], [self.t(key)])
         self.font_size_spin.set_tooltip_text(self.t("tip_font_size"))
@@ -2721,115 +2732,85 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
         self._highlight_markdown()
         self._update_wordcount()
 
-    # ---- tabelle e formule rese nell'editor ---------------------------------
-    def _on_insert_moved(self, buf, _it, mark):
-        if mark is buf.get_insert():
-            self._schedule_live_blocks()
+    # ---- immagini: figura vera, o riquadro per collegarla ------------------
+    def _image_texture(self, name):
+        """Texture di un'immagine del progetto (None se manca o non si legge)."""
+        data = self.project.images.get(name)
+        if not data:
+            return None
+        cache = self.__dict__.setdefault("_img_textures", {})
+        key = (name, len(data), hash(data[:4096]))
+        if key not in cache:
+            try:
+                cache[key] = Gdk.Texture.new_from_bytes(GLib.Bytes.new(data))
+            except GLib.Error:
+                cache[key] = None
+            if len(cache) > 64:
+                cache.clear()
+                return self._image_texture(name)
+        return cache[key]
 
-    def _schedule_live_blocks(self):
-        if not self._lb_id:
-            self._lb_id = GLib.timeout_add(90, self._live_blocks_refresh)
-        return False
+    def _image_widget(self, src, caption, width, fg, subtle):
+        """Immagine del capitolo per anteprima ed editor. Se il file non è nel
+        progetto (es. un ![…](italia.jpg) incollato o importato senza il
+        file), un riquadro lo dice e offre di sceglierlo."""
+        tex = self._image_texture(src)
+        cap = (f'<span foreground="{subtle}">{GLib.markup_escape_text(caption)}</span>'
+               if caption else "")
+        if tex is not None:
+            return rusca_liveblocks.image_widget(tex, cap, width)
+        msg = self._t_or("img_not_in_project",
+                         "Immagine non presente nel progetto: {src}", src=src)
+        box = rusca_liveblocks.image_widget(
+            None, "", width,
+            f'<span foreground="{fg}">{GLib.markup_escape_text(msg)}</span>')
+        box.set_size_request(int(width), -1)
+        button = Gtk.Button(label=self._t_or("img_choose", "Scegli l'immagine…"),
+                            halign=Gtk.Align.CENTER, margin_bottom=12)
+        button.add_css_class("suggested-action")
+        button.connect("clicked", lambda *_a: self._relink_image(src))
+        box.append(button)
+        return box
 
-    def _live_blocks_refresh(self):
-        """Tabelle, formule su riga propria e righe con formule nella frase,
-        mostrate rese quando il cursore è altrove. Il testo del capitolo non
-        cambia: solo tag e widget sovrapposti (vedi rusca_liveblocks.py)."""
-        self._lb_id = 0
-        buf = self.text_buffer
-        if self._liveblocks is None:
-            self._liveblocks = rusca_liveblocks.LiveBlocks(
-                self.text_view, self._live_block_widget, self._schedule_live_blocks)
-        text = buf.get_text(*buf.get_bounds(), True)
-        lines = text.split("\n")
-        offs, o = [], 0
-        for ln in lines:
-            offs.append(o)
-            o += len(ln) + 1
-        blocks, i, n, fence = [], 0, len(lines), False
+    def _relink_image(self, src):
+        """Sceglie il file di un'immagine citata ma assente: lo copia nel
+        progetto e aggiorna i riferimenti ](src) del capitolo corrente."""
+        row = self._current_index()
+        if row < 0 or self.project.chapters[row].is_cover:
+            self._error(self.t("img_only_chapter"))
+            return
 
-        def add(a, b, kind, data):
-            blocks.append((offs[a], offs[b] + len(lines[b]), offs[b], kind, data))
-        while i < n:
-            if lines[i].lstrip().startswith(("```", "~~~")):
-                fence = not fence
-                i += 1
-                continue
-            if fence:
-                i += 1
-                continue
-            tbl = table_at(lines, i)
-            if tbl:
-                aligns, header, rows, j = tbl
-                add(i, j - 1, "table", (tuple(aligns), tuple(header),
-                                        tuple(tuple(r) for r in rows)))
-                i = j
-                continue
-            math = display_math_at(lines, i)
-            if math:
-                add(i, math[1] - 1, "math", math[0])
-                i = math[1]
-                continue
-            if has_inline_math(lines[i]):
-                add(i, i, "line", lines[i])
-            i += 1
-        cur = buf.get_iter_at_mark(buf.get_insert()).get_offset()
-        sel = buf.get_selection_bounds()
-        self._liveblocks.update(blocks, cur,
-                                (sel[0].get_offset(), sel[1].get_offset()) if sel else None)
-        return False
+        def on_path(path):
+            try:
+                with open(path, "rb") as f:
+                    name = self.project.add_image(f.read())
+            except ValueError:
+                self._error(self.t("err_img_format"))
+                return
+            except Exception as exc:
+                self._error(self.t("err_open", e=exc))
+                return
+            buf = self.text_buffer
+            needle = f"]({src})"
+            buf.begin_user_action()
+            it = buf.get_start_iter()
+            while True:
+                found = it.forward_search(needle, Gtk.TextSearchFlags.TEXT_ONLY, None)
+                if not found:
+                    break
+                a, b = found
+                buf.delete(a, b)
+                buf.insert(a, f"]({name})")
+                it = a
+            buf.end_user_action()
+            self._commit_current()
+            self._mark_dirty()
+            if self._preview_mode:
+                self._render_preview()
 
-    def _md_markup(self, text):
-        """Markdown in linea -> markup Pango: formule in simboli (con apici e
-        pedici veri), grassetto, corsivo e codice dal parser comune."""
-        keep = []
-        code = []
-        # il codice in linea si mette da parte prima: un $ dentro `…` non
-        # apre una formula; poi torna com'era, per parse_inline
-        text = re.sub(r"(`+)(.+?)\1", lambda m: (code.append(m.group(0)),
-                                                 f"\ue002{len(code) - 1}\ue003")[1], text)
-
-        def stash(src, _big):
-            keep.append(latex_to_pango(src))
-            # segnaposto in caratteri d'uso privato: un NUL troncherebbe la
-            # stringa in GLib.markup_escape_text
-            return f"\ue000{len(keep) - 1}\ue001"
-        text = sub_inline_math(text, stash)
-        text = re.sub("\ue002(\\d+)\ue003", lambda m: code[int(m.group(1))], text)
-        wrap = {"bold": ("<b>", "</b>"), "italic": ("<i>", "</i>"),
-                "bolditalic": ("<b><i>", "</i></b>"), "code": ("<tt>", "</tt>"),
-                "regular": ("", "")}
-        out = "".join(f"{wrap[st][0]}{GLib.markup_escape_text(t)}{wrap[st][1]}"
-                      for t, st in parse_inline(text))
-        return re.sub("\ue000(\\d+)\ue001", lambda m: keep[int(m.group(1))], out)
-
-    def _live_block_widget(self, kind, data):
-        pal = self.palette()
-        fg, head = pal["editor_fg"], pal["head"]
-        if kind == "table":
-            aligns, header, rows = data
-            return rusca_liveblocks.table_widget(
-                list(aligns),
-                [f'<span foreground="{head}">{self._md_markup(h)}</span>' for h in header],
-                [[f'<span foreground="{fg}">{self._md_markup(v)}</span>' for v in r]
-                 for r in rows])
-        if kind == "math":
-            return rusca_liveblocks.math_widget(
-                f'<span foreground="{fg}">{latex_to_pango(data)}</span>')
-        kind_l, body, extra = classify_md_line(data)
-        if kind_l == "heading":
-            scale = {1: 160, 2: 135}.get(extra, 118)
-            markup = (f'<span size="{scale}%" weight="bold" foreground="{head}">'
-                      f'{self._md_markup(body)}</span>')
-        elif kind_l in ("bullet", "number"):
-            mark = "•" if kind_l == "bullet" else f"{extra}."
-            markup = (f'<span foreground="{pal["marker"]}">{mark}</span>  '
-                      f'<span foreground="{fg}">{self._md_markup(body)}</span>')
-        elif kind_l == "quote":
-            markup = f'<span foreground="{fg}"><i>{self._md_markup(body)}</i></span>'
-        else:
-            markup = f'<span foreground="{fg}">{self._md_markup(data)}</span>'
-        return rusca_liveblocks.text_widget(markup)
+        self._open_file_dialog(self.t("mi_insert_image"),
+                               ["*.png", "*.jpg", "*.jpeg", "*.webp"],
+                               self.t("filter_image"), on_path)
 
     def _highlight_markdown(self):
         """Colora il Markdown mentre si scrive. Usa le stesse regole degli
@@ -2869,7 +2850,6 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             for first, last in wrapped_runs(text):
                 apply("wrapmark", starts[first],
                       starts[last] + len(lines[last]))
-        self._schedule_live_blocks()
 
     def on_note_changed(self, buf):
         if self._loading or self.current is None:
@@ -4743,6 +4723,33 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
             self._commit_current()
             self._render_preview()
             self.center_stack.set_visible_child_name("preview")
+        self._sync_preview_button()
+
+    def _on_preview_button(self, button):
+        if getattr(self, "_syncing_preview", False):
+            return
+        if button.get_active() != self._preview_mode:
+            self._toggle_preview(whole=False)
+
+    def _sync_preview_button(self):
+        """EN: The preview button shows the mode: eye = writing (click to see
+        the preview), pressed pencil = preview (click to go back to writing).
+        The subtitle says "Preview" too.
+        IT: Il pulsante dell'anteprima mostra la modalità: occhio = scrittura
+        (clic per vedere l'anteprima), matita premuta = anteprima (clic per
+        tornare a scrivere). Anche il sottotitolo dice «Anteprima»."""
+        b = getattr(self, "preview_button", None)
+        if b is None:
+            return
+        on = bool(self._preview_mode)
+        self._syncing_preview = True
+        b.set_active(on)
+        self._syncing_preview = False
+        b.set_icon_name("document-edit-symbolic" if on else "view-reveal-symbolic")
+        tip = self.t("mi_edit_mode") if on else self.t("mi_preview")
+        b.set_tooltip_text(tip)
+        b.update_property([Gtk.AccessibleProperty.LABEL], [tip])
+        self._update_window_title()
 
     def _render_preview(self):
         buf = self.preview_buffer
@@ -4864,10 +4871,15 @@ class RuscaWriterWindow(Adw.ApplicationWindow):
                 insert_inline(body, [self._pv_tags["quote"]])
                 buf.insert(end(), "\n")
             elif kind == "image":
-                # nell'anteprima la figura non c'e': resta la didascalia,
-                # in corsivo, dove comparira' l'immagine
-                insert_inline(body, [self._pv_tags["italic"]])
+                # figura vera con la didascalia; se il file non è nel
+                # progetto, un riquadro offre di sceglierlo
+                pal = self.palette()
+                anchor = buf.create_child_anchor(end())
+                self.preview_view.add_child_at_anchor(
+                    self._image_widget(extra, body, self._preview_text_width(),
+                                       pal["editor_fg"], pal["marker"]), anchor)
                 buf.insert(end(), "\n")
+                self._pv_has_table = True     # anche le figure seguono la larghezza
             else:
                 insert_inline(raw.rstrip("\n"), [])
                 buf.insert(end(), "\n")

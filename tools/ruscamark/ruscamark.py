@@ -712,6 +712,9 @@ def system_font_families():
 # Lo stesso albero produce l'HTML dell'export e l'anteprima (Pango).
 # ----------------------------------------------------------------------------
 _RE_FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})[ \t]*([^`\s]*)[^`]*$")
+# Riga che contiene solo un'immagine: ![didascalia](file "titolo")
+_RE_IMG_LINE = re.compile(
+    r'\s*!\[([^\]]*)\]\(\s*<?((?:[^\s()<>]|\([^\s()<>]*\))+)>?(?:\s+"[^"]*")?\s*\)\s*')
 _RE_ATX = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 _RE_HR = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
 _RE_SETEXT = re.compile(r"^ {0,3}(=+|-+)[ \t]*$")
@@ -3412,15 +3415,16 @@ class RuscaWindow(Adw.ApplicationWindow):
             - self.preview_view.get_right_margin()
         return w if w > 0 else 640
 
-    def _image_texture(self, src, alt=""):
+    def _image_texture(self, src, alt="", maxw=None):
         """Texture ridotta alla larghezza della pagina (mai ingrandita).
-        Le immagini remote non vengono caricate: nessun accesso alla rete."""
+        Le immagini remote non vengono caricate: nessun accesso alla rete.
+        maxw: larghezza massima; predefinita quella dell'anteprima."""
         if re.match(r"^[a-z][\w+.-]*://", src or "", re.I) and not src.lower().startswith("file://"):
             return None, self.t("img_remote", alt=alt or src)
         path = self._resolve_image_path(src)
         if not path:
             return None, self.t("img_missing", src=src)
-        maxw = max(160, int(self._preview_text_width()))
+        maxw = int(maxw) if maxw else max(160, int(self._preview_text_width()))
         try:
             key = (path, os.path.getmtime(path), maxw)
         except OSError:
@@ -3766,7 +3770,10 @@ class RuscaWindow(Adw.ApplicationWindow):
                 add(i, math[1] - 1, "math", math[0])
                 i = math[1]
                 continue
-            if has_inline_math(lines[i]):
+            img = _RE_IMG_LINE.fullmatch(lines[i])
+            if img:
+                add(i, i, "image", (img.group(2), img.group(1)))
+            elif has_inline_math(lines[i]):
                 add(i, i, "line", lines[i])
             i += 1
         self._liveblocks.update(blocks, cur, sel)
@@ -3790,6 +3797,14 @@ class RuscaWindow(Adw.ApplicationWindow):
         if kind == "math":
             return rusca_liveblocks.math_widget(
                 f'<span foreground="{fg}">{latex_to_pango(data)}</span>')
+        if kind == "image":
+            src, alt = data
+            width = self._liveblocks.text_width()
+            tex, msg = self._image_texture(src, alt, maxw=width)
+            return rusca_liveblocks.image_widget(
+                tex, f'<span foreground="{c["subtle"]}">{self._live_inline(alt)}</span>'
+                if alt else "", width,
+                f'<span foreground="{c["subtle"]}">{GLib.markup_escape_text(msg or "")}</span>')
         return rusca_liveblocks.text_widget(self._live_line_markup(data, c))
 
     def _live_line_markup(self, line, c):

@@ -178,6 +178,8 @@
   "mi_insert_image": "画像を挿入…",
   "img_only_chapter": "画像は本文の章にのみ添付できます。表紙には ファイル → 編集セクション を使ってください。",
   "err_img_format": "未対応の画像形式です: PNG、JPEG、WebP を使ってください。",
+  "img_not_in_project": "プロジェクトに画像がありません: {src}",
+  "img_choose": "画像を選択…",
   "dlg_pdf_justify": "テキストを両端揃え",
   "dlg_pdf_hyphenate": "行末で単語をハイフンで分割",
   "dlg_pdf_hyphenate_hint": "ハイフネーションには、Pyphen と辞書をインストール:\nsudo apt install python3-pyphen hyphen-en-us",

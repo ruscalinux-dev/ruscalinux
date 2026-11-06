@@ -178,6 +178,8 @@
   "mi_insert_image": "Insérer une image…",
   "img_only_chapter": "Les images ne peuvent être jointes qu'aux chapitres de contenu. Pour la couverture, utilisez Fichier → Sections éditoriales.",
   "err_img_format": "Format d'image non pris en charge : utilisez PNG, JPEG ou WebP.",
+  "img_not_in_project": "Image absente du projet : {src}",
+  "img_choose": "Choisir l’image…",
   "dlg_pdf_justify": "Justifier le texte",
   "dlg_pdf_hyphenate": "Couper les mots en fin de ligne",
   "dlg_pdf_hyphenate_hint": "Pour la césure, installez Pyphen et un dictionnaire :\nsudo apt install python3-pyphen hyphen-fr",

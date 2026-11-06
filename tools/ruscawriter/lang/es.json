@@ -178,6 +178,8 @@
   "mi_insert_image": "Insertar imagen…",
   "img_only_chapter": "Las imágenes solo se adjuntan a los capítulos de contenido. Para la portada usa Archivo → Secciones editoriales.",
   "err_img_format": "Formato de imagen no compatible: usa PNG, JPEG o WebP.",
+  "img_not_in_project": "Imagen no presente en el proyecto: {src}",
+  "img_choose": "Elegir la imagen…",
   "dlg_pdf_justify": "Justificar el texto",
   "dlg_pdf_hyphenate": "Dividir las palabras a final de línea",
   "dlg_pdf_hyphenate_hint": "Para dividir palabras, instala Pyphen y un diccionario:\nsudo apt install python3-pyphen hyphen-es",

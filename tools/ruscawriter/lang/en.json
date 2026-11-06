@@ -178,6 +178,8 @@
   "mi_insert_image": "Insert image…",
   "img_only_chapter": "Images can be attached to content chapters only. For the cover, use File → Editorial sections.",
   "err_img_format": "Unsupported image format: use PNG, JPEG or WebP.",
+  "img_not_in_project": "Image not in the project: {src}",
+  "img_choose": "Choose the Image…",
   "dlg_pdf_justify": "Justify the text",
   "dlg_pdf_hyphenate": "Hyphenate words at line end",
   "dlg_pdf_hyphenate_hint": "To hyphenate, install Pyphen and a dictionary:\nsudo apt install python3-pyphen hyphen-en-us",

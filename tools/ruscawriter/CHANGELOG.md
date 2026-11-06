@@ -48,9 +48,13 @@ repository (`tools/ruscawriter`) and follows its specifications.
 - **Added** — Markdown tables in the preview and in every export: book-style
   rules in the PDF, real tables in HTML, EPUB and AZW3, native tables in ODT
   and DOCX, aligned columns in plain text
-- **Added** — while writing, tables, formulas and lines containing formulas
-  are shown rendered; the Markdown source comes back as soon as the cursor
-  enters them, and a click on the rendering puts the cursor there
+- **Added** — the preview shows the pictures, not only their captions
+- **Changed** — the preview button is a toggle: an eye while writing, a
+  pressed pencil ("Back to editing") in the preview, where the subtitle says
+  "Preview" too
+- **Added** — importing a Markdown file copies the pictures it cites from
+  next to it into the project; a picture missing from the project shows a
+  box with "Choose the Image…", which adds the file and updates the text
 - **Added** — formulas (`$E = mc^2$`, `$$…$$`) appear as readable symbols
   (E = mc², ≈, √, α) in the preview and in every export except Markdown,
   which keeps the LaTeX source

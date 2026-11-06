@@ -178,6 +178,8 @@
   "mi_insert_image": "Sisipkan gambar…",
   "img_only_chapter": "Gambar hanya dapat dilampirkan ke bab konten. Untuk sampul, gunakan Berkas → Bagian editorial.",
   "err_img_format": "Format gambar tidak didukung: gunakan PNG, JPEG, atau WebP.",
+  "img_not_in_project": "Gambar tidak ada di proyek: {src}",
+  "img_choose": "Pilih Gambar…",
   "dlg_pdf_justify": "Rata kanan-kiri teks",
   "dlg_pdf_hyphenate": "Penggal kata di akhir baris",
   "dlg_pdf_hyphenate_hint": "Untuk pemenggalan kata, pasang Pyphen dan kamus:\nsudo apt install python3-pyphen hyphen-en-us",

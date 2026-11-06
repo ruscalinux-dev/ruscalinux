@@ -178,6 +178,8 @@
   "mi_insert_image": "Вставить изображение…",
   "img_only_chapter": "Изображения можно прикреплять только к главам с содержанием. Для обложки: Файл → Издательские разделы.",
   "err_img_format": "Неподдерживаемый формат изображения: используйте PNG, JPEG или WebP.",
+  "img_not_in_project": "Изображения нет в проекте: {src}",
+  "img_choose": "Выбрать изображение…",
   "dlg_pdf_justify": "Выравнивать текст по ширине",
   "dlg_pdf_hyphenate": "Переносить слова в конце строки",
   "dlg_pdf_hyphenate_hint": "Для переносов установите Pyphen и словарь:\nsudo apt install python3-pyphen hyphen-ru",

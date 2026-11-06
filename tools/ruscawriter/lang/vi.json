@@ -178,6 +178,8 @@
   "mi_insert_image": "Chèn hình ảnh…",
   "img_only_chapter": "Chỉ có thể đính kèm hình ảnh vào các chương nội dung. Với bìa, hãy dùng Tập tin → Các phần biên tập.",
   "err_img_format": "Định dạng ảnh không được hỗ trợ: hãy dùng PNG, JPEG hoặc WebP.",
+  "img_not_in_project": "Hình ảnh không có trong dự án: {src}",
+  "img_choose": "Chọn hình ảnh…",
   "dlg_pdf_justify": "Căn đều hai bên",
   "dlg_pdf_hyphenate": "Ngắt từ ở cuối dòng",
   "dlg_pdf_hyphenate_hint": "Để ngắt từ, hãy cài đặt Pyphen và một từ điển:\nsudo apt install python3-pyphen hyphen-en-us",

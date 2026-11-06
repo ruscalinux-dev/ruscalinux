@@ -178,6 +178,8 @@
   "mi_insert_image": "Bild einfügen…",
   "img_only_chapter": "Bilder können nur an Inhaltskapitel angehängt werden. Für das Cover: Datei → Redaktionelle Abschnitte.",
   "err_img_format": "Nicht unterstütztes Bildformat: PNG, JPEG oder WebP verwenden.",
+  "img_not_in_project": "Bild nicht im Projekt: {src}",
+  "img_choose": "Bild auswählen …",
   "dlg_pdf_justify": "Text im Blocksatz",
   "dlg_pdf_hyphenate": "Wörter am Zeilenende trennen",
   "dlg_pdf_hyphenate_hint": "Für die Silbentrennung Pyphen und ein Wörterbuch installieren:\nsudo apt install python3-pyphen hyphen-de",

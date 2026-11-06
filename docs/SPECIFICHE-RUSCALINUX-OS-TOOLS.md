@@ -68,7 +68,7 @@ RuscaLLama e RuscaTranslator usano modelli linguistici in formato GGUF che giran
 - I modelli non fanno parte dei pacchetti: l’utente li copia in `~/.local/share/ruscallama/models/` o l’amministratore in `/usr/share/ruscallama/models/`. Ogni modello ha la propria licenza, che l’utente deve rispettare.
 - Il modulo `rusca_engine.py`, che avvia e interroga il motore, è identico nei due programmi, come `style.css` (si modifica una volta e si copia).
 - Il modulo `rusca_markdown.py` (Markdown, formule LaTeX e tabelle, senza GTK) è identico in RuscaLLama, RuscaMark e RuscaWriter (`src/ruscawriter/`), con la stessa regola.
-- Il modulo `rusca_liveblocks.py` (tabelle e formule mostrate rese nell’editor mentre si scrive, senza cambiare il testo del documento) è identico in RuscaMark e RuscaWriter, con la stessa regola.
+- Il modulo `rusca_liveblocks.py` (tabelle, formule e immagini mostrate rese nell’editor mentre si scrive, senza cambiare il testo del documento) è identico in RuscaMark e RuscaWriter, con la stessa regola. RuscaMark lo usa nella resa live; RuscaWriter solo per i riquadri delle immagini nell’anteprima, perché il suo editor mostra il Markdown sorgente.
 
 Gli identificatori di ogni tool devono coincidere tra loro (vedi sezione 5.2).
 

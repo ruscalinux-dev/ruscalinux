@@ -178,6 +178,8 @@
   "mi_insert_image": "छवि सम्मिलित करें…",
   "img_only_chapter": "छवियाँ केवल सामग्री अध्यायों में संलग्न की जा सकती हैं। मुखपृष्ठ के लिए फ़ाइल → संपादकीय खंड का उपयोग करें।",
   "err_img_format": "असमर्थित छवि प्रारूप: PNG, JPEG या WebP का उपयोग करें।",
+  "img_not_in_project": "चित्र प्रोजेक्ट में नहीं है: {src}",
+  "img_choose": "चित्र चुनें…",
   "dlg_pdf_justify": "पाठ को दोनों ओर संरेखित करें",
   "dlg_pdf_hyphenate": "पंक्ति के अंत में शब्दों को हाइफ़न से तोड़ें",
   "dlg_pdf_hyphenate_hint": "हाइफ़नेशन के लिए, Pyphen और एक शब्दकोश स्थापित करें:\nsudo apt install python3-pyphen hyphen-en-us",

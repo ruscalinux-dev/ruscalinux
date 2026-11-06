@@ -1778,6 +1778,35 @@ def test_cover_generator():
     check("copertina generata accettata dal progetto", p.has_cover_image())
 
 
+def test_formule_tabelle_immagini():
+    """Formule, tabelle e immagini citate dai file Markdown importati."""
+    print("\n[formule, tabelle, immagini importate]")
+    from ruscawriter.model import Project, render_math, table_at, _tables_to_text
+    from ruscawriter.rusca_markdown import latex_to_text, sub_inline_math
+    check("formula in simboli", latex_to_text(r"E = mc^2") == "E = mc²")
+    check("prezzi non sono formule", render_math("costa $5 e $10, poi $x^2$")
+          == "costa $5 e $10, poi x²")
+    check("codice intatto", render_math("`$x$`") == "`$x$`")
+    t = table_at(["| A | B |", "|:--|--:|", "| 1 | 2 |"], 0)
+    check("tabella riconosciuta", t is not None and t[0] == ["left", "right"])
+    check("tabella in testo", "-" in _tables_to_text("| A | B |\n|---|---|\n| 1 | 2 |"))
+    tmp = tempfile.mkdtemp()
+    png = os.path.join(tmp, "mappa.png")
+    with open(png, "wb") as f:
+        f.write(Project()._simple_png(40, 30))
+    md = os.path.join(tmp, "voce.md")
+    with open(md, "w", encoding="utf-8") as f:
+        f.write("# Voce\n\n![Mappa](mappa.png)\n\n![Remota](https://x.org/a.png)\n\n![Manca](manca.jpg)\n")
+    p = Project()
+    p.import_text_file(md)
+    text = "\n".join(c.text for c in p.chapters)
+    check("immagine accanto al .md copiata nel progetto", len(p.images) == 1)
+    name = next(iter(p.images), "")
+    check("riferimento riscritto al nome interno", f"![Mappa]({name})" in text)
+    check("indirizzo remoto lasciato com'è", "(https://x.org/a.png)" in text)
+    check("file mancante lasciato com'è", "(manca.jpg)" in text)
+
+
 def main():
     for fn in (test_save_load_roundtrip, test_autosave_non_mutating,
                test_chapter_title_priority, test_export_txt,
@@ -1805,7 +1834,7 @@ def main():
                test_i18n, test_export_markdown_odt_docx,
                test_export_html, test_azw3_logic,
                test_epub_cover_png, test_simple_png, test_import_text,
-               test_attached_images):
+               test_attached_images, test_formule_tabelle_immagini):
         fn()
     print("\n" + "=" * 50)
     print(f"RISULTATO: {PASSED} superati, {FAILED} falliti")

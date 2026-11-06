@@ -178,6 +178,8 @@
   "mi_insert_image": "Kép beszúrása…",
   "img_only_chapter": "Képeket csak tartalmi fejezetekhez lehet csatolni. A borítóhoz használja a Fájl → Szerkesztői részek menüt.",
   "err_img_format": "Nem támogatott képformátum: használjon PNG-t, JPEG-et vagy WebP-t.",
+  "img_not_in_project": "A kép nincs a projektben: {src}",
+  "img_choose": "Kép kiválasztása…",
   "dlg_pdf_justify": "A szöveg sorkizárása",
   "dlg_pdf_hyphenate": "Szavak elválasztása a sorok végén",
   "dlg_pdf_hyphenate_hint": "Az elválasztáshoz telepítse a Pyphent és egy szótárat:\nsudo apt install python3-pyphen hyphen-hu",

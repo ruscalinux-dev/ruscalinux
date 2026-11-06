@@ -178,6 +178,8 @@
   "mi_insert_image": "Afbeelding invoegen…",
   "img_only_chapter": "Afbeeldingen kunnen alleen aan inhoudelijke hoofdstukken worden toegevoegd. Gebruik voor de omslag Bestand → Redactionele onderdelen.",
   "err_img_format": "Niet-ondersteund afbeeldingsformaat: gebruik PNG, JPEG of WebP.",
+  "img_not_in_project": "Afbeelding niet in het project: {src}",
+  "img_choose": "Afbeelding kiezen…",
   "dlg_pdf_justify": "De tekst uitvullen",
   "dlg_pdf_hyphenate": "Woorden aan het regeleinde afbreken",
   "dlg_pdf_hyphenate_hint": "Installeer Pyphen en een woordenboek om af te breken:\nsudo apt install python3-pyphen hyphen-nl",

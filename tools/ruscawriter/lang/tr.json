@@ -178,6 +178,8 @@
   "mi_insert_image": "Görsel ekle…",
   "img_only_chapter": "Görseller yalnızca içerik bölümlerine eklenebilir. Kapak için Dosya → Yayın bölümleri'ni kullanın.",
   "err_img_format": "Desteklenmeyen görsel biçimi: PNG, JPEG veya WebP kullanın.",
+  "img_not_in_project": "Görsel projede yok: {src}",
+  "img_choose": "Görseli Seç…",
   "dlg_pdf_justify": "Metni iki yana yaslama",
   "dlg_pdf_hyphenate": "Satır sonunda kelimeleri hecele",
   "dlg_pdf_hyphenate_hint": "Heceleme için Pyphen ve bir sözlük kurun:\nsudo apt install python3-pyphen hyphen-en-us",

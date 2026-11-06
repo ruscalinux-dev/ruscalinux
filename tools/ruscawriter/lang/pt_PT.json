@@ -178,6 +178,8 @@
   "mi_insert_image": "Inserir imagem…",
   "img_only_chapter": "As imagens só podem ser anexadas aos capítulos de conteúdo. Para a capa, use Ficheiro → Secções editoriais.",
   "err_img_format": "Formato de imagem não suportado: use PNG, JPEG ou WebP.",
+  "img_not_in_project": "Imagem ausente do projeto: {src}",
+  "img_choose": "Escolher a imagem…",
   "dlg_pdf_justify": "Justificar o texto",
   "dlg_pdf_hyphenate": "Hifenizar as palavras no fim da linha",
   "dlg_pdf_hyphenate_hint": "Para hifenizar, instale o Pyphen e um dicionário:\nsudo apt install python3-pyphen hyphen-pt-pt",

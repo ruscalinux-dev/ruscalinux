@@ -30,6 +30,11 @@
   shortcuts, and RuscaHub asks before deleting an
   AppImage and moves it to the trash. RuscaMark's app ID is now
   `org.ruscalinux.RuscaMark`: if you pinned it to the dash, pin it again.
+- **The tools carry the RuscaLinux emblem.** Every in-house tool's icon is
+  now the plum ring of the RuscaLinux emblem, with the tool's own symbol in
+  place of the paper plane, so the tools are easy to tell apart and easy to
+  recognise as part of RuscaLinux in the dash, the app grid and GNOME
+  Software.
 - **RuscaWriter joins the in-house tools.** The book-writing program
   (chapters, notes, Markdown, typesetting and export to PDF, EPUB, ODT,
   DOCX…) now has the same GNOME look as the other tools, page themes with
@@ -63,6 +68,11 @@
   screen, so the installer is just as readable on a 4K monitor as on a
   Full HD one. To choose the size yourself, add `ruscalinux.dpi=150` (or any
   value from 72 to 384) to the installer's boot line.
+- **New default wallpaper, and a new one to choose.** The colourful plum and
+  pink wallpaper is now the default with the light style; the dark one stays
+  the default with the dark style. The light wallpaper becomes **Magic**:
+  the same sky with stardust trails behind the paper planes, sparkles, and a
+  ring of light shaped like the emblem. Choose it in Settings → Appearance.
 - New boot splash.
 - Removed: the uBlock Origin extension for Firefox.
 

@@ -110,7 +110,7 @@
     /* Theme toggle — three variants */
     .theme-toggle {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
 
@@ -267,7 +267,7 @@
       width: 100%;
       max-width: 900px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
     }
 
@@ -349,7 +349,7 @@
       </svg>
       <span>rusca<em>linux</em> · wallpaper generator</span>
     </div>
-    <div style="font-size:0.72rem;color:var(--ui-muted);letter-spacing:0.05em;">3 variants · SVG · PNG 1080p · PNG 4K</div>
+    <div style="font-size:0.72rem;color:var(--ui-muted);letter-spacing:0.05em;">4 variants · SVG · PNG 1080p · PNG 4K</div>
   </header>
 
   <!-- MAIN -->
@@ -365,6 +365,7 @@
           <button class="theme-btn" id="btn-light" onclick="setTheme('light')">○ Light</button>
           <button class="theme-btn" id="btn-mid" onclick="setTheme('mid')">◑ Colorful</button>
           <button class="theme-btn active" id="btn-dark" onclick="setTheme('dark')">◐ Dark</button>
+          <button class="theme-btn" id="btn-magic" onclick="setTheme('magic')">✦ Magic</button>
         </div>
       </div>
 
@@ -450,7 +451,7 @@
       </div>
 
       <div class="sidebar-section">
-        <div class="section-label">Export — all three</div>
+        <div class="section-label">Export — RuscaLinux set (Colorful, Dark, Magic)</div>
         <button class="btn-secondary" onclick="downloadAllSVG()" style="width:100%;margin-bottom:6px;">All SVG</button>
         <div class="download-grid">
           <button class="btn-secondary" onclick="downloadAllPNG(1920,1080)">All 1080p</button>
@@ -479,6 +480,10 @@
           <svg id="svg-dark" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
           <div class="thumb-label">Dark</div>
         </div>
+        <div class="thumb" id="thumb-magic" onclick="setTheme('magic')">
+          <svg id="svg-magic" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="thumb-label">Magic</div>
+        </div>
       </div>
     </section>
 
@@ -486,7 +491,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-info">One layout, three variants — light, colorful, dark · plum &amp; rose base</div>
+    <div class="footer-info">One layout, four variants — light, colorful, dark, magic · plum &amp; rose base</div>
     <div class="footer-info">Resolution: 1920 × 1080 · 3840 × 2160 (4K)</div>
   </footer>
 
@@ -497,7 +502,10 @@
 
 <script>
 const SVG_NS = "http://www.w3.org/2000/svg";
-const THEME_ORDER = ['light','mid','dark'];
+const THEME_ORDER = ['light','mid','dark','magic'];
+// Gli sfondi installati da RuscaLinux (branding/backgrounds): Colorful (mid)
+// predefinito per il tema chiaro, Dark per il tema scuro, Magic come terzo.
+const DISTRO_SET = ['mid','dark','magic'];
 let currentTheme = 'dark';
 let layout = null;
 
@@ -534,6 +542,9 @@ const THEMES = {
     noiseOpacity:0.06, waveAlpha:0.62, starAlpha:0.95,
   },
 };
+// Magia: la variante chiara con la luce un po' piu' calda ai bordi, cosi' la
+// polvere di stelle crema si stacca dal fondo. Gli effetti sono in magicLayer().
+THEMES.magic = { ...THEMES.light, vignette:'rgba(122,35,87,0.32)', magic:true };
 
 // ---- RNG deterministico, così una composizione si può riprodurre -----------
 function makeRng(seed) {
@@ -723,6 +734,7 @@ function render(lay, th, key, opts={}) {
   const textSize = opts.textSize ?? 54;
 
   const trailGrads = lay.planes.map((pl,i)=>trailGradient(pl,th,key,i)).join('\n');
+  const mg = p.magic ? magicLayer(lay, key, alpha) : { defs:'', under:'', over:'' };
 
   const defs = `<defs>
 <radialGradient id="bg-${key}" cx="33%" cy="40%" r="95%">
@@ -758,6 +770,7 @@ function render(lay, th, key, opts={}) {
   <feColorMatrix type="saturate" values="0"/>
 </filter>
 ${trailGrads}
+${mg.defs}
 </defs>`;
 
   const stars = ['','',''].map((_,d)=>{
@@ -792,14 +805,176 @@ ${defs}
 ${drawWaves(lay, th, key)}
 <rect width="${W}" height="${H}" fill="url(#glow-${key})"/>
 ${stars}
+${mg.under}
 ${draw(far)}
 ${draw(near)}
+${mg.over}
 <rect width="${W}" height="${H}" fill="url(#vig-${key})"/>
 <rect width="${W}" height="${H}" filter="url(#noise-${key})" opacity="${p.noiseOpacity}"/>
 ${text}
 </svg>`;
 }
 
+
+// =============================================================================
+// MAGIA — quarta variante
+// =============================================================================
+// Parte dalla variante chiara e aggiunge: polvere di stelle sulle scie degli
+// aeroplanini, scintille a quattro punte, bagliori morbidi, un nastro
+// iridescente e, attorno all'aereo protagonista, un anello di polvere luminosa
+// con la forma dell'emblema: l'aereo sta dentro, a destra del centro, e la sua
+// scia entra dall'apertura dell'anello.
+// Usa un generatore casuale proprio, derivato dal seme: la composizione delle
+// altre varianti non cambia, e lo stesso seme da' sempre la stessa immagine.
+const MAGIC = {
+  cream:'#FFF7F0', rose300:'#F2A7C8', rose200:'#F8D7E6',
+  plum600:'#7A2357', plum500:'#8A2B5F', lilac:'#D9B8E8',
+};
+
+function magicLayer(lay, key, alpha) {
+  const rnd = makeRng((lay.seed ^ 0x5bd1e995) >>> 0);
+  const R = (a,b) => a + rnd()*(b-a);
+  const gauss = () => Math.sqrt(-2*Math.log(1-rnd())) * Math.cos(2*Math.PI*rnd());
+  const f1 = v => v.toFixed(1), f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+  const A = v => f3(Math.min(1, v*alpha));
+
+  // Il testo resta pulito: niente polvere ne' scintille sopra nome e frase.
+  const free = (x,y) => !(x > W*0.33 && x < W*0.67 && y > H*0.73 && y < H*0.90);
+
+  const glow = [], halo = [], glitter = [], rose = [], stars = [], bokeh = [], ring = [], lights = [];
+
+  // Scintilla a quattro punte: alone colorato (visibile anche sul fondo
+  // chiaro), stella crema, nucleo luminoso e una stella piu' piccola a 45°.
+  function twinkle(x, y, L, op) {
+    const w = L*0.07, l2 = L*0.45, w2 = w*0.8;
+    // raggi sottili e concavi: punti di controllo vicinissimi al centro
+    const star = (l, ww) => `M0,${f1(-l)} C${f2(ww*0.4)},${f2(-ww)} ${f2(ww)},${f2(-ww*0.4)} ${f1(l)},0 C${f2(ww)},${f2(ww*0.4)} ${f2(ww*0.4)},${f2(ww)} 0,${f1(l)} C${f2(-ww*0.4)},${f2(ww)} ${f2(-ww)},${f2(ww*0.4)} ${f1(-l)},0 C${f2(-ww)},${f2(-ww*0.4)} ${f2(-ww*0.4)},${f2(-ww)} 0,${f1(-l)}Z`;
+    stars.push(`<g transform="translate(${f1(x)},${f1(y)})">
+  <path d="${star(L*1.05, w*2.2)}" fill="${MAGIC.plum500}" opacity="${A(op*0.35)}" filter="url(#mg-soft-${key})"/>
+  <path d="${star(l2, w2)}" transform="rotate(45)" fill="${MAGIC.cream}" opacity="${A(op*0.75)}"/>
+  <path d="${star(L, w)}" fill="${MAGIC.cream}" opacity="${A(op)}"/>
+  <circle r="${f2(Math.max(1.2, L*0.10))}" fill="${MAGIC.cream}" opacity="${A(op*0.9)}" filter="url(#mg-soft-${key})"/>
+</g>`);
+  }
+
+  // ── Polvere di stelle lungo le scie ────────────────────────────────────────
+  lay.planes.forEach(pl => {
+    const power = pl.hero ? 1 : [0.35, 0.6, 0.85][pl.depth];
+    const count = pl.hero ? 450 : [60, 150, 260][pl.depth];
+    for (let i = 0; i < count; i++) {
+      const u = Math.pow(rnd(), 1/2.2);             // piu' densa vicino all'aereo
+      const t = pl.t * u * 0.97;                     // ma senza coprirlo
+      const q = bez(pl.path, t);
+      const spread = (1-u)*35*power + 3;
+      const x = q.x + gauss()*spread, y = q.y + gauss()*spread + (1-u)*12;
+      if (!free(x,y)) continue;
+      const r = R(1.3, 3.6) * (0.6 + 0.6*power);
+      const k = rnd();
+      if (k < 0.45) {
+        glow.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(r)}" opacity="${A(R(0.55,1)*power)}"/>`);
+        halo.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(r*2.2)}" opacity="${A(0.22*power)}"/>`);
+      } else if (k < 0.8) {
+        glitter.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(r*0.7)}" opacity="${A(R(0.3,0.65)*power)}"/>`);
+      } else {
+        rose.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(r*0.9)}" opacity="${A(R(0.45,0.85))}"/>`);
+        glow.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(r*0.45)}" opacity="${A(0.9)}"/>`);
+      }
+    }
+    // qualche scintilla grande sulla scia
+    const nt = Math.max(1, Math.round(6*power));
+    for (let i = 0; i < nt; i++) {
+      const q = bez(pl.path, pl.t * R(0.35, 0.85));   // non sopra l'aereo
+      const x = q.x + gauss()*20, y = q.y + gauss()*20;
+      if (free(x,y)) twinkle(x, y, (R(5,11)*power + 3) * 2.2, R(0.7, 1));
+    }
+    // alone di luce dietro l'aereo
+    const p = bez(pl.path, pl.t);
+    lights.push(`<circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="${f1(80*pl.scale)}" fill="url(#mg-light-${key})" opacity="${A(pl.hero ? 0.55 : 0.4)}"/>`);
+  });
+
+  // ── Anello dell'emblema attorno all'aereo protagonista ────────────────────
+  const hero = lay.planes.find(p => p.hero);
+  if (hero) {
+    const P = bez(hero.path, hero.t);
+    const head = bezAngle(hero.path, hero.t) * Math.PI/180;
+    const Rr = 165 * hero.scale;
+    const C = { x: P.x - Math.cos(head)*Rr*0.58, y: P.y - Math.sin(head)*Rr*0.58 + Rr*0.05 };
+    // L'apertura e' dove la scia attraversa l'anello.
+    let gap = head + Math.PI*0.6;
+    for (let s = 1; s <= 60; s++) {
+      const q = bez(hero.path, hero.t * (1 - s/60));
+      if (Math.hypot(q.x-C.x, q.y-C.y) > Rr) { gap = Math.atan2(q.y-C.y, q.x-C.x); break; }
+    }
+    const half = 20 * Math.PI/180;
+    const thickDir = head + Math.PI + 10*Math.PI/180;   // spesso dal lato opposto all'aereo, come nell'emblema
+    for (let i = 0; i < 800; i++) {
+      const a = gap + half + rnd()*(2*Math.PI - 2*half);
+      const thick = 2.5 + 7*(0.5 + 0.5*Math.cos(a - thickDir));
+      const rr = Rr + gauss()*thick;
+      const x = C.x + Math.cos(a)*rr, y = C.y + Math.sin(a)*rr;
+      ring.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(R(1.0,2.2))}" fill="${i%4 ? MAGIC.cream : MAGIC.plum500}" opacity="${A(i%4 ? R(0.3,0.75) : 0.18)}"/>`);
+    }
+  }
+
+  // ── Cielo: scintille sparse, pulviscolo e bokeh ────────────────────────────
+  for (let i = 0; i < 55; i++) {
+    const x = R(40, W-40), y = R(30, H*0.75);
+    if (free(x,y)) twinkle(x, y, R(3,9)*1.8, R(0.45, 0.95));
+  }
+  for (let i = 0; i < 450; i++) {
+    const x = R(0,W), y = R(0,H);
+    if (!free(x,y)) continue;
+    if (rnd() < 0.6) glow.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(R(1.0,2.2))}" opacity="${A(R(0.3,0.9))}"/>`);
+    else glitter.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f2(R(0.8,1.7))}" opacity="${A(R(0.15,0.4))}"/>`);
+  }
+  for (let i = 0; i < 26; i++) {
+    bokeh.push(`<circle cx="${f1(R(100,W-100))}" cy="${f1(R(75,H*0.67))}" r="${f1(R(12,45))}" fill="${rnd()<0.6 ? MAGIC.rose200 : MAGIC.lilac}" opacity="${A(R(0.10,0.22))}"/>`);
+  }
+
+  // ── Nastro iridescente lungo la diagonale, verso l'aereo protagonista ─────
+  const hx = hero ? bez(hero.path, hero.t).x : W*0.6, hy = hero ? bez(hero.path, hero.t).y : H*0.3;
+  const ribbon = `M ${f1(W*0.04)},${f1(H*0.74)} C ${f1(W*0.30)},${f1(H*0.66 + R(-40,40))} ${f1(hx-260)},${f1(hy+120)} ${f1(W*0.96)},${f1(H*0.10 + R(-30,30))}`;
+
+  const defs = `
+<linearGradient id="mg-ribbon-${key}" gradientUnits="userSpaceOnUse" x1="0" y1="${H*0.75}" x2="${W}" y2="${H*0.1}">
+  <stop offset="0%" stop-color="${MAGIC.lilac}" stop-opacity="0"/>
+  <stop offset="25%" stop-color="${MAGIC.lilac}" stop-opacity="1"/>
+  <stop offset="75%" stop-color="${MAGIC.rose200}" stop-opacity="1"/>
+  <stop offset="100%" stop-color="${MAGIC.rose200}" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="mg-strand-${key}" gradientUnits="userSpaceOnUse" x1="0" y1="${H*0.75}" x2="${W}" y2="${H*0.1}">
+  <stop offset="0%" stop-color="${MAGIC.cream}" stop-opacity="0"/>
+  <stop offset="50%" stop-color="${MAGIC.cream}" stop-opacity="1"/>
+  <stop offset="100%" stop-color="${MAGIC.cream}" stop-opacity="0"/>
+</linearGradient>
+<radialGradient id="mg-light-${key}">
+  <stop offset="0%" stop-color="${MAGIC.cream}" stop-opacity="0.9"/>
+  <stop offset="45%" stop-color="${MAGIC.rose200}" stop-opacity="0.35"/>
+  <stop offset="100%" stop-color="${MAGIC.rose200}" stop-opacity="0"/>
+</radialGradient>
+<filter id="mg-ribbonblur-${key}" filterUnits="userSpaceOnUse" x="-300" y="-300" width="${W+600}" height="${H+600}"><feGaussianBlur stdDeviation="45"/></filter>
+<filter id="mg-strandblur-${key}" filterUnits="userSpaceOnUse" x="-300" y="-300" width="${W+600}" height="${H+600}"><feGaussianBlur stdDeviation="14"/></filter>
+<filter id="mg-bokeh-${key}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+<filter id="mg-glow-${key}" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><feGaussianBlur stdDeviation="1.0"/></filter>
+<filter id="mg-halo-${key}" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><feGaussianBlur stdDeviation="2.4"/></filter>
+<filter id="mg-soft-${key}" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter>`;
+
+  // Sotto gli aeroplanini: nastro, bokeh, aloni, anello e polvere.
+  const under = `<g class="magic-under">
+<path d="${ribbon}" fill="none" stroke="url(#mg-ribbon-${key})" stroke-width="210" stroke-linecap="round" opacity="${A(0.30)}" filter="url(#mg-ribbonblur-${key})"/>
+<path d="${ribbon}" fill="none" stroke="url(#mg-strand-${key})" stroke-width="34" stroke-linecap="round" opacity="${A(0.45)}" filter="url(#mg-strandblur-${key})"/>
+<g filter="url(#mg-bokeh-${key})">${bokeh.join('')}</g>
+${lights.join('\n')}
+<g filter="url(#mg-glow-${key})">${ring.join('')}</g>
+<g fill="${MAGIC.rose300}" filter="url(#mg-halo-${key})">${halo.join('')}</g>
+<g fill="${MAGIC.plum500}">${glitter.join('')}</g>
+<g fill="${MAGIC.rose300}">${rose.join('')}</g>
+<g fill="${MAGIC.cream}" filter="url(#mg-glow-${key})">${glow.join('')}</g>
+</g>`;
+  // Sopra: le scintille.
+  const over = `<g class="magic-over">${stars.join('\n')}</g>`;
+  return { defs, under, over };
+}
 
 // ==== MOTORE: fine ====
 
@@ -902,8 +1077,8 @@ function exportPNG(theme, tw, th) {
 
 function downloadSVG()       { exportSVG(currentTheme); }
 function downloadPNG(tw, th) { exportPNG(currentTheme, tw, th); }
-function downloadAllSVG()    { THEME_ORDER.forEach((t,i)=>setTimeout(()=>exportSVG(t), i*400)); }
-function downloadAllPNG(w,h) { THEME_ORDER.forEach((t,i)=>setTimeout(()=>exportPNG(t,w,h), i*900)); }
+function downloadAllSVG()    { DISTRO_SET.forEach((t,i)=>setTimeout(()=>exportSVG(t), i*400)); }
+function downloadAllPNG(w,h) { DISTRO_SET.forEach((t,i)=>setTimeout(()=>exportPNG(t,w,h), i*1500)); }
 
 document.fonts.ready.then(generateArt);
 </script>

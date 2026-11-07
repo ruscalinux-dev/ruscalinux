@@ -122,7 +122,7 @@ cp local/ruscalinux-logo.png .work/config/includes.chroot_after_packages/usr/sha
 mkdir -p .work/config/includes.chroot_after_packages/usr/share/glib-2.0/schemas
 cat <<EOF > .work/config/includes.chroot_after_packages/usr/share/glib-2.0/schemas/99_ruscalinux-backgrounds-it.gschema.override
 [org.gnome.desktop.background]
-picture-uri='file:///usr/share/backgrounds/ruscalinux-backgrounds/ruscalinux-wallpaper-light.png'
+picture-uri='file:///usr/share/backgrounds/ruscalinux-backgrounds/ruscalinux-wallpaper-mid.png'
 picture-uri-dark='file:///usr/share/backgrounds/ruscalinux-backgrounds/ruscalinux-wallpaper-dark.png'
 
 [org.gnome.desktop.screensaver]
@@ -1908,9 +1908,11 @@ EOF
 # prossima serie di sfondi il desktop partirebbe senza sfondo — e senza alcun
 # errore, perche' una picture-uri che non esiste non produce nessun messaggio.
 #
-# Questo hook crea tre collegamenti dal nome stabile al file reale. Le chiavi
-# puntano ai collegamenti, quindi cambiare gli sfondi non richiede piu' di
-# toccare 30-custom.sh.
+# Questo hook crea i collegamenti dal nome stabile al file reale per gli sfondi
+# predefiniti (mid per il tema chiaro, dark per il tema scuro e il blocco
+# schermo). Le chiavi puntano ai collegamenti, quindi cambiare gli sfondi non
+# richiede piu' di toccare 30-custom.sh. Lo sfondo "magic" non e' predefinito:
+# compare solo in Impostazioni -> Aspetto e non ha bisogno del collegamento.
 # ---------------------------------------------------------------------------
 cat <<'EOF' > .work/config/hooks/normal/9992-wallpaper-aliases.hook.chroot
 #!/bin/sh
@@ -1918,7 +1920,7 @@ set -e
 DIR=/usr/share/backgrounds/ruscalinux-backgrounds
 [ -d "$DIR" ] || exit 0
 
-for variant in light mid dark; do
+for variant in mid dark; do
     # Il piu' recente che corrisponde alla variante, qualunque sia il suffisso.
     target=$(ls -1 "$DIR"/ruscalinux-wallpaper-"$variant"-*.png 2>/dev/null | sort | tail -n1)
     if [ -n "$target" ]; then

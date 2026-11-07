@@ -99,7 +99,7 @@
 
 Hybrid ISO: a full live system plus its own installer, including a
 speech-synthesis option for accessibility. Write it byte-for-byte to a USB
-stick of 4 GB or larger.
+stick of 8 GB or larger.
 
 Download: <https://sourceforge.net/projects/ruscalinux/files/@VERSION@/>
 

@@ -68,7 +68,7 @@ Get-FileHash @ISO@ -Algorithm SHA256
 ## Write to a USB stick
 
 The image is hybrid, so it can be written byte-for-byte to a USB drive
-(4 GB or larger).
+(8 GB or larger).
 
 **Graphical tools** — balenaEtcher (Windows/macOS/Linux) or GNOME Disks (Linux):
 pick the ISO, pick the drive, flash.

@@ -43,7 +43,7 @@ Get-FileHash @ISO@ -Algorithm SHA256
 
 ### 3. Write the ISO to a USB stick
 
-You need a USB drive of 4 GB or more. **The drive will be erased.**
+You need a USB drive of 8 GB or more. **The drive will be erased.**
 
 **Easiest path (any OS) — balenaEtcher:**
 download from https://www.balena.io/etcher/, open it, select the ISO, select
@@ -208,7 +208,7 @@ Get-FileHash @ISO@ -Algorithm SHA256
 
 ### 3. Scrivi la ISO su una chiavetta USB
 
-Serve una chiavetta da almeno 4 GB. **Sarà completamente cancellata.**
+Serve una chiavetta da almeno 8 GB. **Sarà completamente cancellata.**
 
 **Modo più semplice (qualsiasi sistema) — balenaEtcher:**
 scarica da https://www.balena.io/etcher/, aprilo, seleziona la ISO, seleziona

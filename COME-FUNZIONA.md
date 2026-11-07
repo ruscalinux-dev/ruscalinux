@@ -16,15 +16,16 @@ ISO: quello lo decidono i tre file in `steps/`.
 ## Fare una nuova versione
 
 ```sh
-vi release.conf     # VERSION="2.0", NVIDIA_PIN="595.71.05"
+vi release.conf     # VERSION="2.0"
 ./build.sh
 ./test.sh
 ```
 
-Per un rilascio `NVIDIA_PIN` va scritto con la versione esatta del driver,
-provata su hardware vero: `build.sh` avvisa se è ancora un ramo (`"595"`).
-La versione installata nella ISO finisce da sola nelle note di rilascio e
-nei documenti per chi scarica (`@NVIDIA@`).
+Il driver NVIDIA segue il ramo scritto in `NVIDIA_PIN` (`"595"`): ogni
+build prende l'ultima versione del ramo. Alla fine `build.sh` stampa la
+versione installata (riga `nvidia`): prima di pubblicare controlla che sia
+quella provata su hardware vero. La stessa versione finisce da sola nelle
+note di rilascio e nei documenti per chi scarica (`@NVIDIA@`).
 
 Poi si pubblica a mano: vedi più sotto.
 

@@ -34,14 +34,6 @@ fi
 
 echo "RuscaLinux $VERSION — $SUITE/$ARCH"
 
-# Driver NVIDIA: un ramo ("595") va bene durante lo sviluppo, ma una ISO da
-# pubblicare vuole la versione esatta, provata su hardware vero
-# (docs/NVIDIA.md, "Scegliere la versione del driver").
-case "$NVIDIA_PIN" in
-    *.*) ;;
-    *)  echo "ATTENZIONE: NVIDIA_PIN=\"$NVIDIA_PIN\" e' un ramo, non una versione esatta."
-        echo "            Prima di pubblicare scrivi in release.conf la versione provata." ;;
-esac
 
 
 # --- 1. Controlli ----------------------------------------------------------
@@ -358,7 +350,7 @@ echo "  file       .work/$ISO"
 echo "  peso       $PESO"
 echo "  sha256     $SHA"
 echo "  pacchetti  $PACCHETTI"
-echo "  nvidia     $NVIDIA"
+echo "  nvidia     $NVIDIA  (ramo $NVIDIA_PIN: controlla che sia la versione provata)"
 echo
 echo "Da caricare su SourceForge, tutti in .work/ :"
 echo "  $ISO"

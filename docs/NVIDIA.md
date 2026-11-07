@@ -97,15 +97,19 @@ ISO entra solo il certificato pubblico,
 `NVIDIA_PIN` in `release.conf` è il suffisso del pacchetto
 `nvidia-driver-pinning-*`:
 
-- un ramo (`595`) segue gli aggiornamenti di quel ramo: va bene durante lo
-  sviluppo;
-- una versione esatta (`595.71.05`) rende la build riproducibile: si usa per
-  i rilasci.
+- un ramo (`595`) segue gli aggiornamenti di quel ramo: **è la scelta di
+  RuscaLinux**, così ogni build prende l'ultima versione con le sue
+  correzioni;
+- una versione esatta (`595.112.07`) fissa il driver: serve solo se una
+  versione nuova del ramo desse problemi.
 
-Le versioni disponibili si vedono nell'indice del repository
-(`NVIDIA_REPO`), cercando i file `nvidia-driver-pinning-*`. Si sceglie una
-versione pubblicata da almeno due settimane e provata su hardware vero.
-`build.sh` avvisa se `NVIDIA_PIN` è ancora un ramo.
+Con il ramo, due build fatte in giorni diversi possono avere driver diversi.
+Per questo, prima di pubblicare, si controlla la riga `nvidia` che
+`build.sh` stampa alla fine: deve essere la versione provata su hardware
+vero. Se è cambiata dopo le prove, si riprova o si fissa per quella build la
+versione provata. Conviene che la versione sia pubblicata da almeno due
+settimane. Le versioni disponibili si vedono nell'indice del repository
+(`NVIDIA_REPO`), cercando i file `nvidia-driver-pinning-*`.
 (llama.cpp invece segue da solo l'ultima release stabile: vedi
 `tools/ruscallama-engine/README.md`.)
 

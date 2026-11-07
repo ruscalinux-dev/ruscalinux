@@ -2,8 +2,8 @@
 
 <!--
   Template. @VERSION@, @SUITE@, @ARCH@, @KERNEL@, @DESKTOP@, @ISO@, @SHA256@,
-  @SIZE@ and @DATE@ are filled in by build.sh from release.conf and the
-  image that was actually built. Edit the prose below for each release;
+  @SIZE@, @DATE@ and @NVIDIA@ (the NVIDIA driver version) are filled in by
+  build.sh from release.conf and the image that was actually built. Edit the prose below for each release;
   never type the version, the file name or the checksum by hand.
 -->
 
@@ -55,6 +55,14 @@
   (Ukrainian and Russian, Simplified and Traditional Chinese, European and
   Brazilian Portuguese). Models are not included: copy a GGUF file into
   `~/.local/share/ruscallama/models/`.
+- **NVIDIA graphics, optional.** The image includes the NVIDIA driver
+  @NVIDIA@, with open kernel modules, for GTX 16, RTX 20 and later cards,
+  RTX 50 included. RuscaLinux still starts and installs with the free
+  drivers: the NVIDIA driver is chosen with the “… with NVIDIA driver”
+  entries of the boot menu, once, at installation. With Secure Boot on,
+  the RuscaLinux certificate must be enrolled once: see `INSTALL.md`. Older cards (GTX 900, GTX 1000) use the free drivers.
+  Laptops with two graphics cards run the desktop on the integrated
+  graphics and use the NVIDIA card for the programs that ask for it.
 - **ruscallama-engine** is llama.cpp 0.9.0, the latest stable release, built
   from source with Vulkan for NVIDIA, AMD and Intel graphics. It is built
   without HTTPS support and without its web interface, so it cannot download
@@ -86,6 +94,7 @@
 | **Base** | Debian @SUITE@, @ARCH@ |
 | **Desktop** | @DESKTOP@ |
 | **Kernel** | Linux @KERNEL@ |
+| **NVIDIA driver** | @NVIDIA@ (optional, from the boot menu) |
 | **Released** | @DATE@ |
 
 Hybrid ISO: a full live system plus its own installer, including a
@@ -104,9 +113,12 @@ sha256sum -c SHA256SUMS
 ## Build it yourself
 
 ```sh
-sudo apt install live-build
+sudo apt install live-build openssl squashfs-tools
 ./build.sh
 ```
+
+The build also needs the key of the NVIDIA repository in `local/nvidia/`,
+downloaded once: see `docs/NVIDIA.md`.
 
 The version of the image lives in `release.conf`. Each utility in `tools/`
 carries the same version in its own `make-deb.sh`; `make-debs.sh` warns if
@@ -117,3 +129,10 @@ they differ.
 Build scripts and original design sources: GPL-3.0. Third-party material keeps
 its own licence. The name *RuscaLinux*, its logo and its emblem are not covered
 by the GPL — see `TRADEMARK.md`.
+
+RuscaLinux is built almost entirely from free software. Like Debian, it
+includes the non-free firmware some hardware needs. It also includes, as an
+option in the boot menu, the NVIDIA driver: proprietary software distributed
+under the NVIDIA licence, with open-source kernel modules (MIT/GPL-2.0). The
+free drivers are the default. Security fixes for the NVIDIA driver, like all
+others, arrive with each new release.

@@ -12,6 +12,7 @@ set -e
 
 # Va sempre nella cartella dello script, anche se lo lanci da altrove.
 cd "$(dirname "$0")"
+RADICE=$PWD
 
 # Carica VERSION, SUITE, ARCH e le altre impostazioni.
 . ./release.conf
@@ -32,6 +33,15 @@ if [ "$1" = "--config" ]; then
 fi
 
 echo "RuscaLinux $VERSION — $SUITE/$ARCH"
+
+# Driver NVIDIA: un ramo ("595") va bene durante lo sviluppo, ma una ISO da
+# pubblicare vuole la versione esatta, provata su hardware vero
+# (docs/NVIDIA.md, "Scegliere la versione del driver").
+case "$NVIDIA_PIN" in
+    *.*) ;;
+    *)  echo "ATTENZIONE: NVIDIA_PIN=\"$NVIDIA_PIN\" e' un ramo, non una versione esatta."
+        echo "            Prima di pubblicare scrivi in release.conf la versione provata." ;;
+esac
 
 
 # --- 1. Controlli ----------------------------------------------------------
@@ -191,8 +201,20 @@ sh .gen/40-nvidia.sh
 if [ "$SOLO_CONFIG" = "si" ]; then
     echo
     echo "Fermato prima della build (--config)."
+    echo "ATTENZIONE: .work/config/hooks/normal/0500-nvidia-driver.hook.chroot"
+    echo "            contiene la chiave privata di firma: ./build.sh --clean"
+    echo "            la cancella insieme al resto."
     exit 0
 fi
+
+# L'hook del driver contiene la chiave privata di firma dei moduli (in
+# base64). Nella ISO non entra, ma resterebbe in .work/ dopo la build, o nel
+# chroot se la build si ferma a meta'. Si cancella comunque finisca la build.
+pulisci_chiave() {
+    sudo find "$RADICE/.work" -name '0500-nvidia-driver.hook.chroot' -delete 2> /dev/null || true
+    sudo rm -f "$RADICE/.work/chroot/var/lib/dkms/mok.key"
+}
+trap pulisci_chiave EXIT
 
 
 # --- 5. Costruisce la ISO --------------------------------------------------
@@ -297,6 +319,17 @@ SHA=$(cut -d ' ' -f 1 .work/SHA256SUMS)
 # accanto alla ISO: e' l'unico modo di averlo giusto.
 
 PACCHETTI=$(wc -l < ".work/ruscalinux-$VERSION-$ARCH.packages" 2> /dev/null || echo "?")
+
+# Versione del driver NVIDIA davvero installato nella ISO (senza epoca e
+# revisione Debian): finisce nelle note di rilascio, cosi' chi legge un
+# bollettino di sicurezza NVIDIA sa se lo riguarda.
+NVIDIA=$(awk '{ p = $1; sub(/:.*/, "", p) } p == "nvidia-driver" { print $2; exit }' \
+             ".work/ruscalinux-$VERSION-$ARCH.packages" 2> /dev/null \
+         | sed -e 's/^[0-9]*://' -e 's/-[^-]*$//')
+if [ -z "$NVIDIA" ]; then
+    echo "ATTENZIONE: versione del driver NVIDIA non trovata nel file .packages"
+    NVIDIA="?"
+fi
 OGGI=$(date +%Y-%m-%d)
 
 riempi() {                        # riempi  MODELLO  DESTINAZIONE
@@ -309,6 +342,7 @@ riempi() {                        # riempi  MODELLO  DESTINAZIONE
         -e "s|@SHA256@|$SHA|g" \
         -e "s|@SIZE@|$PESO|g" \
         -e "s|@PACCHETTI@|$PACCHETTI|g" \
+        -e "s|@NVIDIA@|$NVIDIA|g" \
         -e "s|@DATE@|$OGGI|g" \
         "$1" > "$2"
 }
@@ -324,6 +358,7 @@ echo "  file       .work/$ISO"
 echo "  peso       $PESO"
 echo "  sha256     $SHA"
 echo "  pacchetti  $PACCHETTI"
+echo "  nvidia     $NVIDIA"
 echo
 echo "Da caricare su SourceForge, tutti in .work/ :"
 echo "  $ISO"

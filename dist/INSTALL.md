@@ -72,8 +72,10 @@ You'll see the RuscaLinux boot menu:
 | Option | What it does |
 |---|---|
 | **Live system (@ARCH@)** | Runs RuscaLinux entirely from the USB stick. Nothing is written to your disk. The best way to try the system first. |
+| **Live system (@ARCH@) with NVIDIA driver** | Same, with the NVIDIA driver instead of the free drivers. See [NVIDIA graphics cards](#nvidia-graphics-cards). |
 | **Live system (amd64 fail-safe mode)** | Same, with safer driver options if the default mode doesn't display correctly. |
-| **Start installer** | Install RuscaLinux on your computer. |
+| **Start installer** | Install RuscaLinux on your computer, with the free graphics drivers. |
+| **Start installer with NVIDIA driver** | Install RuscaLinux with the NVIDIA driver active. |
 | **Start installer with speech synthesis** | Accessible, spoken installation. |
 | **Advanced install options** | For experienced users. |
 | **Utilities** | Memory test and other tools. |
@@ -90,6 +92,59 @@ email are already installed and configured.
 
 ---
 
+## NVIDIA graphics cards
+
+RuscaLinux starts and installs with the **free graphics drivers**, which work
+on every computer. The image also contains the **NVIDIA driver @NVIDIA@**,
+which gives NVIDIA cards their full speed: choose it with the
+**“… with NVIDIA driver”** entries of the boot menu.
+
+It works with **GTX 16, RTX 20 and later** cards (RTX 30, 40, 50), desktop
+and laptop. Older cards (GTX 900, GTX 1000) use the free drivers.
+
+**Try it first.** Start **Live system (@ARCH@) with NVIDIA driver**. If the
+desktop works, install with **Start installer with NVIDIA driver**.
+
+**Laptops with two graphics cards.** The desktop runs on the integrated
+graphics and the NVIDIA card turns on only for the programs that ask for
+it: right-click an application and choose “Launch using Dedicated Graphics
+Card”.
+
+**The choice is made once, at installation.** Installing with the free
+drivers removes the NVIDIA driver from the installed system; to use it
+later, reinstall with **Start installer with NVIDIA driver**. If you install
+with the NVIDIA driver and it causes problems, the boot menu of the
+installed system has the entry **“RuscaLinux with free drivers (without
+NVIDIA driver)”**.
+
+### Secure Boot
+
+With Secure Boot on, the computer loads the NVIDIA driver only after you
+enroll the RuscaLinux certificate. You do this **once per computer**, from
+the live session with the NVIDIA driver or from the installed system:
+
+```sh
+sudo mokutil --import /usr/share/ruscalinux/nvidia/ruscalinux-mok.der
+```
+
+1. `mokutil` asks for a password: choose one, you will need it only once.
+2. Restart. A blue screen appears, **MokManager**.
+3. Choose **Enroll MOK → Continue → Yes**, type the password, then
+   **Reboot**.
+
+Until the certificate is enrolled, the NVIDIA entries still start, but the
+desktop uses the integrated graphics (laptops) or basic graphics without
+acceleration (desktops). As an alternative you can turn Secure Boot off in
+the firmware settings. On **Acer** laptops the Secure Boot option stays
+grey until you set a supervisor password in the Security tab (F2 at
+power-on).
+
+**About the licence.** The NVIDIA driver is proprietary software, distributed
+under the NVIDIA licence; its kernel modules are open source. The free
+drivers remain the default.
+
+---
+
 ## A note on updates
 
 RuscaLinux has no live repositories. Your system will not download anything in
@@ -98,6 +153,10 @@ the background, and nothing will silently change under you.
 To move to a newer release, download the new ISO from SourceForge or the
 official website, verify it, and install it fresh. Each version is a complete,
 known starting point.
+
+This includes security fixes: they arrive with each new release. The same
+goes for the NVIDIA driver, whose version (@NVIDIA@) is written in the
+release notes.
 
 ---
 
@@ -178,8 +237,10 @@ Apparirà il menu d'avvio di RuscaLinux:
 | Opzione | Cosa fa |
 |---|---|
 | **Live system (@ARCH@)** | Avvia RuscaLinux interamente dalla chiavetta. Nulla viene scritto sul disco. Il modo migliore per provare il sistema. |
+| **Live system (@ARCH@) with NVIDIA driver** | Come sopra, con il driver NVIDIA al posto dei driver liberi. Vedi [Schede grafiche NVIDIA](#schede-grafiche-nvidia). |
 | **Live system (amd64 fail-safe mode)** | Stesso modo, con driver più conservativi se il sistema non viene visualizzato correttamente. |
-| **Start installer** | Installa RuscaLinux sul computer. |
+| **Start installer** | Installa RuscaLinux sul computer, con i driver grafici liberi. |
+| **Start installer with NVIDIA driver** | Installa RuscaLinux con il driver NVIDIA attivo. |
 | **Start installer with speech synthesis** | Installazione parlata e accessibile. |
 | **Advanced install options** | Per utenti esperti. |
 | **Utilities** | Test della memoria e altri strumenti. |
@@ -196,6 +257,58 @@ posta sono già installati e configurati.
 
 ---
 
+## Schede grafiche NVIDIA
+
+RuscaLinux si avvia e si installa con i **driver grafici liberi**, che
+funzionano su ogni computer. La ISO contiene anche il **driver NVIDIA
+@NVIDIA@**, che dà alle schede NVIDIA tutte le loro prestazioni: si sceglie
+con le voci **“… with NVIDIA driver”** del menu di avvio.
+
+Funziona con le schede **GTX 16, RTX 20 e successive** (RTX 30, 40, 50), sia
+desktop sia portatili. Le schede precedenti (GTX 900, GTX 1000) usano i
+driver liberi.
+
+**Prima prova.** Avvia **Live system (@ARCH@) with NVIDIA driver**. Se il
+desktop funziona, installa con **Start installer with NVIDIA driver**.
+
+**Portatili con due schede grafiche.** Il desktop usa la grafica integrata e
+la scheda NVIDIA si accende solo per i programmi che la chiedono: clic
+destro su un'applicazione e “Avvia usando la scheda grafica dedicata”.
+
+**La scelta si fa una volta, all'installazione.** Installando con i driver
+liberi, il driver NVIDIA viene tolto dal sistema installato; per usarlo in
+seguito si reinstalla con **Start installer with NVIDIA driver**. Se installi
+con il driver NVIDIA e dà problemi, nel menu di avvio del sistema installato
+c'è la voce **“RuscaLinux with free drivers (without NVIDIA driver)”**.
+
+### Secure Boot
+
+Con Secure Boot attivo, il computer carica il driver NVIDIA solo dopo che hai
+registrato il certificato di RuscaLinux. Si fa **una volta per computer**,
+dalla sessione live con il driver NVIDIA o dal sistema installato:
+
+```sh
+sudo mokutil --import /usr/share/ruscalinux/nvidia/ruscalinux-mok.der
+```
+
+1. `mokutil` chiede una password: scegline una, servirà una volta sola.
+2. Riavvia. Compare una schermata blu, **MokManager**.
+3. Scegli **Enroll MOK → Continue → Yes**, scrivi la password, poi
+   **Reboot**.
+
+Finché il certificato non è registrato, le voci NVIDIA partono lo stesso, ma
+il desktop usa la grafica integrata (portatili) o una grafica di base senza
+accelerazione (desktop). In alternativa puoi disattivare Secure Boot nelle
+impostazioni del firmware. Sui portatili **Acer** l'opzione Secure Boot resta
+grigia finché non imposti una password supervisore nella scheda Security (F2
+all'accensione).
+
+**Sulla licenza.** Il driver NVIDIA è software proprietario, distribuito con
+la licenza NVIDIA; i suoi moduli del kernel sono open source. I driver
+liberi restano quelli predefiniti.
+
+---
+
 ## Una nota sugli aggiornamenti
 
 RuscaLinux non ha repository attivi. Il sistema non scaricherà nulla in
@@ -204,6 +317,10 @@ background e nulla cambierà in silenzio sotto di te.
 Per passare a una nuova release scarica la nuova ISO da SourceForge o dal
 sito ufficiale, verificala, e installala da zero. Ogni versione è un punto
 di partenza completo e conosciuto.
+
+Vale anche per le correzioni di sicurezza: arrivano con ogni nuova release.
+Lo stesso per il driver NVIDIA, la cui versione (@NVIDIA@) è scritta nelle
+note di rilascio.
 
 ---
 

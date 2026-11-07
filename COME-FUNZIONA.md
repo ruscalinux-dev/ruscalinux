@@ -16,10 +16,15 @@ ISO: quello lo decidono i tre file in `steps/`.
 ## Fare una nuova versione
 
 ```sh
-vi release.conf     # VERSION="2.0"
+vi release.conf     # VERSION="2.0", NVIDIA_PIN="595.71.05"
 ./build.sh
 ./test.sh
 ```
+
+Per un rilascio `NVIDIA_PIN` va scritto con la versione esatta del driver,
+provata su hardware vero: `build.sh` avvisa se è ancora un ramo (`"595"`).
+La versione installata nella ISO finisce da sola nelle note di rilascio e
+nei documenti per chi scarica (`@NVIDIA@`).
 
 Poi si pubblica a mano: vedi più sotto.
 
@@ -42,8 +47,11 @@ spiegato in [`docs/NVIDIA.md`](docs/NVIDIA.md).
 ## Cosa serve sulla macchina
 
 ```sh
-sudo apt install live-build python3 qemu-system-x86 qemu-utils ovmf
+sudo apt install live-build python3 openssl squashfs-tools qemu-system-x86 qemu-utils ovmf
 ```
+
+`openssl` e `squashfs-tools` servono al driver NVIDIA: il primo crea la
+chiave di firma dei moduli, il secondo controlla che non finisca nella ISO.
 
 `python3` serve agli script dei tool per controllare traduzioni e sorgenti.
 La rete non serve più per preparare i pacchetti: si costruisce tutto qui.
@@ -137,7 +145,7 @@ non ricevi alcun segnale — te lo dice solo qualcuno che scrive per lamentarsi.
 `dist/README.md` e `dist/INSTALL.md` sono i due file pubblicati su SourceForge
 accanto alla ISO. Sono **modelli**: al posto della versione, del nome del file,
 del checksum e del numero di pacchetti contengono `@VERSION@`, `@ISO@`,
-`@SHA256@` e `@PACCHETTI@`, che `build.sh` sostituisce con i valori veri.
+`@SHA256@`, `@PACCHETTI@` e `@NVIDIA@`, che `build.sh` sostituisce con i valori veri.
 
 Erano ventitré punti da correggere a mano a ogni rilascio, in due lingue. Ora
 si modificano solo quando cambia il *contenuto* — un'applicazione aggiunta,

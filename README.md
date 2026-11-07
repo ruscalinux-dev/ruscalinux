@@ -10,7 +10,7 @@ Website: <https://www.ruscalinux.org/> · Downloads: [SourceForge](https://sourc
 ## Build it
 
 ```sh
-sudo apt install live-build python3 qemu-system-x86 qemu-utils ovmf
+sudo apt install live-build python3 openssl squashfs-tools qemu-system-x86 qemu-utils ovmf
 ./build.sh          # produces .work/ruscalinux-<version>-amd64.hybrid.iso
 ./test.sh           # boots it in QEMU
 ```
@@ -59,6 +59,11 @@ Build scripts and original design sources: **GPL-3.0**, see [`LICENSE`](LICENSE)
 
 Third-party material keeps its own licence — Debian packages, the upstream
 Adwaita icon theme, and the DM Sans and Syne fonts (SIL Open Font License).
+
+The image also includes, as an option in the boot menu, the NVIDIA driver
+from NVIDIA's repository: proprietary software under the NVIDIA licence, with
+open-source kernel modules (MIT/GPL-2.0). The free drivers are the default.
+See [`docs/NVIDIA.md`](docs/NVIDIA.md).
 
 **Trademarks:** the name *RuscaLinux*, its logo and its emblem are **not**
 covered by the GPL. See [`TRADEMARK.md`](TRADEMARK.md) and

@@ -42,9 +42,9 @@ e `/usr/lib/ruscalinux/nvidia-postinstall`, alla fine dell'installazione:
   (without NVIDIA driver)”, da usare se il driver NVIDIA dà problemi. Con
   quella voce il pannello torna nascosto.
 
-La scelta fatta durante l'installazione è definitiva: il sistema installato
-è offline, quindi chi installa con i driver liberi non può aggiungere il
-driver NVIDIA in seguito, se non reinstallando.
+La scelta fatta durante l'installazione è definitiva, ed è voluto: chi
+installa con i driver liberi non ha il driver NVIDIA sul disco, e per averlo
+reinstalla con la voce “Start installer with NVIDIA driver”.
 
 ## Schede supportate
 
@@ -87,6 +87,10 @@ ISO entra solo il certificato pubblico,
 - **Non metterla mai in git** e non copiarla nel repository.
 - L'hook la cancella dal sistema della ISO, e `build.sh` controlla che non ci
   sia.
+- L'hook stesso la contiene, in base64: `build.sh` lo cancella da `.work/`
+  quando finisce, anche se la build si ferma per un errore. Con
+  `./build.sh --config` resta, per poterlo leggere: `./build.sh --clean` lo
+  cancella.
 
 ## Scegliere la versione del driver
 
@@ -101,8 +105,18 @@ ISO entra solo il certificato pubblico,
 Le versioni disponibili si vedono nell'indice del repository
 (`NVIDIA_REPO`), cercando i file `nvidia-driver-pinning-*`. Si sceglie una
 versione pubblicata da almeno due settimane e provata su hardware vero.
+`build.sh` avvisa se `NVIDIA_PIN` è ancora un ramo.
 (llama.cpp invece segue da solo l'ultima release stabile: vedi
 `tools/ruscallama-engine/README.md`.)
+
+La versione davvero installata nella ISO la legge `build.sh` dal file
+`.packages` e la scrive al posto di `@NVIDIA@` nelle note di rilascio e nei
+documenti per chi scarica.
+
+**Aggiornamenti di sicurezza.** Il sistema installato non ha repository:
+il driver resta quello della ISO. Quando NVIDIA pubblica un bollettino di
+sicurezza che riguarda il ramo in uso (<https://www.nvidia.com/en-us/security/>),
+si aggiorna `NVIDIA_PIN` e si pubblica una nuova ISO.
 
 ## Componente CUDA e nvidia-smi
 

@@ -21,7 +21,8 @@ moment it boots.
 - **Multimedia** — SMPlayer, Audacity, OBS Studio, GIMP 3.0, Audacious, Brasero, EasyTAG, FFmpeg 7.1
 - **Internet** — Firefox ESR 153, Thunderbird 140, qBittorrent
 - **Languages** — 40+ localizations bundled in the base image
-- **In-house tools** — RuscaMark (Markdown editor), RuscaHub (AppImage manager), RuscaCleaner (privacy cleanup)
+- **In-house tools** — RuscaMark (Markdown editor), RuscaWriter (book writing), RuscaHub (AppImage manager), RuscaCleaner (privacy cleanup), RuscaLLama and RuscaTranslator (local AI chat and translation)
+- **Graphics** — free drivers by default; NVIDIA driver @NVIDIA@ (GTX 16, RTX 20 and later) as an option in the boot menu
 - **Security** — AppArmor mandatory access control enabled by default
 - **Image** — hybrid ISO with live system + installer (including speech-synthesis option)
 - **Total** — @PACCHETTI@ carefully selected packages
@@ -88,8 +89,13 @@ Replace `/dev/sdX` with your USB device. **Double-check the target** —
 Boot from the USB stick and choose:
 
 - **Live system (@ARCH@)** — explore RuscaLinux without touching your disk
+- **Live system (@ARCH@) with NVIDIA driver** — the same, with the NVIDIA driver
 - **Start installer** — install to your drive
+- **Start installer with NVIDIA driver** — install with the NVIDIA driver active
 - **Start installer with speech synthesis** — accessible, spoken installation
+
+With Secure Boot on, the NVIDIA driver needs a one-time step: see
+`INSTALL.md`, section “NVIDIA graphics cards”.
 
 ---
 
@@ -98,7 +104,8 @@ Boot from the USB stick and choose:
 RuscaLinux ships with **no live repositories**. Your system stays exactly as you
 installed and tested it — no nightly churn, no surprise breakages. To move
 forward, you download a new ISO and install it fresh. Stability here is a
-deliberate feature.
+deliberate feature. Security fixes, including those for the NVIDIA driver,
+arrive with each new release.
 
 ---
 
@@ -117,7 +124,12 @@ For questions, bug reports, or feedback:
 
 ## Licensing
 
-RuscaLinux is a free and open-source aggregate built from packages released
-under several free software licenses (mainly GPL, LGPL, MIT, BSD, MPL, Apache).
-Each component retains its original license. See `INSTALL.md` and the website
-for details.
+RuscaLinux is built almost entirely from free and open-source software,
+released under several licenses (mainly GPL, LGPL, MIT, BSD, MPL, Apache).
+Each component retains its original license.
+
+Like Debian, RuscaLinux includes the non-free firmware that some hardware
+needs to work. It also includes, as an option in the boot menu, the NVIDIA
+driver: proprietary software distributed under the NVIDIA license, with
+open-source kernel modules (MIT/GPL-2.0). The free drivers are the default.
+See `INSTALL.md` and the website for details.

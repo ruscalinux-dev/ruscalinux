@@ -27,6 +27,7 @@ eog
 # Ebooks
 gnome-epub-thumbnailer
 calibre
+foliate
 
 # Scrittura
 goldendict-ng

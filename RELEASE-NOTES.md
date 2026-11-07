@@ -68,6 +68,9 @@
   without HTTPS support and without its web interface, so it cannot download
   anything: nothing is sent over the internet.
 - **SMPlayer** replaces VLC as the video player.
+- **Foliate** reads EPUB and other e-books, with a clean reading view.
+- **Magic wallpaper** redrawn for contrast: a rose-mauve background halfway
+  between the plum paper planes and the cream stardust, without grain.
 - **Archive Manager** (File Roller) opens, creates and extracts ZIP, 7z, TAR
   and other archives.
 - **Traditional Chinese input**: the Zhuyin (Bopomofo) method used in Taiwan

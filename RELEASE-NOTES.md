@@ -68,6 +68,12 @@
   without HTTPS support and without its web interface, so it cannot download
   anything: nothing is sent over the internet.
 - **SMPlayer** replaces VLC as the video player.
+- **Archive Manager** (File Roller) opens, creates and extracts ZIP, 7z, TAR
+  and other archives.
+- **Traditional Chinese input**: the Zhuyin (Bopomofo) method used in Taiwan
+  (Chewing), in Settings → Keyboard → Input Sources. Mozc Setup, needed only
+  for Japanese input, no longer appears in the app grid: it opens from the
+  Japanese input source's preferences.
 - **Disk repair tools**, also in the live session: `fsck` for ext4, FAT,
   exFAT, NTFS, XFS and Btrfs, `smartctl` for disk health, `ddrescue` to copy
   a failing disk, and `testdisk`/`photorec` to recover partitions and files.

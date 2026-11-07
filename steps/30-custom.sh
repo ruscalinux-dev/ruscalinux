@@ -1890,6 +1890,10 @@ EOF
 # finale: la GUI "display" di ImageMagick (una finestra Motif degli anni
 # Novanta) e TeXdoctk se texlive e' presente. ImageMagick resta installato e
 # pienamente funzionante da riga di comando: nascondiamo solo l'icona.
+# Anche "Mozc Setup" (setup-mozc.desktop): serve solo a chi scrive in
+# giapponese, che lo apre dalle preferenze della sorgente di input
+# (Impostazioni -> Tastiera); il pacchetto ha gia' una seconda voce,
+# ibus-setup-mozc-jp.desktop, nascosta dal menu, per quell'uso.
 #
 # Non si tocca il file del pacchetto: si scrive una copia con NoDisplay=true
 # in /usr/local/share/applications, che in XDG_DATA_DIRS ha precedenza su
@@ -1941,7 +1945,8 @@ mkdir -p /usr/local/share/applications
 for f in /usr/share/applications/display-im*.desktop \
          /usr/share/applications/texdoctk.desktop \
          /usr/share/applications/org.gnome.Snapshot.desktop \
-         /usr/share/applications/mpv.desktop; do
+         /usr/share/applications/mpv.desktop \
+         /usr/share/applications/setup-mozc.desktop; do
     [ -e "$f" ] || continue
     base=$(basename "$f")
     # Rimuove eventuali NoDisplay preesistenti e ne inserisce uno subito

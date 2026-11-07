@@ -65,6 +65,7 @@ squashfs-tools
 fastfetch
 pdftk
 tree
+file-roller
 
 # Dischi e recupero: controllo e riparazione dei filesystem (fsck), stato dei
 # dischi (smartctl), copia di dischi danneggiati (ddrescue), recupero di
@@ -506,6 +507,8 @@ thunderbird-l10n-ko
 
 # --- Cinese Tradizionale (zh_TW) ---
 task-chinese-t
+# Metodo di input Zhuyin (Bopomofo), quello usato di solito a Taiwan
+ibus-chewing
 libreoffice-l10n-zh-tw
 firefox-esr-l10n-zh-tw
 thunderbird-l10n-zh-tw
